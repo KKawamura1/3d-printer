@@ -1,0 +1,166 @@
+{
+  "physical_fit_validated": false,
+  "reference": "synthetic nominal geometry, not genuine brick",
+  "variants": [
+    {
+      "id": "clearance_-0p04",
+      "radial_clearance_mm": -0.04,
+      "file": "clearance_-0p04.stl",
+      "parameters": {
+        "nx": 4,
+        "ny": 2,
+        "pitch": 8.0,
+        "body_gap": 0.2,
+        "height": 9.6,
+        "stud_radius": 2.4,
+        "stud_height": 1.8,
+        "wall": 1.5,
+        "roof": 1.2,
+        "tube_radius": 3.25,
+        "tube_inner_radius": 2.4,
+        "clearance": -0.04
+      },
+      "mesh_passed": true,
+      "self": {
+        "intersection_mm3": 2.3841787547317668,
+        "collision": true
+      },
+      "reference_lower": {
+        "intersection_mm3": 0.7927707287769276,
+        "collision": true
+      },
+      "reference_upper": {
+        "intersection_mm3": 0.7975968597400301,
+        "collision": true
+      }
+    },
+    {
+      "id": "clearance_+0p00",
+      "radial_clearance_mm": 0.0,
+      "file": "clearance_+0p00.stl",
+      "parameters": {
+        "nx": 4,
+        "ny": 2,
+        "pitch": 8.0,
+        "body_gap": 0.2,
+        "height": 9.6,
+        "stud_radius": 2.4,
+        "stud_height": 1.8,
+        "wall": 1.5,
+        "roof": 1.2,
+        "tube_radius": 3.25,
+        "tube_inner_radius": 2.4,
+        "clearance": 0.0
+      },
+      "mesh_passed": true,
+      "self": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      "reference_lower": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      "reference_upper": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      }
+    },
+    {
+      "id": "clearance_+0p04",
+      "radial_clearance_mm": 0.04,
+      "file": "clearance_+0p04.stl",
+      "parameters": {
+        "nx": 4,
+        "ny": 2,
+        "pitch": 8.0,
+        "body_gap": 0.2,
+        "height": 9.6,
+        "stud_radius": 2.4,
+        "stud_height": 1.8,
+        "wall": 1.5,
+        "roof": 1.2,
+        "tube_radius": 3.25,
+        "tube_inner_radius": 2.4,
+        "clearance": 0.04
+      },
+      "mesh_passed": true,
+      "self": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      "reference_lower": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      "reference_upper": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      }
+    },
+    {
+      "id": "clearance_+0p08",
+      "radial_clearance_mm": 0.08,
+      "file": "clearance_+0p08.stl",
+      "parameters": {
+        "nx": 4,
+        "ny": 2,
+        "pitch": 8.0,
+        "body_gap": 0.2,
+        "height": 9.6,
+        "stud_radius": 2.4,
+        "stud_height": 1.8,
+        "wall": 1.5,
+        "roof": 1.2,
+        "tube_radius": 3.25,
+        "tube_inner_radius": 2.4,
+        "clearance": 0.08
+      },
+      "mesh_passed": true,
+      "self": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      "reference_lower": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      "reference_upper": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      }
+    },
+    {
+      "id": "clearance_+0p12",
+      "radial_clearance_mm": 0.12,
+      "file": "clearance_+0p12.stl",
+      "parameters": {
+        "nx": 4,
+        "ny": 2,
+        "pitch": 8.0,
+        "body_gap": 0.2,
+        "height": 9.6,
+        "stud_radius": 2.4,
+        "stud_height": 1.8,
+        "wall": 1.5,
+        "roof": 1.2,
+        "tube_radius": 3.25,
+        "tube_inner_radius": 2.4,
+        "clearance": 0.12
+      },
+      "mesh_passed": true,
+      "self": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      "reference_lower": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      "reference_upper": {
+        "intersection_mm3": 0.0,
+        "collision": false
+      }
+    }
+  ]
+}

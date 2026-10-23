@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "geometry": {
+    "parameters": {
+      "nx": 4,
+      "ny": 2,
+      "pitch": 8.0,
+      "body_gap": 0.2,
+      "height": 9.6,
+      "stud_radius": 2.4,
+      "stud_height": 1.8,
+      "wall": 1.5,
+      "roof": 1.2,
+      "tube_radius": 3.25,
+      "tube_inner_radius": 2.4,
+      "clearance": 0.05
+    },
+    "bounds_mm": [
+      31.8,
+      15.8,
+      11.4
+    ],
+    "volume_mm3": 2296.325258403748,
+    "analytical_volume_mm3": 2296.3252584037473,
+    "checks": {
+      "valid_brep": true,
+      "one_solid": true,
+      "dimensions": true,
+      "analytical_volume": true,
+      "bottom_open": true,
+      "roof_present": true,
+      "stud_centres": true,
+      "tube_holes": true,
+      "tube_walls": true
+    },
+    "passed": true
+  },
+  "mesh": {
+    "triangles": 7084,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "degenerate_triangles": 0,
+    "signed_volume_mm3": 2296.075039432481,
+    "bounds_mm": [
+      [
+        -15.899999618530273,
+        -7.900000095367432,
+        0.0
+      ],
+      [
+        15.899999618530273,
+        7.900000095367432,
+        11.399999618530273
+      ]
+    ],
+    "passed": true
+  },
+  "step_roundtrip_passed": true,
+  "fit": {
+    "reference": "synthetic nominal model; not an OEM scan",
+    "limitation": "Rigid geometry only: no clutch force, elasticity, shrinkage, slicer or FEA prediction",
+    "numerical_volume_tolerance_mm3": 1e-05,
+    "self_wall_gap_mm": 0.10000000000000009,
+    "self_tube_gap_mm": 0.10685424949238032,
+    "insertion": [
+      {
+        "pair": "printed/printed",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 1.8,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 1.2,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 0.6,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 1.8,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 1.2,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 0.6,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 1.8,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 1.2,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 0.6,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      }
+    ],
+    "poses": [
+      {
+        "name": "one_stud_offset",
+        "xyz_mm": [
+          8.0,
+          0,
+          9.6
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "name": "cross_90",
+        "xyz_mm": [
+          0,
+          0,
+          9.6
+        ],
+        "rotation_deg": 90,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "name": "half_pitch_negative_control",
+        "xyz_mm": [
+          4.0,
+          0,
+          9.6
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 51.94623211556322,
+        "collision": true
+      },
+      {
+        "name": "overinsert_negative_control",
+        "xyz_mm": [
+          0,
+          0,
+          9.299999999999999
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 51.5559015792742,
+        "collision": true
+      }
+    ],
+    "negative_controls_passed": true
+  },
+  "physical_fit_validated": false,
+  "fit_geometrically_clear": true,
+  "mesh_matches_cad": true,
+  "environment": {
+    "cadquery": "2.7.0",
+    "cadquery-ocp": "7.8.1.1.post1",
+    "numpy": "2.3.5",
+    "matplotlib": "3.10.8"
+  },
+  "files": {
+    "brick.stl": "cb4224f1e2525d64985d85f722dec8449eaaa2de4b3cd2fd1c7428ece3b8f670",
+    "brick.step": "0f1922b9fcadcef7ee4e88fdd342734509fda07697eca8e6d1652f8d5b418832"
+  },
+  "passed": true
+}

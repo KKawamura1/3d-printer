@@ -1,0 +1,14 @@
+{
+  "nx": 4,
+  "ny": 2,
+  "pitch": 8.0,
+  "body_gap": 0.2,
+  "height": 9.6,
+  "stud_radius": 2.4,
+  "stud_height": 1.8,
+  "wall": 1.5,
+  "roof": 1.2,
+  "tube_radius": 3.25,
+  "tube_inner_radius": 2.4,
+  "clearance": 0.05
+}

@@ -1,0 +1,61 @@
+{
+  "printer": null,
+  "nozzle_mm": null,
+  "material": null,
+  "layer_height_mm": null,
+  "slicer_version": null,
+  "print_settings": {},
+  "reference_part": null,
+  "results": [
+    {
+      "id": "clearance_-0p04",
+      "stud_diameter_mm": null,
+      "body_x_mm": null,
+      "body_y_mm": null,
+      "printed_on_reference": null,
+      "reference_on_printed": null,
+      "printed_on_printed": null,
+      "notes": "unprinted"
+    },
+    {
+      "id": "clearance_+0p00",
+      "stud_diameter_mm": null,
+      "body_x_mm": null,
+      "body_y_mm": null,
+      "printed_on_reference": null,
+      "reference_on_printed": null,
+      "printed_on_printed": null,
+      "notes": "unprinted"
+    },
+    {
+      "id": "clearance_+0p04",
+      "stud_diameter_mm": null,
+      "body_x_mm": null,
+      "body_y_mm": null,
+      "printed_on_reference": null,
+      "reference_on_printed": null,
+      "printed_on_printed": null,
+      "notes": "unprinted"
+    },
+    {
+      "id": "clearance_+0p08",
+      "stud_diameter_mm": null,
+      "body_x_mm": null,
+      "body_y_mm": null,
+      "printed_on_reference": null,
+      "reference_on_printed": null,
+      "printed_on_printed": null,
+      "notes": "unprinted"
+    },
+    {
+      "id": "clearance_+0p12",
+      "stud_diameter_mm": null,
+      "body_x_mm": null,
+      "body_y_mm": null,
+      "printed_on_reference": null,
+      "reference_on_printed": null,
+      "printed_on_printed": null,
+      "notes": "unprinted"
+    }
+  ]
+}
