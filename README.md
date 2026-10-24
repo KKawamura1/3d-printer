@@ -128,3 +128,8 @@ python scripts/review-sheet.py build/browser-qa
 自動検査はJavaScriptエラー、空のキャンバス、組立部品の描画漏れ、視点変更、ドラッグ・拡大縮小、表示上の干渉判定、モバイルの横はみ出しを確認します。形状の意味を理解した目視判定は行いません。`automated_passed`と`visual_review_performed`は別です。画像をエージェントが実際に開いて確認し、欠陥があれば修正・再撮影することが作業完了条件です。
 
 上のLinux用代替経路も使えない場合は、GitHub Actionsの`brick-cad-and-verification` artifactから同じ画像を取り出して確認します。未取得・未確認なら目視確認済みと扱いません。
+
+
+## 小さな初回接続試験
+
+[sim2real印刷プレート](examples/sim2real/plate.stl)は、2×2を5個、補正を変えて同時印刷するデータです。配置55.8×35.8 mm、最大高さ11.4 mm、CAD体積換算でPLA約7.74 g。側面の溝1〜5本で識別します。上下を純正と別々に比較し、突起・受けを独立選択できます。[印刷・評価・再生成の手順](docs/sim2real.md)を参照してください。

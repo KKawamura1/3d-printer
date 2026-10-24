@@ -1,0 +1,11 @@
+{
+  "printer": null,
+  "nozzle_mm": null,
+  "material": null,
+  "layer_height_mm": null,
+  "slicer": null,
+  "settings": {},
+  "reference_part": null,
+  "selected_stud_id": null,
+  "selected_receiver_id": null
+}
