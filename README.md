@@ -172,4 +172,4 @@ Pythonのimport依存をたどり、変更したモジュールを使うテス�
 
 ## 4×4・90度下りカーブ
 
-黄色い既存カーブと同じ占有サイズで1段下る[試作01の設計・印刷手順](docs/duplo-sloped-curve-trial-01.md)。[印刷用ZIP](prints/duplo_sloped_curve_trial_01.zip)にSTL・STEPと自己完結プレビューを同梱。
+黄色い既存カーブと同じ占有サイズで1段下る、余分な床を除いた帯状の[試作01の設計・印刷手順](docs/duplo-sloped-curve-trial-01.md)。[印刷用ZIP](prints/duplo_sloped_curve_trial_01.zip)にSTL・STEPと自己完結プレビューを同梱。

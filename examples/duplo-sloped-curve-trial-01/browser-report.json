@@ -1,18 +1,18 @@
 {
   "input_files": {
-    "viewer.html": "48356e84aa4dc722f4de8544ab638cb49b65f75a71ce51d3b3cd099d2bb96950",
-    "report.json": "6f5e3cb17d1998bf614c9a94034ad38a33826c2c0e30c4d0ae558d6efbb83386",
-    "brick.stl": "c9fc4499e87c2415d782879a7b0b27b0ac74210008908f2625d4aef6cddb8408",
-    "brick.step": "578a6d30d49459b91f22772e3f66ee063ad5980f68249f54929dde98b46b40ad",
-    "assembly.step": "438d8faf9d1d6f126bac1ca1ff70e0ae947cacb560acbdaa28a93f034f0c45ba"
+    "viewer.html": "be759dcf670e4457b23628b422e8006a4c21d3ac9d7e5228d6686f5a8ffa4194",
+    "report.json": "4d47156132e6235abb26c98a59a786cd5b5431777b9ed1e171e18422f228f63f",
+    "brick.stl": "4cb0cebea6ab1bde8a6ac1fd96f3f16d9431b4aa32818fce66e609de55726ded",
+    "brick.step": "fb87c38ad6ba039b4e60b80fe36621e4be7bdf7a3b31c4d7c1ca40386c7c084f",
+    "assembly.step": "82aecc21d48db61612c90781702b43693918de9104c8d84b94f8114991b89f43"
   },
   "captures": [
     {
       "name": "01-tunnel",
       "file": "01-tunnel.png",
-      "sha256": "8d8b5cda1623d803b579b808e36b0cd68aa5fc9ef4f19c63d94040a22e230d7f",
+      "sha256": "0e88f62d1743678b47a781e66210de9b569cdab7d300717dcb06690d5f710b59",
       "pixels": {
-        "red": 275032,
+        "red": 323827,
         "blue": 0
       },
       "status": "CAD・STL検証: PASS"
@@ -20,9 +20,9 @@
     {
       "name": "02-top",
       "file": "02-top.png",
-      "sha256": "04fdb6d53a62a56ca4101c3b9a47781aa91cb73a8e1f97080ae149772499060a",
+      "sha256": "159414ffe0a6a206cff9cb69760264d450aff468618f6a92a4feb2bc4d360dcf",
       "pixels": {
-        "red": 291585,
+        "red": 172013,
         "blue": 0
       },
       "status": "CAD・STL検証: PASS"
@@ -30,9 +30,9 @@
     {
       "name": "03-underside",
       "file": "03-underside.png",
-      "sha256": "28b0f9dde2d956c4922368f81baac2327b932717b9efea4d00e090cec2ccb1c4",
+      "sha256": "aadbd22e15f8d4e72f0d73c28440001627cb8b9a174ddc3366b669cca3e95271",
       "pixels": {
-        "red": 220964,
+        "red": 300452,
         "blue": 0
       },
       "status": "CAD・STL検証: PASS"
@@ -40,9 +40,9 @@
     {
       "name": "04-section",
       "file": "04-section.png",
-      "sha256": "da1ba9bbd19e2a7ce26fac99cf43da257ed95ef8ad19c4be7872a881bcfa4d1f",
+      "sha256": "f26394f5a2bd8d8a469f7803ae4804b99f53e536fade3a6e2f035902f2c8194f",
       "pixels": {
-        "red": 322997,
+        "red": 310666,
         "blue": 0
       },
       "status": "CAD・STL検証: PASS"
@@ -50,29 +50,29 @@
     {
       "name": "05-balls",
       "file": "05-balls.png",
-      "sha256": "09b8b1a717c7e6159ea9ea3f72b35f0a59a09412191972e5e9281808e334a325",
+      "sha256": "c6f5f1ee549a9ce6ea9a51d30d9aa517da15d8e68c50d2b04ea9aa00935fe129",
       "pixels": {
-        "red": 137336,
-        "blue": 121063
+        "red": 143267,
+        "blue": 172681
       },
       "status": "CAD・STL検証: PASS"
     },
     {
       "name": "06-balls-top",
       "file": "06-balls-top.png",
-      "sha256": "7024b87e3832d7ab7e3c3dbd5c150e4904b24838d065dd1192cc00cbd58764e1",
+      "sha256": "241484504f8fa4168f043ebcefa6e3405ee15b1e9595f6f8705141b57ddfae4b",
       "pixels": {
-        "red": 124628,
-        "blue": 104286
+        "red": 40102,
+        "blue": 104291
       },
       "status": "CAD・STL検証: PASS"
     },
     {
       "name": "08-course",
       "file": "08-course.png",
-      "sha256": "f997354d9105160eb1773c6215715572dfdcb7853a11873bf6aaadc4379ef142",
+      "sha256": "0446dfeade4a6f516d8c908557ef60315626c80b4636ea84c99bcba43c8d4111",
       "pixels": {
-        "red": 203850,
+        "red": 225037,
         "blue": 0
       },
       "status": "CAD・STL検証: PASS"
@@ -80,9 +80,9 @@
     {
       "name": "09-exploded",
       "file": "09-exploded.png",
-      "sha256": "8712c4437ea468adf574dd1322c16464eb21d9a3ddda7da80e0bdabcf47fa32d",
+      "sha256": "d101fc17887b41284a068092cdf3dd9f1635d1ceaac9bd231c927ec08269041b",
       "pixels": {
-        "red": 127412,
+        "red": 127417,
         "blue": 0
       },
       "status": "CAD・STL検証: PASS"
@@ -90,9 +90,39 @@
     {
       "name": "10-course-top",
       "file": "10-course-top.png",
-      "sha256": "dcd8a322c5a43e23754d87f7259f13af7ffc24001aafe8d537a1b54fa1fa8986",
+      "sha256": "0c31b53866cd6c18180032ebac901cde383231b4900a9b53ae7df80c820adf2b",
       "pixels": {
-        "red": 145516,
+        "red": 145520,
+        "blue": 0
+      },
+      "status": "CAD・STL検証: PASS"
+    },
+    {
+      "name": "12-receiver",
+      "file": "12-receiver.png",
+      "sha256": "8c442e89d7e1068c4b49347385aac76be4600219c184dc461b6b72e990ef1aa0",
+      "pixels": {
+        "red": 241027,
+        "blue": 0
+      },
+      "status": "CAD・STL検証: PASS"
+    },
+    {
+      "name": "13-receiver-exploded",
+      "file": "13-receiver-exploded.png",
+      "sha256": "52b42fb04969f932482c71fd16d7e33496127a76aa7f41af725f40aed9388180",
+      "pixels": {
+        "red": 227697,
+        "blue": 0
+      },
+      "status": "CAD・STL検証: PASS"
+    },
+    {
+      "name": "14-receiver-top",
+      "file": "14-receiver-top.png",
+      "sha256": "1f536f6e5e0d421b52734ab4b5e68512c064ecdb2e39c2d4a6b8756e419520c1",
+      "pixels": {
+        "red": 291600,
         "blue": 0
       },
       "status": "CAD・STL検証: PASS"
@@ -100,9 +130,9 @@
     {
       "name": "11-mobile",
       "file": "11-mobile.png",
-      "sha256": "6f6a44612939412a8d7ebd7560852e20d5a77b5b87e88340b4cc1ffebfd2bea8",
+      "sha256": "256479a19cd74313380ebc9be4d5dd9c304d42de621d50fb1ab462ca17c74aa4",
       "pixels": {
-        "red": 93013,
+        "red": 54845,
         "blue": 0
       },
       "status": "CAD・STL検証: PASS"

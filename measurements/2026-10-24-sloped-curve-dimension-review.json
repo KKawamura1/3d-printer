@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-24",
+  "issues": [
+    {
+      "url": "https://github.com/KKawamura1/3d-printer/issues/1",
+      "updated_at": "2026-10-24T08:31:08Z",
+      "title": "DUPLO sim-to-real実験記録：校正片の接続・実測と通常高さ2×2への移植結果",
+      "comments": 0
+    },
+    {
+      "url": "https://github.com/KKawamura1/3d-printer/issues/2",
+      "updated_at": "2026-10-24T08:31:02Z",
+      "title": "DUPLO互換ボールレール：実測寸法・断面推定・接続検証",
+      "comments": 0
+    }
+  ],
+  "measured_facts": {
+    "rail": {
+      "cad_length_mm": 63.8,
+      "printed_length_mm": 63.47,
+      "existing_length_mm": 63.78,
+      "printed_wall_height_mm": 19.15,
+      "existing_wall_height_mm": 19.11,
+      "printed_floor_mm": {
+        "approximate": 6.39
+      },
+      "existing_floor_mm": {
+        "approximate": 6.3
+      },
+      "printed_tube_od_mm": {
+        "approximate": 13.01
+      },
+      "existing_tube_od_mm": {
+        "approximate": 13.28
+      },
+      "printed_tube_id_mm": {
+        "approximate": 8.93
+      },
+      "existing_tube_id_mm": {
+        "approximate": 10.93
+      },
+      "functional_fit": "slightly loose; attaches and detaches easily",
+      "corners": "rounded; user reported perfect"
+    },
+    "reference_stud_diameter_mm": {
+      "observed_range": [
+        9.31,
+        9.33
+      ],
+      "controlled_metrology": false
+    }
+  },
+  "decisions": {
+    "global_scale": "No global scaling. Printed length difference does not establish XY-axis/pitch compensation.",
+    "port_grid": "Keep 16 mm pitch, 4x4 envelope, 19.2 mm drop and end rail profile.",
+    "receiver": "Retain tube OD13.30/ID9.40 and wall3.16. Approximate diameters do not justify adding 0.29 mm or 2.00 mm.",
+    "fit_status": "Physical retention unresolved. New irregular receiver stiffness must be tested separately.",
+    "floor_removal": "Remove unused inner/outer corner floors and tube portions; do not add curved receiver walls that obstruct the 16 lower studs."
+  },
+  "validation": {
+    "reference": "Synthetic nominal DUPLO 4x4, 16 hollow studs OD9.40,height4.50",
+    "insertion_lifts_mm": [
+      5.7,
+      4.5,
+      3,
+      1.5,
+      0
+    ],
+    "roof_gap_mm": 0.25,
+    "known_radial_tube_interference_mm": 0.03629150101524026,
+    "rigid_fit_clear": false,
+    "blocking_collisions_outside_tubes": false,
+    "physical_fit_validated": false
+  }
+}

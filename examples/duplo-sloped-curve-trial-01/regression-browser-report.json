@@ -2,8 +2,8 @@
   "schema_version": 1,
   "browser": "153.0.8010.0",
   "input_files": {
-    "viewer.html": "c2e459f19157f0376351a11e7136c72d80132d206ad3e3140a7ed11d2644496c",
-    "report.json": "0bf766c1e6edf353162788df08330790871980f364b753d9a2691edf458ec63e",
+    "viewer.html": "a096c7ece558717eddf68b5b26e95676bdb1e232c2c0fd7a928068b2fcf743c0",
+    "report.json": "65013f70ffd4e34fed36bd2d9273f6019924af771a19e6c424878aaf807ef2c8",
     "brick.stl": "4d838de2a1358e4ead2aa5c01af366d0b57c99bff1187963135e3aee6800aa58"
   },
   "captures": [

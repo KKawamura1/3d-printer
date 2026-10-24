@@ -39,7 +39,8 @@ const {launchBrowser}=require('./browser-runtime.cjs');
    ['01-tunnel','single','perspective'],['02-top','single','top'],
    ['03-underside','single','underside'],['04-section','section','section'],
    ['05-balls','balls','perspective'],['06-balls-top','balls','top'],['08-course','course','perspective'],
-   ['09-exploded','exploded','top'],['10-course-top','course','top']]){
+   ['09-exploded','exploded','top'],['10-course-top','course','top'],['12-receiver','receiver','perspective'],
+   ['13-receiver-exploded','receiver_exploded','perspective'],['14-receiver-top','receiver','top']]){
    await page.selectOption('#mode',mode);await page.selectOption('#camera',camera);
    await capture(name);
   }
