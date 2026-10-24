@@ -34,10 +34,17 @@ jobs:
       - run: python scripts/review-sheet.py build/duplo-browser-qa
       - run: npm run browser:check -- build/first-print build/browser-qa
       - run: python scripts/review-sheet.py build/browser-qa
+      - run: python -m brickcad.rail
+      - run: python -m brickcad.rail --kind brick --out build/duplo-fit-trial-02
+      - run: npm run browser:check -- build/duplo-rail-trial-01 build/rail-browser
+      - run: python scripts/review-sheet.py build/rail-browser
+      - run: npm run browser:check -- build/duplo-fit-trial-02 build/rounded-browser
+      - run: python scripts/review-sheet.py build/rounded-browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: brick-cad-and-verification
           path: build/
           retention-days: 30
+
 

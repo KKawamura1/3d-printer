@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "browser": "153.0.8010.0",
+  "input_files": {
+    "viewer.html": "5dabb7da0f5135f389ef74c09e1742d05b7310f6c77edbc34f8e413ed4b98b13",
+    "report.json": "3d7650faa7e64983de666da5785ae486f1f21cb74093d3a17eeb4a8978455ac2",
+    "brick.stl": "8c21c6118b86a00d02a64633de3b8fb3ee64695d8f2383242a1510f8d27e2d78"
+  },
+  "captures": [
+    {
+      "name": "01-perspective",
+      "file": "01-perspective.png",
+      "sha256": "57b835c286c9561852f8add51ac2966e522309785dc5106d934a5f9e8546cd2f",
+      "pixels": {
+        "red": 216322,
+        "blue": 0
+      },
+      "status": "CAD・STL検証 (fit trial): PASS"
+    },
+    {
+      "name": "02-top",
+      "file": "02-top.png",
+      "sha256": "7b07798c060406ac23c344693dfddb4d575b257550e65834357162e5746a46aa",
+      "pixels": {
+        "red": 291450,
+        "blue": 0
+      },
+      "status": "CAD・STL検証 (fit trial): PASS"
+    },
+    {
+      "name": "03-underside",
+      "file": "03-underside.png",
+      "sha256": "8243808043f7bdd85da69362d0fb616a4e3db7965854b6ea04c3516c2a31ccb0",
+      "pixels": {
+        "red": 191312,
+        "blue": 0
+      },
+      "status": "CAD・STL検証 (fit trial): PASS"
+    },
+    {
+      "name": "04-section",
+      "file": "04-section.png",
+      "sha256": "bdc8b9bdd5db92713c0588cb8d6c7d23d32ec2fa622e1fc3ba9c3ed4efe45d85",
+      "pixels": {
+        "red": 328080,
+        "blue": 0
+      },
+      "status": "CAD・STL検証 (fit trial): PASS"
+    },
+    {
+      "name": "05-assembled",
+      "file": "05-assembled.png",
+      "sha256": "cd8b2c990497faac4df33ae9c79709d81c9e7346eca6bfc26f58e80ea77e7e67",
+      "pixels": {
+        "red": 61858,
+        "blue": 113755
+      },
+      "status": "設計上の干渉: 0.364499 mm³ / あり"
+    },
+    {
+      "name": "06-exploded",
+      "file": "06-exploded.png",
+      "sha256": "0c43751072619a779e37aa43a87f24046d4c6bd875b70100c87709bfc3cebaee",
+      "pixels": {
+        "red": 68247,
+        "blue": 92087
+      },
+      "status": "分解表示中。現在位置の干渉判定は未計算。"
+    },
+    {
+      "name": "07-cross-90",
+      "file": "07-cross-90.png",
+      "sha256": "4e85c773e786122ebf1cbcd52edbacbf7a807415db3b04950c3e0ed4ef77f6e8",
+      "pixels": {
+        "red": 61858,
+        "blue": 113756
+      },
+      "status": "設計上の干渉: 0.364499 mm³ / あり"
+    },
+    {
+      "name": "08-collision-control",
+      "file": "08-collision-control.png",
+      "sha256": "c41edb8a71b63ac2d9f45b7691eab43fc72db67828708ac99ac91fdba43f82ee",
+      "pixels": {
+        "red": 71086,
+        "blue": 100354
+      },
+      "status": "設計上の干渉: 157.246028 mm³ / あり"
+    },
+    {
+      "name": "09-orbit-zoom",
+      "file": "09-orbit-zoom.png",
+      "sha256": "32c847c2136892d84e8e963269113dab7d1eddb7ff0c6752c4845c9d7a7fb806",
+      "pixels": {
+        "red": 280444,
+        "blue": 0
+      },
+      "status": "CAD・STL検証 (fit trial): PASS"
+    },
+    {
+      "name": "10-mobile",
+      "file": "10-mobile.png",
+      "sha256": "255936ffcfc469294b1d295bb26d32c6b1b85b24b48298e3b6a19e2fe240eede",
+      "pixels": {
+        "red": 108756,
+        "blue": 0
+      },
+      "status": "CAD・STL検証 (fit trial): PASS"
+    }
+  ],
+  "errors": [],
+  "automated_passed": true,
+  "visual_review_performed": true,
+  "visual_review_notes": "Actual browser screenshots inspected: open continuous groove / rounded studs; receiver tubes and open underside; section with intact roof; reference-below assembly, exploded, 90-degree and half-pitch controls. Small intentional rigid interference is disclosed. UI label changed to ASCII fit trial to avoid missing embedded glyphs."
+}

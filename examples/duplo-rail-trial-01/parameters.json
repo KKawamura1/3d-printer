@@ -1,0 +1,30 @@
+{
+  "brick": {
+    "family": "duplo",
+    "nx": 4,
+    "ny": 2,
+    "pitch": 16.0,
+    "body_gap": 0.2,
+    "height": 19.13,
+    "stud_radius": 4.6,
+    "stud_height": 4.5,
+    "stud_inner_radius": 3.25,
+    "wall": 3.084999999999999,
+    "roof": 1.6,
+    "tube_radius": 6.65,
+    "tube_inner_radius": 4.7,
+    "clearance": 0.0
+  },
+  "rail": {
+    "length": 63.8,
+    "width": 31.65,
+    "height": 19.13,
+    "opening": 25.74,
+    "floor": 6.35,
+    "outer_radius": 0.8,
+    "lip_radius": 0.5,
+    "end_chamfer": 0.15,
+    "entry": 0.3,
+    "roof": 1.6
+  }
+}

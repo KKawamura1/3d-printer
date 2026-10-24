@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-24",
+  "source": "user physical print feedback",
+  "profile": "profiles/duplo-fit-trial-01.json",
+  "feedback": {"studs": "too tight", "receiver": "very loose", "edges": "painfully sharp CAD right angles; not layer burrs", "playable_as_duplo": true},
+  "printer": "Bambu A1 mini (prior session); exact nozzle/material/slicer settings not recorded for this print",
+  "rail_measurements_mm": {"ball_diameter_approx": 24.26, "outer_width": 31.65, "height": 19.13, "groove_depth_approx": [12,13], "floor_height": 6.35, "opening_width_approx": 25.74},
+  "rail_constraints": {"length_on_duplo_grid": true, "ends_same_height": true, "underside_duplo_compatible": true},
+  "next_trial_design_not_measurement": {"stud_diameter": 9.20, "tube_diameter": 13.30, "outer_edge_radius": 0.8, "stud_top_radius": 0.5, "receiver_entry_chamfer": 0.3},
+  "physical_fit_validated_for_next_trial": false
+}

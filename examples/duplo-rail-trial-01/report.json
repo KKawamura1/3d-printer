@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "kind": "rail",
+  "passed": true,
+  "geometry": {
+    "bounds_mm": [
+      63.8000002,
+      31.65,
+      19.13000010000001
+    ],
+    "volume_mm3": 16126.84119956701,
+    "parameters": {
+      "family": "duplo",
+      "nx": 4,
+      "ny": 2,
+      "pitch": 16.0,
+      "body_gap": 0.2,
+      "height": 19.13,
+      "stud_radius": 4.6,
+      "stud_height": 4.5,
+      "stud_inner_radius": 3.25,
+      "wall": 3.084999999999999,
+      "roof": 1.6,
+      "tube_radius": 6.65,
+      "tube_inner_radius": 4.7,
+      "clearance": 0.0
+    },
+    "checks": {
+      "valid_brep": true,
+      "one_solid": true,
+      "dimensions": true,
+      "step_roundtrip": true,
+      "mesh": true,
+      "mesh_volume": true,
+      "open_bottom": true,
+      "negative_controls": true,
+      "floor_present": true,
+      "channel_open": true,
+      "tube_holes": true,
+      "tube_walls": true,
+      "sampled_ball_path_clear": true,
+      "fit_within_trial_envelope": true
+    }
+  },
+  "rail": {
+    "length": 63.8,
+    "width": 31.65,
+    "height": 19.13,
+    "opening": 25.74,
+    "floor": 6.35,
+    "outer_radius": 0.8,
+    "lip_radius": 0.5,
+    "end_chamfer": 0.15,
+    "entry": 0.3,
+    "roof": 1.6
+  },
+  "groove_radius_mm": 12.870316901408449,
+  "mesh": {
+    "triangles": 22842,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "degenerate_triangles": 0,
+    "signed_volume_mm3": 16132.819451971585,
+    "bounds_mm": [
+      [
+        -31.899999618530273,
+        -15.824999809265137,
+        -2.0539125955565396e-15
+      ],
+      [
+        31.899999618530273,
+        15.824999809265137,
+        19.1299991607666
+      ]
+    ],
+    "passed": true
+  },
+  "collapsed_stl_triangles_removed": 4,
+  "step_roundtrip_passed": true,
+  "physical_fit_validated": false,
+  "fit_geometrically_clear": false,
+  "intentional_fit_trial": true,
+  "nominal_tube_gap_mm": -0.03629150101523937,
+  "fit": {
+    "reference": "synthetic DUPLO nominal; no OEM measurement",
+    "insertion": [
+      {
+        "pair": "reference/printed",
+        "lift_mm": 5.7,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 4.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.3151178415067799,
+        "collision": true
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 1.5,
+        "intersection_mm3": 0.7043077910874207,
+        "collision": true
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 0.0,
+        "intersection_mm3": 1.093497740667907,
+        "collision": true
+      }
+    ],
+    "poses": [
+      {
+        "name": "one_stud_offset",
+        "xyz_mm": [
+          16,
+          0,
+          19.2
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 0.9112481054336012,
+        "collision": true
+      },
+      {
+        "name": "cross_90",
+        "xyz_mm": [
+          0,
+          0,
+          19.2
+        ],
+        "rotation_deg": 90,
+        "intersection_mm3": 0.7289984679868837,
+        "collision": true
+      },
+      {
+        "name": "half_pitch_negative_control",
+        "xyz_mm": [
+          8,
+          0,
+          19.2
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 269.62660530020514,
+        "collision": true
+      },
+      {
+        "name": "overinsert_negative_control",
+        "xyz_mm": [
+          0,
+          0,
+          18.9
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 217.66738481985666,
+        "collision": true
+      }
+    ]
+  },
+  "ball_path": [
+    {
+      "x_mm": -31.9,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": -26.583333333333332,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": -21.266666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": -15.950000000000001,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": -10.633333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": -5.316666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": -3.552713678800501e-15,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": 5.316666666666663,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": 10.633333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": 15.949999999999996,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": 21.266666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": 26.58333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "x_mm": 31.89999999999999,
+      "intersection_mm3": 0.0
+    }
+  ],
+  "limitations": [
+    "Rigid interference retained; PASS covers geometry and trial envelope, not free fit or clutch force.",
+    "Ball diameter is approximate; 13 static samples at floor + radius + 0.05 mm, not dynamics.",
+    "Horizontal track requires incoming momentum; joints and rolling remain untested."
+  ],
+  "files": {
+    "brick.stl": "f95957c7bcbf2cc14f4ffc3aa09b0660097819b8ac106ae7222b793f5a1cfbfd",
+    "brick.step": "825467f39f30607e0b7729e9a3fd6c0f901a961f2d675bebfe1d2aeffb0af657"
+  }
+}

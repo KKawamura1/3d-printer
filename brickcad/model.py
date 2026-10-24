@@ -68,22 +68,31 @@ class Brick:
                 for i in range(self.nx-1) for j in range(self.ny-1)]
 
 
-def build(p=Brick()):
-    outer = cq.Workplane('XY').box(p.width, p.depth, p.height, centered=(True, True, False))
+def receiver(p, outer, cavity_height, entry=0.0, footprint=None):
+    """Shared open underside; roof and track above it are supplied by the caller."""
     # Cavity open through the bottom; tube tops are fused to the roof.
-    cavity = cq.Workplane('XY').box(p.width-2*(p.wall-p.clearance),
-                                  p.depth-2*(p.wall-p.clearance), p.height-p.roof,
+    width, depth = footprint or (p.width, p.depth)
+    cavity = cq.Workplane('XY').box(width-2*(p.wall-p.clearance),
+                                  depth-2*(p.wall-p.clearance), cavity_height,
                                   centered=(True, True, False))
     result = outer.cut(cavity)
+    for x, y in p.tubes():
+        tube = (cq.Workplane('XY', origin=(x, y, 0)).circle(p.tube_radius-p.clearance)
+                .circle(p.tube_inner_radius).extrude(cavity_height))
+        result = result.union(tube)
+    if entry:
+        result = result.edges('<Z').chamfer(entry)
+    return result
+
+
+def build(p=Brick()):
+    outer = cq.Workplane('XY').box(p.width, p.depth, p.height, centered=(True, True, False))
+    result = receiver(p, outer, p.height-p.roof)
     studs = cq.Workplane('XY', origin=(0, 0, p.height)).pushPoints(p.studs()).circle(p.stud_radius-p.clearance)
     if p.stud_inner_radius:
         studs = studs.circle(p.stud_inner_radius)
     studs = studs.extrude(p.stud_height)
     result = result.union(studs)
-    for x, y in p.tubes():
-        tube = (cq.Workplane('XY', origin=(x, y, 0)).circle(p.tube_radius-p.clearance)
-                .circle(p.tube_inner_radius).extrude(p.height-p.roof))
-        result = result.union(tube)
     shape = result.val().clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError('CAD result must be one valid connected solid')
@@ -106,3 +115,4 @@ def from_profile(values):
     """Start from the correct family preset before applying explicit overrides."""
     from dataclasses import replace
     return replace(nominal_brick(values.get("family", "lego")), **values)
+
