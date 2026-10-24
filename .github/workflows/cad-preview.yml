@@ -1,0 +1,68 @@
+name: CAD preview (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Generate one model
+        type: choice
+        options: [duplo, duplo-2x2, rail, brick, tunnel, pitagora, calibration, lego]
+        default: tunnel
+      screenshots:
+        description: Also capture browser screenshots
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: cad-preview-${{ github.ref }}-${{ inputs.target }}
+  cancel-in-progress: true
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Generate and verify selected model once
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          case "$TARGET" in
+            duplo) python -m brickcad build --out build/model ;;
+            duplo-2x2) python -m brickcad build --profile profiles/duplo-2x2.json --out build/model ;;
+            rail|brick) python -m brickcad.rail --kind "$TARGET" --out build/model ;;
+            tunnel|pitagora) python -m "brickcad.$TARGET" --out build/model ;;
+            calibration) python -m brickcad.calibration build/model ;;
+            lego) python -m brickcad build --profile profiles/first-print.json --out build/model ;;
+            *) exit 1 ;;
+          esac
+      - uses: actions/setup-node@v4
+        if: inputs.screenshots
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+        if: inputs.screenshots
+      - run: npx playwright install --with-deps chromium
+        if: inputs.screenshots
+      - name: Capture selected model once
+        if: inputs.screenshots
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          case "$TARGET" in
+            pitagora) node scripts/pitagora-browser-check.cjs build/model build/browser-qa ;;
+            calibration) npm run browser:check -- build/model/view-5 build/browser-qa ;;
+            *) npm run browser:check -- build/model build/browser-qa ;;
+          esac
+          python scripts/review-sheet.py build/browser-qa
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: brick-cad-and-verification
+          path: build/
+          retention-days: 7
