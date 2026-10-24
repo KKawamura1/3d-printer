@@ -21,3 +21,5 @@
 - Open the real browser screenshots with the image inspection tool. Inspect top, underside, section, assembled, exploded and crossed views. Fix defects and repeat capture. A mocked canvas test, generated PNG from another renderer, or automated pixel check does not substitute for reviewing the actual browser output.
 - Do not mark visual review complete based on a successful screenshot command. Record the input hashes, screenshot hashes, observations and remaining limitations in a review note after actually inspecting images.
 
+
+- CI policy: automatic verification belongs only to PRs and runs affected test files once via `scripts/ci-tests.py`. Do not append model exports, calibration sweeps or browser captures to automatic CI. Use the manual `CAD preview (manual)` workflow with one selected target for remote generation/screenshots; add new targets there when needed. Model/viewer changes still require local visual review as above. CI-only edits do not require rebuilding CAD or browser screenshots.
