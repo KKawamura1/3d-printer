@@ -2,6 +2,7 @@
 
 変則デュプロを作るための、パラメトリックCADと幾何検証の作業環境です。**現在の主対象とCLI既定値はDUPLO 2×4**です。短い試し刷り用2×2もあります。実物での嵌合は未検証です。
 
+- [初回のDUPLO接続校正プレート（補正違いの低い2×2を5個、PLA換算約26.6 g）](examples/sim2real-duplo/plate.stl) — [印刷・評価手順](docs/sim2real-duplo.md)
 - [印刷用STL 2種類をまとめてダウンロード（ZIP）](prints/duplo_bricks.zip)
 - [DUPLO 2×4 STL](examples/duplo-2x4/brick.stl) — 本体63.8×31.8×19.2 mm
 - [DUPLO 2×2 STL](examples/duplo-2x2/brick.stl) — 本体31.8×31.8×19.2 mm
@@ -57,10 +58,10 @@ Mac以外では最後のHTMLをブラウザで開いてください。主要なC
 
 ```sh
 # 合成の名目寸法モデル
-python -m brickcad build --profile profiles/nominal.json --out build/nominal
+python -m brickcad build --profile profiles/duplo-nominal.json --out build/duplo-nominal
 
 # 公差5候補のSTL・比較結果・計測テンプレートだけ生成
-python -m brickcad sweep --profile profiles/first-print.json --out build/trial
+python -m brickcad sweep --profile profiles/duplo-first-print.json --out build/trial
 ```
 
 寸法変更はJSON profileを追加して`--profile`で指定します。省略した項目は`brickcad/model.py`の既定値です。現在の対応範囲は両軸2〜12スタッドの長方形です。例えばDUPLO 2×3は`{"family":"duplo","nx":3,"ny":2,"clearance":0.0}`。family省略時は既存互換性のため通常レゴ寸法。
@@ -138,6 +139,13 @@ python scripts/review-sheet.py build/browser-qa
 
 上のLinux用代替経路も使えない場合は、GitHub Actionsの`brick-cad-and-verification` artifactから同じ画像を取り出して確認します。未取得・未確認なら目視確認済みと扱いません。
 
+## 初回のデュプロ接続校正
+
+`python -m brickcad.calibration` はDUPLO 2×2の補正違い5個を生成します。
+[印刷プレート](examples/sim2real-duplo/plate.stl)を100%・mm単位・突起上向きで印刷し、純正DUPLOを相手に突起側／受け側を別々に選びます。
+[印刷・評価・再生成手順](docs/sim2real-duplo.md)を参照してください。
+
 ## 以前の通常レゴ用校正プレート
 
-`examples/sim2real/plate.stl`と`python -m brickcad.calibration`は、通常レゴ（8 mmピッチ）の接続試験です。DUPLO用ではありません。既存の試験データを残しています。デュプロ用の作成・寸法は[こちら](docs/duplo.md)を参照してください。
+`examples/sim2real/plate.stl`と`python -m brickcad.calibration --family lego`は、通常レゴ（8 mmピッチ）の接続試験です。DUPLO用ではありません。既存の試験データを残しています。デュプロ用の作成・寸法は[こちら](docs/duplo.md)を参照してください。
+

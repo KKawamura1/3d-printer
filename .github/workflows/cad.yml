@@ -27,6 +27,9 @@ jobs:
       - run: python -m brickcad build --profile profiles/nominal.json --out build/nominal
       - run: python -m brickcad all
       - run: python -m brickcad build --profile profiles/duplo-2x2.json --out build/duplo-2x2
+      - run: python -m brickcad.calibration
+      - run: npm run browser:check -- build/sim2real-duplo/view-5 build/sim2real-duplo/browser-qa
+      - run: python scripts/review-sheet.py build/sim2real-duplo/browser-qa
       - run: npm run browser:check -- build/duplo-2x4 build/duplo-browser-qa
       - run: python scripts/review-sheet.py build/duplo-browser-qa
       - run: npm run browser:check -- build/first-print build/browser-qa
@@ -37,3 +40,4 @@ jobs:
           name: brick-cad-and-verification
           path: build/
           retention-days: 30
+

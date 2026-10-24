@@ -56,9 +56,9 @@ CAD体積約6.24 cm³、密度1.24 g/cm³換算で約7.74 g。スライサーの
 ## 再生成と次のprofile
 
 ```sh
-python -m brickcad.calibration
+python -m brickcad.calibration --family lego
 # 別の場所へ生成する場合
-python -m brickcad.calibration build/my-trial
+python -m brickcad.calibration build/my-trial --family lego
 ```
 
 既存のモデル／名目profileは変更していません。独立補正を適用したprofileは以下で生成できます。
@@ -70,7 +70,7 @@ import json
 from pathlib import Path
 from brickcad.calibration import specification
 # 突起ID3、受けID5が良かった場合の2×4候補
-p = specification(stud_clearance=0.04, receiver_clearance=0.12, nx=4, ny=2)
+p = specification(stud_clearance=0.04, receiver_clearance=0.12, nx=4, ny=2, family="lego")
 Path('profiles/measured-trial.json').write_text(json.dumps(asdict(p), indent=2))
 ```
 
@@ -87,3 +87,4 @@ BRep妥当性、5つの独立ソリッド、試験片間の非干渉、寸法、
 各試験片は合成名目モデルとの上下・挿入・交差姿勢も計算しています。ID1の幾何干渉は意図した探索候補であり、書出し失敗ではありません。
 `passed=true`はデータ生成の検査が通ったという意味です。保持力や実物との互換性は未検証で、`physical_fit_validated=false`です。
 CADと純正の形状差、印刷の寸法誤差、材料の弾性・摩擦を合わせた実用補正を選ぶ試験で、これらを単独で同定するものではありません。
+

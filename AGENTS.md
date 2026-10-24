@@ -1,5 +1,6 @@
 # Working on this project
 
+- Calibration also defaults to DUPLO: `python -m brickcad.calibration`; see docs/sim2real-duplo.md. Legacy LEGO calibration requires `--family lego`.
 - The user's actual target is DUPLO. Read docs/duplo.md. Default CLI/profile is DUPLO 2x4; keep legacy LEGO examples explicit. DUPLO is not a uniform 2x mesh scale: it has hollow studs and separate dimensional presets.
 - Fit references must use the same family preset; never compare a DUPLO candidate against the 8 mm LEGO reference by accident.
 
@@ -19,3 +20,4 @@
 - Batch visual verification is required after model or viewer changes: run `npm ci`, `npx playwright install --with-deps chromium`, `npm run browser:check -- build/first-print build/browser-qa`, and `python scripts/review-sheet.py build/browser-qa`. If a local browser is unavailable, run CI and retrieve its screenshots.
 - Open the real browser screenshots with the image inspection tool. Inspect top, underside, section, assembled, exploded and crossed views. Fix defects and repeat capture. A mocked canvas test, generated PNG from another renderer, or automated pixel check does not substitute for reviewing the actual browser output.
 - Do not mark visual review complete based on a successful screenshot command. Record the input hashes, screenshot hashes, observations and remaining limitations in a review note after actually inspecting images.
+
