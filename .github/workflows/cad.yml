@@ -1,57 +1,41 @@
-name: CAD verification
+name: CAD tests
 on:
-  push:
   pull_request:
+    paths:
+      - 'brickcad/**/*.py'
+      - 'profiles/**'
+      - 'tests/**'
+      - 'requirements.txt'
+      - 'scripts/ci-tests.py'
+      - '.github/workflows/cad.yml'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: cad-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select affected tests
+        id: plan
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python scripts/ci-tests.py ${BASE_SHA:+--base "$BASE_SHA"} --plan
       - uses: actions/setup-python@v5
+        if: steps.plan.outputs.has_tests == 'true'
         with:
           python-version: '3.11'
           cache: pip
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
       - run: pip install -r requirements.txt
-      - run: python -m unittest discover -s tests -v
-      - run: python -m brickcad all --profile profiles/first-print.json --out build/first-print
-      - run: python -m brickcad build --profile profiles/nominal.json --out build/nominal
-      - run: python -m brickcad all
-      - run: python -m brickcad build --profile profiles/duplo-2x2.json --out build/duplo-2x2
-      - run: python -m brickcad.calibration
-      - run: npm run browser:check -- build/sim2real-duplo/view-5 build/sim2real-duplo/browser-qa
-      - run: python scripts/review-sheet.py build/sim2real-duplo/browser-qa
-      - run: npm run browser:check -- build/duplo-2x4 build/duplo-browser-qa
-      - run: python scripts/review-sheet.py build/duplo-browser-qa
-      - run: npm run browser:check -- build/first-print build/browser-qa
-      - run: python scripts/review-sheet.py build/browser-qa
-      - run: python -m brickcad.rail
-      - run: python -m brickcad.rail --kind brick --out build/duplo-fit-trial-02
-      - run: npm run browser:check -- build/duplo-rail-trial-01 build/rail-browser
-      - run: python scripts/review-sheet.py build/rail-browser
-      - run: npm run browser:check -- build/duplo-fit-trial-02 build/rounded-browser
-      - run: python scripts/review-sheet.py build/rounded-browser
-      - run: python -m brickcad.tunnel
-      - run: npm run browser:check -- build/duplo-tunnel-trial-01 build/tunnel-browser
-      - run: python scripts/review-sheet.py build/tunnel-browser
-      - run: python -m brickcad.pitagora
-      - run: node scripts/pitagora-browser-check.cjs build/pitagora-m1 build/pitagora-browser
-      - run: python scripts/review-sheet.py build/pitagora-browser
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: brick-cad-and-verification
-          path: build/
-          retention-days: 30
-
-
-
+        if: steps.plan.outputs.has_tests == 'true'
+      - name: Run affected tests once
+        if: steps.plan.outputs.has_tests == 'true'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python scripts/ci-tests.py ${BASE_SHA:+--base "$BASE_SHA"}
