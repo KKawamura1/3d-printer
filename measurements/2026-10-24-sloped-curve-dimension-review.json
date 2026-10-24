@@ -1,12 +1,17 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "date": "2026-10-24",
   "issues": [
     {
       "url": "https://github.com/KKawamura1/3d-printer/issues/1",
-      "updated_at": "2026-10-24T08:31:08Z",
+      "updated_at": "2026-10-24T11:02:44Z",
       "title": "DUPLO sim-to-real実験記録：校正片の接続・実測と通常高さ2×2への移植結果",
-      "comments": 0
+      "comments": 3,
+      "comment_urls": [
+        "https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6382776290",
+        "https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6383210661",
+        "https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6383416217"
+      ]
     },
     {
       "url": "https://github.com/KKawamura1/3d-printer/issues/2",
@@ -40,8 +45,10 @@
       "existing_tube_id_mm": {
         "approximate": 10.93
       },
-      "functional_fit": "slightly loose; attaches and detaches easily",
-      "corners": "rounded; user reported perfect"
+      "functional_fit": "Very loose; falls off by tilting without pulling. Explicit functional FAIL.",
+      "corners": "rounded; user reported perfect",
+      "prior_functional_fit": "slightly loose; attaches and detaches easily",
+      "physical_rolling_feedback": "Existing straight rail and 2-high straight tunnel: joint crossing, running length/alignment, corners, sagging and burrs reported satisfactory. Does not validate sloped curve."
     },
     "reference_stud_diameter_mm": {
       "observed_range": [
@@ -49,14 +56,84 @@
         9.33
       ],
       "controlled_metrology": false
+    },
+    "receiver_comparison": [
+      {
+        "part": "calibration 2",
+        "cad_wall_mm": 3.2,
+        "cad_inner_span_mm": 25.4,
+        "printed_inner_span_xy_mm": [
+          25.2,
+          25.2
+        ],
+        "printed_tube_od_approx_mm": 12.93,
+        "cad_tube_od_mm": 13.1,
+        "fit": "tight; slightly difficult to remove; same in repeat test"
+      },
+      {
+        "part": "calibration 3",
+        "cad_wall_mm": 3.16,
+        "cad_inner_span_mm": 25.48,
+        "printed_inner_span_xy_mm": [
+          25.22,
+          25.18
+        ],
+        "printed_tube_od_approx_mm": 12.94,
+        "cad_tube_od_mm": 13.02,
+        "fit": "best; removable; same in repeat test"
+      },
+      {
+        "part": "2-high straight tunnel",
+        "cad_wall_mm": 3.16,
+        "cad_inner_span_mm": 25.48,
+        "printed_inner_span_xy_mm": [
+          25.43,
+          25.34
+        ],
+        "printed_tube_od_approx_mm": 13.05,
+        "cad_tube_od_mm": 13.3,
+        "fit": "very loose; falls off on tilt"
+      },
+      {
+        "part": "original DUPLO",
+        "printed_inner_span_approx_xy_mm": [
+          28.59,
+          28.69
+        ],
+        "printed_tube_od_approx_mm": 13.32
+      }
+    ],
+    "tunnel_stud": {
+      "cad_od_mm": 9.2,
+      "printed_od_xy_mm": [
+        8.99,
+        9.03
+      ],
+      "fit": "very loose; separate from receiver correction; no upper studs on this curve"
     }
   },
   "decisions": {
-    "global_scale": "No global scaling. Printed length difference does not establish XY-axis/pitch compensation.",
+    "global_scale": "Keep grid and envelope. Actual straight rail/tunnel rolling and running length now reported satisfactory; do not compensate earlier length measurement globally.",
     "port_grid": "Keep 16 mm pitch, 4x4 envelope, 19.2 mm drop and end rail profile.",
-    "receiver": "Retain tube OD13.30/ID9.40 and wall3.16. Approximate diameters do not justify adding 0.29 mm or 2.00 mm.",
-    "fit_status": "Physical retention unresolved. New irregular receiver stiffness must be tested separately.",
-    "floor_removal": "Remove unused inner/outer corner floors and tube portions; do not add curved receiver walls that obstruct the 16 lower studs."
+    "receiver": "Current printable curve retains OD13.30/ID9.40 and wall3.16 only as an UNCORRECTED baseline, not an adequate production-fit choice. Tube-only expansion is unsupported: the best coupon had a smaller tube than the loose tunnel. Side-wall contact is the stronger current hypothesis.",
+    "fit_status": "Receiver calibration REQUIRED before claiming retention solved. Current curve is a shape/rolling prototype and may inherit or worsen known retention failure. No fit repair implemented or physically validated.",
+    "floor_removal": "Remove unused inner/outer corner floors and tube portions; do not add curved receiver walls that obstruct the 16 lower studs.",
+    "wall_candidates": {
+      "trial_wall_mm": [
+        3.16,
+        3.22,
+        3.24
+      ],
+      "corresponding_2x2_cad_span_mm": [
+        25.48,
+        25.36,
+        25.32
+      ],
+      "tube_od_fixed_mm": 13.3,
+      "status": "unprinted hypotheses from latest comment; no guaranteed linear print compensation",
+      "transfer_limit": "Curved footprint removes opposing receiver walls. A successful rectangular 2x2 wall setting cannot be transferred blindly; actual curve attachment contacts must be evaluated."
+    },
+    "calibration_causality": "Same CAD inner span25.48 produced coupon25.22/25.18 and tunnel25.43/25.34; shape/print effects remain unseparated. No unsupported wear/aging explanation introduced."
   },
   "validation": {
     "reference": "Synthetic nominal DUPLO 4x4, 16 hollow studs OD9.40,height4.50",
@@ -71,6 +148,15 @@
     "known_radial_tube_interference_mm": 0.03629150101524026,
     "rigid_fit_clear": false,
     "blocking_collisions_outside_tubes": false,
-    "physical_fit_validated": false
-  }
+    "physical_fit_validated": false,
+    "nominal_interference_not_clutch_validation": true,
+    "physical_reference_feedback": "Straight rail and straight tunnel have failed retention despite nominal-CAD trial interference. That interference is only a CAD result, not evidence of sufficient printed clutch force."
+  },
+  "review_history": [
+    {
+      "revision": 1,
+      "issue1_updated_at": "2026-10-24T08:31:08Z",
+      "summary": "Initial assessment before 3 new comments; no dimension compensation adopted."
+    }
+  ]
 }
