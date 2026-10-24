@@ -42,7 +42,9 @@ def preview(shape, p, out):
 
 def viewer(shape, p, report, out):
     verts,faces=mesh(shape)
+    cutter = cq.Workplane('XY').box(p.width+2,p.depth+2,30,centered=(True,False,False)).val()
+    cut_vertices, cut_faces = mesh(shape.cut(cutter))
     template=(Path(__file__).parent/'viewer.html').read_text()
-    payload=json.dumps(dict(vertices=verts,faces=faces,height=p.height,width=p.width,
+    payload=json.dumps(dict(vertices=verts,faces=faces,section=dict(vertices=cut_vertices,faces=cut_faces),height=p.height,width=p.width,
                             report=report),separators=(',',':'))
     (out/'viewer.html').write_text(template.replace('__DATA__',payload))

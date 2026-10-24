@@ -12,7 +12,8 @@
 - 重ねる・1ピッチずらす・90度交差する姿勢で、BRepの共通体積を計算。
 - 挿入方向の5姿勢と、公差の違う5候補を確認。
 - 実際の形状の断面PNGと、オフラインで回転できるHTMLを生成。
-- GitHub Actionsで再検証し、STL/STEP/HTML/レポート一式をartifactに保存。
+- Chromiumでビューアーを操作し、上面・裏面・CAD断面・組立・干渉例・モバイル画面を実際に撮影。
+- GitHub ActionsでCADとブラウザを再検証し、スクリーンショット・trace・レポートをartifactに保存。
 
 ## 最初の試作品を見る
 
@@ -68,3 +69,20 @@ tests/                 正常例・欠陥を検出する負例
 `report.json`の`passed=true`は、CAD/STL/STEPの検査、検査した組立姿勢の無干渉、負例の検出を通ったという意味です。締まり具合・保持力・印刷精度の保証ではありません。負の公差で意図的に食い込ませた候補は、sweep内では正常に生成されても干渉ありと報告します。
 
 次の段階ではプリンター機種・ノズル・材料・スライサーを特定し、試し刷りの実測値からprofileを調整します。[設計の根拠・検証範囲・実測手順](docs/design.md)を参照してください。
+
+## ブラウザでの撮影と目視確認
+
+Node.js 22を用意し、CAD生成後に以下を実行します。
+
+```sh
+npm ci
+npx playwright install --with-deps chromium
+npm run browser:check -- build/first-print build/browser-qa
+python scripts/review-sheet.py build/browser-qa
+```
+
+`build/browser-qa/`に10視点の実ブラウザPNG、一覧用`review-sheet.jpg`、操作を再生できる`trace.zip`、ブラウザバージョン・入力ハッシュ・画像ハッシュ付き`browser-report.json`が残ります。外部CDNから描画ライブラリを読み込まず、生成済みHTMLをChromiumで開きます。
+
+自動検査はJavaScriptエラー、空のキャンバス、組立部品の描画漏れ、視点変更、ドラッグ・拡大縮小、表示上の干渉判定、モバイルの横はみ出しを確認します。形状の意味を理解した目視判定は行いません。`automated_passed`と`visual_review_performed`は別です。画像をエージェントが実際に開いて確認し、欠陥があれば修正・再撮影することが作業完了条件です。
+
+ローカルにブラウザを導入できない環境では、GitHub Actionsの`brick-cad-and-verification` artifactから同じ画像を取り出して確認します。未取得・未確認なら目視確認済みと扱いません。

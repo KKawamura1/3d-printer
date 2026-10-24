@@ -10,3 +10,7 @@
 - Never send printer commands or produce machine-specific G-code without the actual machine/nozzle/material/slicer setup. STL and STEP are machine-independent outputs.
 - Existing model supports rectangular bricks with at least two studs on each axis; 1-wide bricks and irregular layouts need new underside support logic and tests.
 - Generated files go in ignored `build/`; curated reproducible examples in `examples/` may be committed. Refresh examples when source/profile changes and identify the exact profile used.
+
+- Visual verification is required after model or viewer changes: run `npm ci`, `npx playwright install --with-deps chromium`, `npm run browser:check -- build/first-print build/browser-qa`, and `python scripts/review-sheet.py build/browser-qa`. If a local browser is unavailable, run CI and retrieve its screenshots.
+- Open the real browser screenshots with the image inspection tool. Inspect top, underside, section, assembled, exploded and crossed views. Fix defects and repeat capture. A mocked canvas test, generated PNG from another renderer, or automated pixel check does not substitute for reviewing the actual browser output.
+- Do not mark visual review complete based on a successful screenshot command. Record the input hashes, screenshot hashes, observations and remaining limitations in a review note after actually inspecting images.
