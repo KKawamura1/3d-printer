@@ -1,0 +1,242 @@
+{
+  "schema_version": 1,
+  "kind": "tunnel",
+  "passed": true,
+  "geometry": {
+    "bounds_mm": [
+      31.800000000000004,
+      31.8,
+      42.90000009999999
+    ],
+    "volume_mm3": 19147.18155535263,
+    "parameters": {
+      "family": "duplo",
+      "nx": 2,
+      "ny": 2,
+      "pitch": 16.0,
+      "body_gap": 0.2,
+      "height": 38.4,
+      "stud_radius": 4.6,
+      "stud_height": 4.5,
+      "stud_inner_radius": 3.25,
+      "wall": 3.16,
+      "roof": 1.6,
+      "tube_radius": 6.65,
+      "tube_inner_radius": 4.7,
+      "clearance": 0.0
+    },
+    "checks": {
+      "valid_brep": true,
+      "one_solid": true,
+      "dimensions": true,
+      "mesh": true,
+      "mesh_volume": true,
+      "step_roundtrip": true,
+      "continuous_ball_path_clear": true,
+      "oversize_ball_detected": true,
+      "floor_present": true,
+      "floor_open": true,
+      "bottom_open": true,
+      "tube_hole": true,
+      "tube_wall": true,
+      "roof_present": true,
+      "stud_floors": true,
+      "negative_controls": true,
+      "upper_reference_clear": true,
+      "fit_within_trial_envelope": true,
+      "initial_insertion_clear": true
+    }
+  },
+  "tunnel": {
+    "floor": 6.35,
+    "radius": 12.870316901408449,
+    "ceiling": 34.8,
+    "cavity_height": 4.75,
+    "entry": 0.3,
+    "ball_diameter": 24.26
+  },
+  "bridge_width_mm": 5.2433872308399,
+  "roof_thickness_mm": 3.6000000000000014,
+  "mesh": {
+    "triangles": 76480,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "degenerate_triangles": 0,
+    "signed_volume_mm3": 19151.821859281074,
+    "bounds_mm": [
+      [
+        -15.899999618530273,
+        -15.899999618530273,
+        -7.771561172376096e-16
+      ],
+      [
+        15.899999618530273,
+        15.899999618530273,
+        42.900001525878906
+      ]
+    ],
+    "passed": true
+  },
+  "collapsed_stl_triangles_removed": 4,
+  "ball_sweep": {
+    "diameter_mm": 24.26,
+    "centre_z_mm": 18.53,
+    "intersection_mm3": 0.0,
+    "negative_diameter_mm": 28.0,
+    "negative_intersection_mm3": 2220.6275353369792
+  },
+  "physical_fit_validated": false,
+  "fit_geometrically_clear": false,
+  "intentional_fit_trial": true,
+  "fit": {
+    "reference": "synthetic DUPLO nominal, not an OEM scan",
+    "insertion": [
+      {
+        "pair": "reference/printed",
+        "lift_mm": 5.7,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 4.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.10503928050223124,
+        "collision": true
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 1.5,
+        "intersection_mm3": 0.23476926369574344,
+        "collision": true
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.3644992468893221,
+        "collision": true
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 5.7,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 4.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 1.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 5.7,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 4.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 1.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      }
+    ],
+    "poses": [
+      {
+        "name": "one_stud_offset",
+        "xyz_mm": [
+          16,
+          0,
+          38.4
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "name": "cross_90",
+        "xyz_mm": [
+          0,
+          0,
+          38.4
+        ],
+        "rotation_deg": 90,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "name": "half_pitch_negative_control",
+        "xyz_mm": [
+          8,
+          0,
+          38.4
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 144.61742238264654,
+        "collision": true
+      },
+      {
+        "name": "overinsert_negative_control",
+        "xyz_mm": [
+          0,
+          0,
+          38.1
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 110.48883715988399,
+        "collision": true
+      }
+    ]
+  },
+  "limitations": [
+    "Receiver 13.30 mm tube intentionally interferes with synthetic 9.40 mm studs; clutch force unverified.",
+    "Ball diameter is approximate; swept clearance is rigid geometry, not a rolling simulation.",
+    "Short flat ceiling bridge and underside bridges still need slicer/print verification.",
+    "Horizontal passage requires incoming momentum. Rail joints and physical fit untested."
+  ],
+  "files": {
+    "brick.stl": "b2b5a2bbb0809f22d7a7a7ff1bb8e2ed03e0e45acee61528e5031a03b143fe2b",
+    "brick.step": "ef607697b6c999a69657f99c7586877b33efbb2efab6cd9b2e063578dfd95f16"
+  }
+}

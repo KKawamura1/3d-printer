@@ -2,6 +2,8 @@
 
 変則デュプロを作るための、パラメトリックCADと幾何検証の作業環境です。**現在の主対象とCLI既定値はDUPLO 2×4**です。短い試し刷り用2×2もあります。旧試作2×2は実物で接続・遊べたものの、突起がきつい・裏面が緩い・角が痛いという評価。新しい丸角版・レールは実物未検証です。
 
+- [2段トンネル試作01（STL ZIP）](prints/duplo_tunnel_trial_01.zip) — [寸法・印刷・確認手順](docs/duplo-tunnel-trial-01.md)
+
 - [水平レール試作01・丸角2×2試作02（STL ZIP）](prints/duplo_rail_trial_01.zip) — [寸法・印刷・確認手順](docs/duplo-rail-trial-01.md)
 
 - [次の印刷：DUPLO通常高さ2×2（突起2番＋受け3番）](examples/duplo-fit-trial-01/brick.stl) — [印刷・確認手順](docs/duplo-fit-trial-01.md)
@@ -151,5 +153,6 @@ python scripts/review-sheet.py build/browser-qa
 ## 以前の通常レゴ用校正プレート
 
 `examples/sim2real/plate.stl`と`python -m brickcad.calibration --family lego`は、通常レゴ（8 mmピッチ）の接続試験です。DUPLO用ではありません。既存の試験データを残しています。デュプロ用の作成・寸法は[こちら](docs/duplo.md)を参照してください。
+
 
 

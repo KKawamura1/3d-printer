@@ -11,7 +11,10 @@ const assert=require('node:assert/strict');
  const output=path.resolve(process.argv[3]||'build/browser-qa');
  await fs.mkdir(output,{recursive:true});
  const cadReport=JSON.parse(await fs.readFile(path.join(input,'report.json'),'utf8'));
- const expectedCollision=!!cadReport.intentional_fit_trial;
+ const alignedRow=cadReport.fit.insertion.find(x=>x.pair==='printed/printed'&&x.lift_mm===0)
+  ||cadReport.fit.insertion.find(x=>x.lift_mm===0);
+ const expectedAlignedCollision=!!alignedRow?.collision;
+ const expectedCrossCollision=!!cadReport.fit.poses.find(x=>x.name==='cross_90')?.collision;
  const hash=b=>createHash('sha256').update(b).digest('hex');
  const result={schema_version:1,browser:null,input_files:{},captures:[],errors:[],automated_passed:false,visual_review_performed:false};
  for(const name of ['viewer.html','report.json','brick.stl'])result.input_files[name]=hash(await fs.readFile(path.join(input,name)));
@@ -51,11 +54,11 @@ const assert=require('node:assert/strict');
   await set('camera','underside');await capture('03-underside');
   await set('mode','section');await set('camera','section');await capture('04-section');
   await set('mode','stack');await set('camera','perspective');await capture('05-assembled',true);
-  assert((await page.locator('#status').innerText()).endsWith(expectedCollision?'あり':'検出なし'));
+  assert((await page.locator('#status').innerText()).endsWith(expectedAlignedCollision?'あり':'検出なし'));
   await slide(8);await capture('06-exploded',true);
   assert((await page.locator('#status').innerText()).includes('未計算'));
   await slide(0);await set('pose','cross_90');await capture('07-cross-90',true);
-  assert((await page.locator('#status').innerText()).endsWith(expectedCollision?'あり':'検出なし'));
+  assert((await page.locator('#status').innerText()).endsWith(expectedCrossCollision?'あり':'検出なし'));
   await set('pose','half_pitch_negative_control');await capture('08-collision-control',true);
   assert((await page.locator('#status').innerText()).endsWith('あり'));
   await set('mode','single');await set('camera','perspective');
@@ -68,6 +71,12 @@ const assert=require('node:assert/strict');
   await capture('09-orbit-zoom');
   await page.setViewportSize({width:390,height:844});await page.locator('#under').click();await capture('10-mobile');
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'horizontal overflow on mobile');
+  if(cadReport.kind==='tunnel'){
+   await page.setViewportSize({width:1440,height:1000});
+   await set('pose','aligned');await set('mode','sandwich');await set('camera','perspective');
+   await capture('11-standard-bricks',true);
+   await page.locator('#view').screenshot({path:path.join(output,'assembly.png')});
+  }
   assert.equal(new Set(result.captures.map(c=>c.sha256)).size,result.captures.length,'Views did not change');
   assert.deepEqual(result.errors,[],'Browser errors');
   result.automated_passed=true;
@@ -82,4 +91,5 @@ const assert=require('node:assert/strict');
  }
  if(!result.automated_passed)throw Error(result.errors.join('\n'));
 })().catch(e=>{console.error(e);process.exitCode=1});
+
 

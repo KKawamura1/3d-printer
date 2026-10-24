@@ -40,11 +40,15 @@ jobs:
       - run: python scripts/review-sheet.py build/rail-browser
       - run: npm run browser:check -- build/duplo-fit-trial-02 build/rounded-browser
       - run: python scripts/review-sheet.py build/rounded-browser
+      - run: python -m brickcad.tunnel
+      - run: npm run browser:check -- build/duplo-tunnel-trial-01 build/tunnel-browser
+      - run: python scripts/review-sheet.py build/tunnel-browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: brick-cad-and-verification
           path: build/
           retention-days: 30
+
 
 
