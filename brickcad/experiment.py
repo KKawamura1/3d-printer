@@ -197,6 +197,8 @@ def generate(out=Path('build/duplo-experiment-01')):
 def package(out, destination):
     """Ship generated models and measurement forms, without browser intermediates."""
     destination=Path(destination);destination.parent.mkdir(parents=True,exist_ok=True)
+    with zipfile.ZipFile(destination.with_name(destination.stem+'_plate_stl.zip'),'w',zipfile.ZIP_DEFLATED) as archive:
+        archive.write(Path(out)/'plate.stl','plate.stl')
     with zipfile.ZipFile(destination,'w',zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(Path(out).iterdir()):
             if path.is_file() and path.name!='plate.stl' and path.suffix in ('.stl','.step','.3mf','.json','.csv'):
