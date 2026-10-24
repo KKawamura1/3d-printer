@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "geometry": {
+    "parameters": {
+      "family": "duplo",
+      "nx": 2,
+      "ny": 2,
+      "pitch": 16.0,
+      "body_gap": 0.2,
+      "height": 19.2,
+      "stud_radius": 4.7,
+      "stud_height": 4.5,
+      "stud_inner_radius": 3.25,
+      "wall": 3.2,
+      "roof": 1.6,
+      "tube_radius": 6.55,
+      "tube_inner_radius": 4.7,
+      "clearance": 0.0
+    },
+    "bounds_mm": [
+      31.8,
+      31.8,
+      23.7
+    ],
+    "volume_mm3": 9863.622156666554,
+    "analytical_volume_mm3": 9863.622156666557,
+    "checks": {
+      "valid_brep": true,
+      "one_solid": true,
+      "dimensions": true,
+      "analytical_volume": true,
+      "bottom_open": true,
+      "roof_present": true,
+      "stud_centres": true,
+      "stud_walls": true,
+      "stud_floors": true,
+      "tube_holes": true,
+      "tube_walls": true
+    },
+    "passed": true
+  },
+  "mesh": {
+    "triangles": 5068,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "degenerate_triangles": 0,
+    "signed_volume_mm3": 9862.875152798975,
+    "bounds_mm": [
+      [
+        -15.899999618530273,
+        -15.899999618530273,
+        0.0
+      ],
+      [
+        15.899999618530273,
+        15.899999618530273,
+        23.700000762939453
+      ]
+    ],
+    "passed": true
+  },
+  "step_roundtrip_passed": true,
+  "fit": {
+    "reference": "synthetic duplo nominal model; not an OEM scan",
+    "reference_parameters": {
+      "family": "duplo",
+      "nx": 2,
+      "ny": 2,
+      "pitch": 16.0,
+      "body_gap": 0.2,
+      "height": 19.2,
+      "stud_radius": 4.7,
+      "stud_height": 4.5,
+      "stud_inner_radius": 3.25,
+      "wall": 3.2,
+      "roof": 1.6,
+      "tube_radius": 6.55,
+      "tube_inner_radius": 4.7,
+      "clearance": 0.0
+    },
+    "limitation": "Rigid geometry only: no clutch force, elasticity, shrinkage, slicer or FEA prediction",
+    "numerical_volume_tolerance_mm3": 1e-05,
+    "self_wall_gap_mm": 0.0,
+    "self_tube_gap_mm": 0.06370849898476116,
+    "insertion": [
+      {
+        "pair": "printed/printed",
+        "lift_mm": 5.7,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 4.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 1.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 5.7,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 4.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 1.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 5.7,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 4.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 1.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      }
+    ],
+    "poses": [
+      {
+        "name": "one_stud_offset",
+        "xyz_mm": [
+          16.0,
+          0,
+          19.2
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "name": "cross_90",
+        "xyz_mm": [
+          0,
+          0,
+          19.2
+        ],
+        "rotation_deg": 90,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "name": "half_pitch_negative_control",
+        "xyz_mm": [
+          8.0,
+          0,
+          19.2
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 158.49010535119197,
+        "collision": true
+      },
+      {
+        "name": "overinsert_negative_control",
+        "xyz_mm": [
+          0,
+          0,
+          18.9
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 129.4393191308516,
+        "collision": true
+      }
+    ],
+    "negative_controls_passed": true
+  },
+  "physical_fit_validated": false,
+  "fit_geometrically_clear": true,
+  "mesh_matches_cad": true,
+  "environment": {
+    "cadquery": "2.7.0",
+    "cadquery-ocp": "7.8.1.1.post1",
+    "numpy": "2.3.5",
+    "matplotlib": "3.10.8"
+  },
+  "files": {
+    "brick.stl": "77ca1c6d4cb01afac819c7db658b2f89beea5228a08cb67627a48c03b2efd1ad",
+    "brick.step": "58bc1a5d8cb59a6d317e97e5dbf471f3e8e444a3c49239e2bb35f36cefcf036a"
+  },
+  "passed": true
+}

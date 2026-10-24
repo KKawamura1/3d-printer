@@ -7,7 +7,7 @@ const {createHash}=require('node:crypto');
 const assert=require('node:assert/strict');
 
 (async()=>{
- const input=path.resolve(process.argv[2]||'build/first-print');
+ const input=path.resolve(process.argv[2]||'build/duplo-2x4');
  const output=path.resolve(process.argv[3]||'build/browser-qa');
  await fs.mkdir(output,{recursive:true});
  const hash=b=>createHash('sha256').update(b).digest('hex');

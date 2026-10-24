@@ -47,7 +47,7 @@ npm install --prefix ./build/browser-package --ignore-scripts --no-audit --no-fu
 起動コマンドごとに、次の環境変数を渡す。前セッションのパッケージや、一時的な`export`が次のシェルに引き継がれる前提にしない。
 
 ```sh
-BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:interactive -- examples/first-print
+BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:interactive -- examples/duplo-2x4
 ```
 
 `{"ready":true,...}`が出れば起動している。起動処理が圧縮バイナリ・フォント・SwiftShaderを`build/browser-runtime/`へ展開する。tarの元所有者は復元しない。`build/`は再生成可能な作業用ファイルで、gitへ追加しない。
@@ -58,14 +58,14 @@ BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chrom
 
 ```sh
 npx playwright install --with-deps chromium
-npm run browser:interactive -- examples/first-print
+npm run browser:interactive -- examples/duplo-2x4
 ```
 
 LinuxでのOSパッケージ導入には、その環境に応じた権限が必要な場合がある。ブラウザの導入が失敗したときは成功扱いにしない。
 
 ## 3. 撮影・画像確認まで行う
 
-上の`examples/first-print`はrepoに含まれる生成済みモデルなので、CADの再生成前でもブラウザ単独の起動確認ができる。常駐プロセスの標準入力へ、以下を1行ずつ送る。
+上の`examples/duplo-2x4`はrepoに含まれる生成済みモデルなので、CADの再生成前でもブラウザ単独の起動確認ができる。常駐プロセスの標準入力へ、以下を1行ずつ送る。
 
 ```json
 {"action":"capture"}
@@ -87,10 +87,10 @@ python -m unittest discover -s tests -v
 python -m brickcad all
 ```
 
-常駐ブラウザを生成先`build/first-print`で起動し直す。
+常駐ブラウザを生成先`build/duplo-2x4`で起動し直す。
 
 ```sh
-BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:interactive -- build/first-print
+BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:interactive -- build/duplo-2x4
 ```
 
 以後はCAD変更後に`python -m brickcad build`を実行し、同じブラウザへ`{"action":"reload"}`を送る。視点・回転・分解・拡大縮小だけならCADの再生成は不要。終了時は`{"action":"close"}`を送る。
@@ -98,7 +98,7 @@ BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chrom
 回帰確認をまとめて行う場合も同じChromiumを使える。
 
 ```sh
-BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:check -- build/first-print build/browser-qa
+BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:check -- build/duplo-2x4 build/browser-qa
 python scripts/review-sheet.py build/browser-qa
 ```
 
@@ -112,11 +112,11 @@ python scripts/review-sheet.py build/browser-qa
 | `chown`の`EINVAL` | npmパッケージの`executablePath()`を直接呼ばず、repoの起動スクリプトを使う |
 | 日本語が四角になる | 最新の生成済みHTMLか確認。日本語UIフォントはrepoの`brickcad/assets/`から埋め込まれる |
 | runtimeの展開途中で中断・バージョン変更 | ブラウザを終了し、作業用`build/browser-runtime/`を退避してから起動し直す |
-| `file`/HTMLが見つからない | 作業ディレクトリと`examples/first-print`または`build/first-print`の指定を確認 |
+| `file`/HTMLが見つからない | 作業ディレクトリと`examples/duplo-2x4`または`build/duplo-2x4`の指定を確認 |
 | 別のツールからlocalhostへ接続できない | 実行環境が別のネットワーク空間の場合がある。本手順は`file://`でHTMLを開き、HTTPサーバーを必要としない |
 
 通常の開発はこの常駐ブラウザで反復する。ローカルの導入・起動が解決できない場合に限り、CIの撮影結果取得やデプロイ先をクラウドブラウザで操作する方法を検討する。
 
 ## 再現確認記録
 
-2026-10-24、repoの追跡ファイルだけを新しいディレクトリへ展開し、既存の`build/`・`node_modules/`・前のChromium常駐プロセスを利用せずに確認した。`npm ci`、Linux用Chromiumの新規配置、生成済みサンプルでの起動、通常撮影・裏面撮影、終了コマンドまで実行できた。両撮影の応答は`ok:true`・`errors:[]`で、裏面PNGも実際に開いて確認した。この検証は同じWork環境内の別ディレクトリでの再現であり、全く異なるOS・共有ライブラリ構成や将来の全Work環境での保証ではない。
+2026-10-24、通常レゴを対象にしていた時点でrepoの追跡ファイルだけを新しいディレクトリへ展開し、既存の`build/`・`node_modules/`・前のChromium常駐プロセスを利用せずに確認した。`npm ci`、Linux用Chromiumの新規配置、生成済みサンプルでの起動、通常撮影・裏面撮影、終了コマンドまで実行できた。両撮影の応答は`ok:true`・`errors:[]`で、裏面PNGも実際に開いて確認した。この検証は同じWork環境内の別ディレクトリでの再現であり、全く異なるOS・共有ライブラリ構成や将来の全Work環境での保証ではない。

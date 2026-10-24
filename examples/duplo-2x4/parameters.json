@@ -1,0 +1,16 @@
+{
+  "family": "duplo",
+  "nx": 4,
+  "ny": 2,
+  "pitch": 16.0,
+  "body_gap": 0.2,
+  "height": 19.2,
+  "stud_radius": 4.7,
+  "stud_height": 4.5,
+  "stud_inner_radius": 3.25,
+  "wall": 3.2,
+  "roof": 1.6,
+  "tube_radius": 6.55,
+  "tube_inner_radius": 4.7,
+  "clearance": 0.0
+}

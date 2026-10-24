@@ -25,7 +25,7 @@ def outlines(shape):
 
 def preview(shape, p, out):
     fig = plt.figure(figsize=(14, 8), facecolor='#f5f7fa')
-    cutter = cq.Workplane('XY').box(p.width+2,p.depth+2,30,centered=(True,False,False)).val()
+    cutter = cq.Workplane('XY').box(p.width+2,p.depth+2,p.height+p.stud_height+2,centered=(True,False,False)).val()
     section = shape.cut(cutter)
     for index, (title, obj, elev, azim) in enumerate([
         ('Top / studs',shape,28,-55),('Underside / tubes',shape,-35,-55),
@@ -44,7 +44,7 @@ def preview(shape, p, out):
         ax.view_init(elev,azim)
         ax.set_title(title,fontsize=12)
         ax.set_xlabel('X / mm'); ax.set_ylabel('Y / mm'); ax.set_zlabel('Z / mm')
-    fig.suptitle(f'{p.ny} x {p.nx} brick | radial clearance {p.clearance:+.2f} mm',fontsize=17)
+    fig.suptitle(f'{p.family.upper()} {p.ny} x {p.nx} brick | radial clearance {p.clearance:+.2f} mm',fontsize=17)
     fig.tight_layout()
     fig.savefig(out/'preview.png',dpi=150)
     plt.close(fig)
@@ -52,11 +52,11 @@ def preview(shape, p, out):
 
 def viewer(shape, p, report, out):
     verts,faces=mesh(shape)
-    cutter = cq.Workplane('XY').box(p.width+2,p.depth+2,30,centered=(True,False,False)).val()
+    cutter = cq.Workplane('XY').box(p.width+2,p.depth+2,p.height+p.stud_height+2,centered=(True,False,False)).val()
     cut_shape=shape.cut(cutter)
     cut_vertices, cut_faces = mesh(cut_shape)
     template=(Path(__file__).parent/'viewer.html').read_text()
     template=template.replace('__FONT_CSS__',(Path(__file__).parent/'assets/viewer-font.css').read_text())
-    payload=json.dumps(dict(vertices=verts,faces=faces,edges=outlines(shape),section=dict(vertices=cut_vertices,faces=cut_faces,edges=outlines(cut_shape)),height=p.height,width=p.width,
+    payload=json.dumps(dict(vertices=verts,faces=faces,edges=outlines(shape),section=dict(vertices=cut_vertices,faces=cut_faces,edges=outlines(cut_shape)),height=p.height,studHeight=p.stud_height,width=p.width,depth=p.depth,family=p.family,
                             report=report),separators=(',',':'))
     (out/'viewer.html').write_text(template.replace('__DATA__',payload))

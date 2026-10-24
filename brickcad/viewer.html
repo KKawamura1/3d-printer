@@ -30,15 +30,19 @@ let yaw=-0.65,pitch=0.65,zoom=1,drag=null;
 const poses={aligned:[0,0,data.height,0]};
 for(const p of data.report.fit.poses)poses[p.name]=[...p.xyz_mm,p.rotation_deg*Math.PI/180];
 function camera(v){const [x,y,z]=v,c=Math.cos(yaw),s=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);let u=c*x-s*y,w=s*x+c*y;return [u,cp*(z-9)-sp*w,sp*(z-9)+cp*w]}
-function draw(){const dpr=devicePixelRatio||1,w=canvas.clientWidth,h=canvas.clientHeight;canvas.width=w*dpr;canvas.height=h*dpr;gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);const scale=Math.min(w/(data.width*1.65),h/48)*zoom;
+function draw(){const dpr=devicePixelRatio||1,w=canvas.clientWidth,h=canvas.clientHeight;canvas.width=w*dpr;canvas.height=h*dpr;gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);let scale;
  const scene=[{t:[0,0,0,0],color:[226,76,59]}];if(mode.value==='stack'){const p=poses[pose.value].slice();p[2]+=+lift.value;scene.push({t:p,color:[45,153,212]})}
  const source=mode.value==='section'?data.section:data;
- let tris=[];for(const obj of scene){const [tx,ty,tz,a]=obj.t,ca=Math.cos(a),sa=Math.sin(a);const vv=source.vertices.map(v=>camera([v[0]*ca-v[1]*sa+tx,v[0]*sa+v[1]*ca+ty,v[2]+tz]));for(const f of source.faces){const p=f.map(i=>vv[i]);const u=p[1].map((x,i)=>x-p[0][i]),v=p[2].map((x,i)=>x-p[0][i]);const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];let len=Math.hypot(...n)||1;const light=.55+.4*Math.abs((n[0]*.3+n[1]*.6+n[2]*.74)/len);tris.push({p,depth:p.reduce((s,v)=>s+v[2],0)/3,color:obj.color.map(v=>Math.round(v*light))})}}
+ let tris=[], projected=[];for(const obj of scene){const [tx,ty,tz,a]=obj.t,ca=Math.cos(a),sa=Math.sin(a);const vv=source.vertices.map(v=>camera([v[0]*ca-v[1]*sa+tx,v[0]*sa+v[1]*ca+ty,v[2]+tz]));projected.push(...vv);for(const f of source.faces){const p=f.map(i=>vv[i]);const u=p[1].map((x,i)=>x-p[0][i]),v=p[2].map((x,i)=>x-p[0][i]);const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];let len=Math.hypot(...n)||1;const light=.55+.4*Math.abs((n[0]*.3+n[1]*.6+n[2]*.74)/len);tris.push({p,depth:p.reduce((s,v)=>s+v[2],0)/3,color:obj.color.map(v=>Math.round(v*light))})}}
+ let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+ for(const v of projected){minX=Math.min(minX,v[0]);maxX=Math.max(maxX,v[0]);minY=Math.min(minY,v[1]);maxY=Math.max(maxY,v[1])}
+ const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+ scale=Math.min(w*.78/Math.max(maxX-minX,1),h*.72/Math.max(maxY-minY,1))*zoom;
  // Depth is tested per pixel; centroid sorting incorrectly exposes hidden faces.
- const vertices=[];for(const tri of tris)for(const v of tri.p)vertices.push(2*v[0]*scale/w,-.16+2*v[1]*scale/h,-v[2]/200,...tri.color.map(c=>c/255));
+ const vertices=[];for(const tri of tris)for(const v of tri.p)vertices.push(2*(v[0]-cx)*scale/w,2*(v[1]-cy)*scale/h,-v[2]/200,...tri.color.map(c=>c/255));
  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);
  const lines=[];
- for(const obj of scene){const [tx,ty,tz,a]=obj.t,ca=Math.cos(a),sa=Math.sin(a);for(const segment of source.edges)for(const point of segment){const v=camera([point[0]*ca-point[1]*sa+tx,point[0]*sa+point[1]*ca+ty,point[2]+tz]);lines.push(2*v[0]*scale/w,-.16+2*v[1]*scale/h,-v[2]/200-.00001,...obj.color.map(c=>c/255*.50))}}
+ for(const obj of scene){const [tx,ty,tz,a]=obj.t,ca=Math.cos(a),sa=Math.sin(a);for(const segment of source.edges)for(const point of segment){const v=camera([point[0]*ca-point[1]*sa+tx,point[0]*sa+point[1]*ca+ty,point[2]+tz]);lines.push(2*(v[0]-cx)*scale/w,2*(v[1]-cy)*scale/h,-v[2]/200-.00001,...obj.color.map(c=>c/255*.50))}}
  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(lines),gl.DYNAMIC_DRAW);gl.drawArrays(gl.LINES,0,lines.length/6);
  document.getElementById('liftText').value=(+lift.value).toFixed(1);
  const fit=data.report.fit;let row=pose.value==='aligned'?fit.insertion.find(x=>x.pair==='printed/printed'&&x.lift_mm===0):fit.poses.find(x=>x.name===pose.value);
@@ -51,6 +55,7 @@ for(const el of [mode,pose,lift])el.oninput=draw;
 const cameraSelect=document.getElementById('camera');
 cameraSelect.oninput=()=>{const angles={perspective:[-.65,.65],top:[0,Math.PI/2],underside:[-.65,-.8],section:[0,.15]};[yaw,pitch]=angles[cameraSelect.value];zoom=1;draw()};
 document.getElementById('under').onclick=()=>{pitch=-.8;draw()};document.getElementById('reset').onclick=()=>{yaw=-.65;pitch=.65;zoom=1;draw()};
-document.getElementById('dims').textContent=`単位 mm / ${data.report.geometry.bounds_mm.map(x=>x.toFixed(2)).join(' × ')} / clearance ${data.report.geometry.parameters.clearance}`;
+document.querySelector('h1').textContent='Brick CAD inspector · '+(data.family||'lego').toUpperCase();
+document.getElementById('dims').textContent=`${(data.family||'lego').toUpperCase()} / 単位 mm / ${data.report.geometry.bounds_mm.map(x=>x.toFixed(2)).join(' × ')} / clearance ${data.report.geometry.parameters.clearance}`;
 new ResizeObserver(draw).observe(canvas);draw();
 </script></html>

@@ -1,8 +1,17 @@
-# 3d-printer — ブロック設計・検証ハーネス
+# 3d-printer — デュプロ互換ブロックの設計・検証ハーネス
 
-変則ブロックを作るための、パラメトリックCADと幾何検証の作業環境です。まずは2×4のレゴ互換を目指す試作品から始めます。**実物での嵌合は未検証**です。
+変則デュプロを作るための、パラメトリックCADと幾何検証の作業環境です。**現在の主対象とCLI既定値はDUPLO 2×4**です。短い試し刷り用2×2もあります。実物での嵌合は未検証です。
 
-![実際のCADから生成した外観・裏面・断面・組立図](examples/first-print/preview.png)
+- [印刷用STL 2種類をまとめてダウンロード（ZIP）](prints/duplo_bricks.zip)
+- [DUPLO 2×4 STL](examples/duplo-2x4/brick.stl) — 本体63.8×31.8×19.2 mm
+- [DUPLO 2×2 STL](examples/duplo-2x2/brick.stl) — 本体31.8×31.8×19.2 mm
+- [寸法の根拠・作成手順](docs/duplo.md)
+
+STLは既にデュプロ寸法です。スライサーではmm単位・100%で読み込み、さらに2倍に拡大しないでください。
+
+通常サイズのレゴ用モデルは`examples/first-print/`と旧profileに残しています。
+
+![DUPLO CADの外観・裏面・断面・組立図](examples/duplo-2x4/preview.png)
 
 ## 新規セッションで再開する
 
@@ -19,7 +28,7 @@
 - Chromiumでビューアーを操作し、上面・裏面・CAD断面・組立・干渉例・モバイル画面を実際に撮影。
 - GitHub ActionsでCADとブラウザを再検証し、スクリーンショット・trace・レポートをartifactに保存。
 
-## 最初の試作品を見る
+## 以前の通常レゴ試作品を見る
 
 `examples/first-print/`に生成済みの一式を置いています。
 
@@ -41,7 +50,7 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
 python -m brickcad all
-open build/first-print/viewer.html
+open build/duplo-2x4/viewer.html
 ```
 
 Mac以外では最後のHTMLをブラウザで開いてください。主要なCAD・数値計算・描画依存はバージョン固定していますが、全推移依存のlockfileではありません。検証時の実バージョンはレポートに残します。
@@ -54,7 +63,7 @@ python -m brickcad build --profile profiles/nominal.json --out build/nominal
 python -m brickcad sweep --profile profiles/first-print.json --out build/trial
 ```
 
-寸法変更はJSON profileを追加して`--profile`で指定します。省略した項目は`brickcad/model.py`の既定値です。現在の対応範囲は両軸2〜12スタッドの長方形です。例えば2×3は`{"nx":3,"ny":2,"clearance":0.05}`。
+寸法変更はJSON profileを追加して`--profile`で指定します。省略した項目は`brickcad/model.py`の既定値です。現在の対応範囲は両軸2〜12スタッドの長方形です。例えばDUPLO 2×3は`{"family":"duplo","nx":3,"ny":2,"clearance":0.0}`。family省略時は既存互換性のため通常レゴ寸法。
 
 ```text
 brickcad/model.py       CAD生成・寸法定義
@@ -81,7 +90,7 @@ CAD生成後、ブラウザを常駐させます。操作ごとの再起動・pu
 ```sh
 npm ci
 npx playwright install --with-deps chromium
-npm run browser:interactive -- build/first-print
+npm run browser:interactive -- build/duplo-2x4
 ```
 
 起動後の入力はJSONを1行ずつ渡します。各操作の後に、スクリーンショットの絶対パス・所要時間・画面の検証表示を返します。撮影画像をエージェントが開き、必要な次の操作を判断できます。
@@ -105,7 +114,7 @@ npm run browser:interactive -- build/first-print
 
 ```sh
 npm install --prefix /tmp/brick-browser-runtime --ignore-scripts @sparticuz/chromium@153.0.0
-BRICK_CHROMIUM_PACKAGE=/tmp/brick-browser-runtime/node_modules/@sparticuz/chromium/build/index.js npm run browser:interactive -- build/first-print
+BRICK_CHROMIUM_PACKAGE=/tmp/brick-browser-runtime/node_modules/@sparticuz/chromium/build/index.js npm run browser:interactive -- build/duplo-2x4
 ```
 
 この経路は圧縮バイナリと描画ライブラリを`build/browser-runtime/`に展開します。tarの所有者変更を行わないため、所有者変更に制約のある環境でも使えます。Linux用の代替経路で、通常のMac/Windowsは標準Playwrightを使います。描画はWebGLの深度バッファを使い、裏側の面が手前へ出る描画順の問題を避けています。日本語UIの必要文字はOFLフォントのサブセットをHTMLへ埋め込んでいます。
@@ -119,7 +128,7 @@ Node.js 22を用意し、CAD生成後に以下を実行します。
 ```sh
 npm ci
 npx playwright install --with-deps chromium
-npm run browser:check -- build/first-print build/browser-qa
+npm run browser:check -- build/duplo-2x4 build/browser-qa
 python scripts/review-sheet.py build/browser-qa
 ```
 
@@ -129,7 +138,6 @@ python scripts/review-sheet.py build/browser-qa
 
 上のLinux用代替経路も使えない場合は、GitHub Actionsの`brick-cad-and-verification` artifactから同じ画像を取り出して確認します。未取得・未確認なら目視確認済みと扱いません。
 
+## 以前の通常レゴ用校正プレート
 
-## 小さな初回接続試験
-
-[sim2real印刷プレート](examples/sim2real/plate.stl)は、2×2を5個、補正を変えて同時印刷するデータです。配置55.8×35.8 mm、最大高さ11.4 mm、CAD体積換算でPLA約7.74 g。側面の溝1〜5本で識別します。上下を純正と別々に比較し、突起・受けを独立選択できます。[印刷・評価・再生成の手順](docs/sim2real.md)を参照してください。
+`examples/sim2real/plate.stl`と`python -m brickcad.calibration`は、通常レゴ（8 mmピッチ）の接続試験です。DUPLO用ではありません。既存の試験データを残しています。デュプロ用の作成・寸法は[こちら](docs/duplo.md)を参照してください。

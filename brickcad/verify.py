@@ -6,7 +6,7 @@ import struct
 import cadquery as cq
 from OCP.Bnd import Bnd_Box
 from OCP.BRepBndLib import BRepBndLib
-from .model import Brick, build
+from .model import Brick, build, nominal_brick
 
 VOLUME_TOL = 1e-5  # mm^3; numerical classification only, NOT a print tolerance
 
@@ -66,7 +66,7 @@ def geometry_report(p, shape):
     cavity_w = p.width-2*(p.wall-p.clearance)
     cavity_d = p.depth-2*(p.wall-p.clearance)
     volume = (p.width*p.depth*p.height - cavity_w*cavity_d*(p.height-p.roof)
-              + p.nx*p.ny*math.pi*(p.stud_radius-p.clearance)**2*p.stud_height
+              + p.nx*p.ny*math.pi*((p.stud_radius-p.clearance)**2-p.stud_inner_radius**2)*p.stud_height
               + (p.nx-1)*(p.ny-1)*math.pi*((p.tube_radius-p.clearance)**2-p.tube_inner_radius**2)*(p.height-p.roof))
     checks = {
         'valid_brep': shape.isValid(), 'one_solid': len(shape.Solids()) == 1,
@@ -74,7 +74,9 @@ def geometry_report(p, shape):
         'analytical_volume': abs(shape.Volume()-volume)<1e-5,
         'bottom_open': not shape.isInside(cq.Vector(p.pitch/4, 0, 0.1)),
         'roof_present': shape.isInside(cq.Vector(0, 0, p.height-p.roof/2)),
-        'stud_centres': all(shape.isInside(cq.Vector(x,y,p.height+p.stud_height/2)) for x,y in p.studs()),
+        'stud_centres': all(shape.isInside(cq.Vector(x,y,p.height+p.stud_height/2)) == (p.stud_inner_radius == 0) for x,y in p.studs()),
+        'stud_walls': all(shape.isInside(cq.Vector(x+(p.stud_inner_radius+p.stud_radius-p.clearance)/2,y,p.height+p.stud_height/2)) for x,y in p.studs()),
+        'stud_floors': all(shape.isInside(cq.Vector(x,y,p.height-p.roof/2)) for x,y in p.studs()),
         'tube_holes': all(not shape.isInside(cq.Vector(x,y,1)) for x,y in p.tubes()),
         'tube_walls': all(shape.isInside(cq.Vector(x+(p.tube_inner_radius+p.tube_radius-p.clearance)/2,y,1)) for x,y in p.tubes()),
     }
@@ -84,11 +86,11 @@ def geometry_report(p, shape):
 
 def fit_report(p, shape):
     # Reference is an independently instantiated nominal design, NOT a measured genuine brick.
-    ref_p = Brick(nx=p.nx, ny=p.ny)
+    ref_p = nominal_brick(p.family, p.nx, p.ny)
     ref = build(ref_p)
     rows = []
     for label, lower, upper in [('printed/printed',shape,shape), ('reference/printed',ref,shape), ('printed/reference',shape,ref)]:
-        for dz in (3.0, 1.8, 1.2, 0.6, 0.0):
+        for dz in (max(p.stud_height,ref_p.stud_height)+1.2, max(p.stud_height,ref_p.stud_height), p.stud_height*2/3, p.stud_height/3, 0.0):
             seat_height = ref_p.height if label == 'reference/printed' else p.height
             vol = intersection(lower, place(upper,(0,0,seat_height+dz)))
             rows.append(dict(pair=label, lift_mm=dz, intersection_mm3=vol, collision=vol>VOLUME_TOL))
@@ -104,7 +106,8 @@ def fit_report(p, shape):
     r = p.stud_radius-p.clearance
     wall_gap = p.pitch/2-p.body_gap/2-(p.wall-p.clearance)-r
     tube_gap = math.sqrt(2)*(p.pitch/2)-(p.tube_radius-p.clearance)-r
-    return dict(reference='synthetic nominal model; not an OEM scan',
+    return dict(reference=f'synthetic {p.family} nominal model; not an OEM scan',
+                reference_parameters=asdict(ref_p),
                 limitation='Rigid geometry only: no clutch force, elasticity, shrinkage, slicer or FEA prediction',
                 numerical_volume_tolerance_mm3=VOLUME_TOL,
                 self_wall_gap_mm=wall_gap,self_tube_gap_mm=tube_gap,

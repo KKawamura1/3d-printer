@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import sys
 import cadquery as cq
-from .model import Brick, build
+from .model import Brick, build, nominal_brick, from_profile
 from .verify import geometry_report, fit_report, mesh_check, intersection, place, VOLUME_TOL
 from .render import preview, viewer
 
@@ -46,7 +46,7 @@ def export(p,out):
 
 def sweep(p,out):
     out.mkdir(parents=True,exist_ok=True)
-    ref=build(Brick(nx=p.nx,ny=p.ny))
+    ref=build(nominal_brick(p.family,p.nx,p.ny))
     rows=[]
     for c in (-0.04,0.0,0.04,0.08,0.12):
         spec=replace(p,clearance=c)
@@ -70,10 +70,10 @@ def sweep(p,out):
 def main():
     parser=argparse.ArgumentParser(description='Build, verify, render and calibrate brick CAD (mm).')
     parser.add_argument('command',choices=['build','sweep','all'])
-    parser.add_argument('--profile',type=Path,default=Path('profiles/first-print.json'))
-    parser.add_argument('--out',type=Path,default=Path('build/first-print'))
+    parser.add_argument('--profile',type=Path,default=Path('profiles/duplo-first-print.json'))
+    parser.add_argument('--out',type=Path,default=Path('build/duplo-2x4'))
     args=parser.parse_args()
-    p=Brick(**json.loads(args.profile.read_text()))
+    p=from_profile(json.loads(args.profile.read_text()))
     if args.command in ('build','all'):export(p,args.out)
     if args.command in ('sweep','all'):sweep(p,args.out/'calibration')
 

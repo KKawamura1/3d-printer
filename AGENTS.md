@@ -1,12 +1,15 @@
 # Working on this project
 
+- The user's actual target is DUPLO. Read docs/duplo.md. Default CLI/profile is DUPLO 2x4; keep legacy LEGO examples explicit. DUPLO is not a uniform 2x mesh scale: it has hollow studs and separate dimensional presets.
+- Fit references must use the same family preset; never compare a DUPLO candidate against the 8 mm LEGO reference by accident.
+
 - At the start of a fresh session, read docs/new-session.md and follow its bootstrap and real-screenshot smoke check. Do not assume an old Chromium installation, build directory, shell environment or process/session ID still exists.
 - Read README.md and docs/design.md first. Units: millimetres, Z up, bottom rim z=0.
 - Use CadQuery BRep as the authoritative solid. Change parameters/source, regenerate, inspect the actual previews, and run geometric tests before claiming success.
 - Run `python -m unittest discover -s tests -v` and `python -m brickcad all` after CAD changes. For nominal-profile changes also regenerate nominal output.
 - Never describe a collision-free rigid model as physically validated, or infer clutch force from overlap volume. Keep `physical_fit_validated=false` until real print results support a specifically identified profile, printer and material.
 - Keep source dimension evidence, guesses, printer compensation and measured calibration distinct. Preserve failed trials and measurement metadata in `measurements/` when the user supplies them.
-- Keep `profiles/nominal.json` as the synthetic reference; do not silently tune it to make candidates pass. Compare both printed-on-reference and reference-on-printed.
+- Keep `profiles/nominal.json` (LEGO) and `profiles/duplo-nominal.json` (DUPLO) as synthetic references; do not silently tune it to make candidates pass. Compare both printed-on-reference and reference-on-printed.
 - Keep negative controls (half-pitch misalignment, overinsertion, tight fit, broken mesh) so the harness demonstrably detects defects.
 - Never send printer commands or produce machine-specific G-code without the actual machine/nozzle/material/slicer setup. STL and STEP are machine-independent outputs.
 - Existing model supports rectangular bricks with at least two studs on each axis; 1-wide bricks and irregular layouts need new underside support logic and tests.
