@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-24",
+  "supplements": "measurements/2026-10-24-duplo-compact-01.json",
+  "units": "mm",
+  "source": "User-reported additional digital caliper readings; no controlled measuring force reported.",
+  "orientation": "User labels top_left/top_right/bottom_left/bottom_right; alignment with printer X/Y is unknown.",
+  "readings": [
+    {
+      "id": 2,
+      "stud": "top_left",
+      "horizontal": 9.33,
+      "vertical": 9.32
+    },
+    {
+      "id": 2,
+      "stud": "top_right",
+      "horizontal": 9.36,
+      "vertical": 9.39
+    },
+    {
+      "id": 2,
+      "stud": "bottom_left",
+      "horizontal": 9.35,
+      "vertical": 9.32
+    },
+    {
+      "id": 2,
+      "stud": "bottom_right",
+      "horizontal": 9.38,
+      "vertical": 9.36
+    },
+    {
+      "id": 3,
+      "stud": "top_left",
+      "horizontal": 9.03,
+      "vertical": 9.02
+    },
+    {
+      "id": 3,
+      "stud": "top_right",
+      "horizontal": 9.04,
+      "vertical": 9
+    },
+    {
+      "id": 3,
+      "stud": "bottom_left",
+      "horizontal": 9.02,
+      "vertical": 9.04
+    },
+    {
+      "id": 3,
+      "stud": "bottom_right",
+      "horizontal": 9.02,
+      "vertical": 9.05
+    }
+  ],
+  "summary": [
+    {
+      "id": 2,
+      "count": 8,
+      "mean_mm": 9.35125,
+      "min_mm": 9.32,
+      "max_mm": 9.39
+    },
+    {
+      "id": 3,
+      "count": 8,
+      "mean_mm": 9.0275,
+      "min_mm": 9,
+      "max_mm": 9.05
+    }
+  ],
+  "observation_ja": "柔らかいし積層構造なので、力を入れると凹んで小さく測定される。",
+  "limitations": "Readings may be force-dependent. Summaries describe these observations, not unloaded diameters or estimates of printer repeatability. Measurement height, repeat measurements and caliper accuracy unknown. Material and print settings still unknown.",
+  "interpretation": "Within-coupon ranges are 0.07 and 0.05 mm; between-coupon mean difference is 0.32375 mm, versus 0.08 mm CAD diameter difference. Geometric/toolpath differences and measurement deformation are not separated.",
+  "decision": "Keep approved next trial: stud coupon 2 plus receiver coupon 3, regular-height 2x2. Do not globally scale or retune from these measurements alone."
+}
