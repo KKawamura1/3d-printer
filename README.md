@@ -2,6 +2,8 @@
 
 変則デュプロを作るための、パラメトリックCADと幾何検証の作業環境です。**現在の主対象とCLI既定値はDUPLO 2×4**です。短い試し刷り用2×2もあります。旧試作2×2は実物で接続・遊べたものの、突起がきつい・裏面が緩い・角が痛いという評価。新しい丸角版・レールは実物未検証です。
 
+- [NEW：16個・通常高さの大規模校正実験01](docs/duplo-experiment-01.md) — [印刷・測定一式ZIP](prints/duplo_experiment_01.zip)、基準8個＋独立寸法変更8個。実物未検証。
+
 - [NEW：90度の隠しトンネル試作01（STL ZIP）](prints/duplo_elbow_trial_01.zip) — 4×4ポッチ・2段高さ。新しく1個印刷して曲がる隠し通路を試せます。[印刷・接続手順](docs/duplo-elbow-trial-01.md)（実物未検証）
 - [2段トンネル試作01（STL ZIP）](prints/duplo_tunnel_trial_01.zip) — [寸法・印刷・確認手順](docs/duplo-tunnel-trial-01.md)
 - [ピタゴラ M1：レール→隠し通路2個→レール](docs/pitagora-m1.md) — 接続ポート規格、連続通過のCAD検証、組立・実物試験手順（実物未検証）
@@ -168,3 +170,4 @@ Pythonのimport依存をたどり、変更したモジュールを使うテス�
 全テストを明示的に回したい時は Actions → `CAD tests` → Run workflow。ローカルでは `python scripts/ci-tests.py`、PR相当の選択は `python scripts/ci-tests.py --base <base SHA>`、対象確認だけなら `--plan` を付けます。
 
 生成物やローカルブラウザが使えない時の撮影は Actions → `CAD preview (manual)` → Run workflow で対象モデルを1つ選びます。撮影が必要なら `screenshots` をオンにします。選んだモデルの生成・検証を1回行い、スクリーンショットが不要ならNode.js・Chromiumをインストールしません。`brick-cad-and-verification` artifact（7日保存）から取得してください。撮影成功と画像の目視確認は別です。旧レゴと校正プレートも、この手動実行で必要時のみ生成できます。
+

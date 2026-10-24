@@ -33,7 +33,7 @@ function camera(v){const [x,y,z]=v,c=Math.cos(yaw),s=Math.sin(yaw),cp=Math.cos(p
 function draw(){const dpr=devicePixelRatio||1,w=canvas.clientWidth,h=canvas.clientHeight;canvas.width=w*dpr;canvas.height=h*dpr;gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);let scale;
  const scene=[{t:[0,0,0,0],color:[226,76,59]}];if(mode.value==='stack'){const p=poses[pose.value].slice();p[2]+=+lift.value;scene.push({t:p,color:[45,153,212]})}
  const source=mode.value==='section'?data.section:data;
- let tris=[], projected=[];for(const obj of scene){const [tx,ty,tz,a]=obj.t,ca=Math.cos(a),sa=Math.sin(a);const vv=source.vertices.map(v=>camera([v[0]*ca-v[1]*sa+tx,v[0]*sa+v[1]*ca+ty,v[2]+tz]));projected.push(...vv);for(const f of source.faces){const p=f.map(i=>vv[i]);const u=p[1].map((x,i)=>x-p[0][i]),v=p[2].map((x,i)=>x-p[0][i]);const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];let len=Math.hypot(...n)||1;const light=.55+.4*Math.abs((n[0]*.3+n[1]*.6+n[2]*.74)/len);tris.push({p,depth:p.reduce((s,v)=>s+v[2],0)/3,color:obj.color.map(v=>Math.round(v*light))})}}
+ let tris=[], projected=[];for(const obj of scene){const [tx,ty,tz,a]=obj.t,ca=Math.cos(a),sa=Math.sin(a);const vv=source.vertices.map(v=>camera([v[0]*ca-v[1]*sa+tx,v[0]*sa+v[1]*ca+ty,v[2]+tz]));for(const vertex of vv)projected.push(vertex);for(const f of source.faces){const p=f.map(i=>vv[i]);const u=p[1].map((x,i)=>x-p[0][i]),v=p[2].map((x,i)=>x-p[0][i]);const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];let len=Math.hypot(...n)||1;const light=.55+.4*Math.abs((n[0]*.3+n[1]*.6+n[2]*.74)/len);tris.push({p,depth:p.reduce((s,v)=>s+v[2],0)/3,color:obj.color.map(v=>Math.round(v*light))})}}
  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
  for(const v of projected){minX=Math.min(minX,v[0]);maxX=Math.max(maxX,v[0]);minY=Math.min(minY,v[1]);maxY=Math.max(maxY,v[1])}
  const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
@@ -59,3 +59,4 @@ document.querySelector('h1').textContent='Brick CAD inspector · '+(data.family|
 document.getElementById('dims').textContent=`${(data.family||'lego').toUpperCase()} / 単位 mm / ${data.report.geometry.bounds_mm.map(x=>x.toFixed(2)).join(' × ')} / clearance ${data.report.geometry.parameters.clearance}`;
 new ResizeObserver(draw).observe(canvas);draw();
 </script></html>
+
