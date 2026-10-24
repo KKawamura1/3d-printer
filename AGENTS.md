@@ -1,5 +1,6 @@
 # Working on this project
 
+- At the start of a fresh session, read docs/new-session.md and follow its bootstrap and real-screenshot smoke check. Do not assume an old Chromium installation, build directory, shell environment or process/session ID still exists.
 - Read README.md and docs/design.md first. Units: millimetres, Z up, bottom rim z=0.
 - Use CadQuery BRep as the authoritative solid. Change parameters/source, regenerate, inspect the actual previews, and run geometric tests before claiming success.
 - Run `python -m unittest discover -s tests -v` and `python -m brickcad all` after CAD changes. For nominal-profile changes also regenerate nominal output.
