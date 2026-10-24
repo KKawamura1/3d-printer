@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "status": "unprinted_template",
+  "physical_fit_validated": false,
+  "physical_rolling_validated": false,
+  "date": null,
+  "printer": null,
+  "nozzle_mm": null,
+  "material": null,
+  "layer_height_mm": null,
+  "slicer_version": null,
+  "source_commit": null,
+  "print_settings": {},
+  "dimensions_mm": {
+    "length": null,
+    "width": null,
+    "body_height": null,
+    "stud_diameter": null,
+    "tube_outer_diameter": null,
+    "tube_inner_diameter": null
+  },
+  "fit": {
+    "printed_on_genuine": null,
+    "genuine_on_printed": null
+  },
+  "ball_diameter_mm": null,
+  "internal_roof_and_burrs": null,
+  "support_layout": null,
+  "upstream_release_height_mm": null,
+  "upstream_course": null,
+  "release_method": null,
+  "tilted_test": {
+    "west_to_north_successes": null,
+    "north_to_west_successes": null,
+    "attempts_each": null
+  },
+  "horizontal_test": {
+    "west_to_north_successes": null,
+    "north_to_west_successes": null,
+    "attempts_each": null,
+    "stop_locations": null,
+    "derailments": null
+  },
+  "jam_recovery": null,
+  "loose_connections": null,
+  "notes": null
+}
