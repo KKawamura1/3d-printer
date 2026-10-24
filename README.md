@@ -33,7 +33,7 @@ STLは既にデュプロ寸法です。スライサーではmm単位・100%で�
 - 挿入方向の5姿勢と、公差の違う5候補を確認。
 - 実際の形状の断面PNGと、オフラインで回転できるHTMLを生成。
 - Chromiumでビューアーを操作し、上面・裏面・CAD断面・組立・干渉例・モバイル画面を実際に撮影。
-- GitHub ActionsでCADとブラウザを再検証し、スクリーンショット・trace・レポートをartifactに保存。
+- PRでは変更に関係するテストのみ実行。CAD生成・ブラウザ撮影は必要時にモデルを選んで手動実行。
 
 ## 以前の通常レゴ試作品を見る
 
@@ -157,3 +157,13 @@ python scripts/review-sheet.py build/browser-qa
 
 
 
+
+## CIの実行方針
+
+自動の `CAD tests` はPRだけで実行し、push・mainへのマージでは重ねて実行しません。ドキュメント、実測記録、印刷ZIP、生成済みサンプルだけの変更では起動しません。同じPRの新しい更新が来たら古い実行をキャンセルします。
+
+Pythonのimport依存をたどり、変更したモジュールを使うテストファイルを1回ずつ実行します。例えば `ports.py` はピタゴラのテストだけ、`tunnel.py` はトンネルとピタゴラ、`rail.py` はレール・トンネル・ピタゴラが対象です。共通モデル・検証、profile、依存パッケージ、未登録の新しいPythonモジュールなどは保守的に全テストを対象にします。テスト内の出力・干渉検査は維持し、その後の全モデル再生成・校正スイープ・全ビュー撮影は削除しました。
+
+全テストを明示的に回したい時は Actions → `CAD tests` → Run workflow。ローカルでは `python scripts/ci-tests.py`、PR相当の選択は `python scripts/ci-tests.py --base <base SHA>`、対象確認だけなら `--plan` を付けます。
+
+生成物やローカルブラウザが使えない時の撮影は Actions → `CAD preview (manual)` → Run workflow で対象モデルを1つ選びます。撮影が必要なら `screenshots` をオンにします。選んだモデルの生成・検証を1回行い、スクリーンショットが不要ならNode.js・Chromiumをインストールしません。`brick-cad-and-verification` artifact（7日保存）から取得してください。撮影成功と画像の目視確認は別です。旧レゴと校正プレートも、この手動実行で必要時のみ生成できます。
