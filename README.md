@@ -168,3 +168,8 @@ Pythonのimport依存をたどり、変更したモジュールを使うテス�
 全テストを明示的に回したい時は Actions → `CAD tests` → Run workflow。ローカルでは `python scripts/ci-tests.py`、PR相当の選択は `python scripts/ci-tests.py --base <base SHA>`、対象確認だけなら `--plan` を付けます。
 
 生成物やローカルブラウザが使えない時の撮影は Actions → `CAD preview (manual)` → Run workflow で対象モデルを1つ選びます。撮影が必要なら `screenshots` をオンにします。選んだモデルの生成・検証を1回行い、スクリーンショットが不要ならNode.js・Chromiumをインストールしません。`brick-cad-and-verification` artifact（7日保存）から取得してください。撮影成功と画像の目視確認は別です。旧レゴと校正プレートも、この手動実行で必要時のみ生成できます。
+
+
+## 4×4・90度下りカーブ
+
+黄色い既存カーブと同じ占有サイズで1段下る[試作01の設計・印刷手順](docs/duplo-sloped-curve-trial-01.md)。[印刷用ZIP](prints/duplo_sloped_curve_trial_01.zip)にSTL・STEPと自己完結プレビューを同梱。

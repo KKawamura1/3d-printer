@@ -1,0 +1,368 @@
+{
+  "checks": {
+    "valid_brep": true,
+    "one_solid": true,
+    "footprint": true,
+    "ports_match": true,
+    "wrong_height_rejected": true,
+    "wrong_grid_rejected": true,
+    "bodies_clear": true,
+    "existing_support_fit_envelope": true,
+    "sampled_ball_clear": true,
+    "continuous_floor_samples": true,
+    "low_ball_detected": true,
+    "receiver_holes": true,
+    "receiver_walls": true,
+    "mesh": true,
+    "mesh_volume": true,
+    "step_roundtrip": true
+  },
+  "joints": [
+    {
+      "compatible": true,
+      "datum_distance_mm": 0.0,
+      "normals_opposed": true,
+      "same_section": true,
+      "mouth_gap_mm": 0.2
+    },
+    {
+      "compatible": true,
+      "datum_distance_mm": 1.7763568394002505e-15,
+      "normals_opposed": true,
+      "same_section": true,
+      "mouth_gap_mm": 0.2
+    }
+  ],
+  "body_intersections_mm3": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "ball_samples": [
+    {
+      "t": 0.0,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.020833333333333332,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.041666666666666664,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.0625,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.08333333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.10416666666666667,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.125,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.14583333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.16666666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.1875,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.20833333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.22916666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.25,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.2708333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.2916666666666667,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.3125,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.3333333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.3541666666666667,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.375,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.3958333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.4166666666666667,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.4375,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.4583333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.4791666666666667,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.5,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.5208333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.5416666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.5625,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.5833333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.6041666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.625,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.6458333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.6666666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.6875,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.7083333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.7291666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.75,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.7708333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.7916666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.8125,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.8333333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.8541666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.875,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.8958333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.9166666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.9375,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.9583333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.9791666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 1.0,
+      "intersection_mm3": 0.0
+    }
+  ],
+  "low_ball_negative_control_mm3": 243.77220066215105,
+  "support_fit_intersection_mm3": 1.0934977406688873,
+  "outside_footprint_mm3": 0.0,
+  "kind": "duplo-sloped-curve-trial-01",
+  "passed": true,
+  "geometry": {
+    "bounds_mm": [
+      63.79999923706055,
+      63.79999923706055,
+      38.32994079589844
+    ],
+    "brep_conservative_bounds_mm": [
+      63.80142165793685,
+      63.84225539429847,
+      38.32994181322156
+    ],
+    "volume_mm3": 46918.29974693135,
+    "parameters": {
+      "family": "duplo",
+      "nx": 4,
+      "ny": 4,
+      "pitch": 16.0,
+      "body_gap": 0.2,
+      "height": 38.33,
+      "stud_radius": 4.6,
+      "stud_height": 4.5,
+      "stud_inner_radius": 3.25,
+      "wall": 3.16,
+      "roof": 1.6,
+      "tube_radius": 6.65,
+      "tube_inner_radius": 4.7,
+      "clearance": 0.0
+    }
+  },
+  "drop_mm": 19.2,
+  "turn_radius_mm": 48.0,
+  "rail": {
+    "length": 63.8,
+    "width": 31.65,
+    "height": 19.13,
+    "opening": 25.74,
+    "floor": 6.35,
+    "outer_radius": 0.8,
+    "lip_radius": 0.5,
+    "end_chamfer": 0.15,
+    "entry": 0.3,
+    "roof": 1.6
+  },
+  "ports": [
+    {
+      "name": "high-west",
+      "floor_xyz_mm": [
+        -32.0,
+        -16.0,
+        25.549999999999997
+      ],
+      "outward": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "section_radius_mm": 12.870316901408449,
+      "face_inset_mm": 0.1
+    },
+    {
+      "name": "low-north",
+      "floor_xyz_mm": [
+        16.0,
+        32.0,
+        6.35
+      ],
+      "outward": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "section_radius_mm": 12.870316901408449,
+      "face_inset_mm": 0.1
+    }
+  ],
+  "ball_diameter_mm": 24.26,
+  "max_slope_degrees": 20.905450060323783,
+  "physical_fit_validated": false,
+  "physical_rolling_validated": false,
+  "mesh": {
+    "triangles": 64490,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "degenerate_triangles": 0,
+    "signed_volume_mm3": 46913.05969086363,
+    "bounds_mm": [
+      [
+        -31.899999618530273,
+        -31.899999618530273,
+        -2.220446049250313e-15
+      ],
+      [
+        31.899999618530273,
+        31.899999618530273,
+        38.32994079589844
+      ]
+    ],
+    "passed": true
+  },
+  "limitations": [
+    "49 static sphere samples, not continuous clearance or rolling dynamics.",
+    "4x4 envelope and port grid inferred from user; middle curvature is our design.",
+    "Shared receiver retains existing loose-fit trial; no new fit compensation.",
+    "Raised approach on nominal support retains known 0.036 mm radial trial interference.",
+    "Spline BRep bounding box is conservative; footprint also checked by solid subtraction.",
+    "Slicer inspection and a real print are required; internal ceiling is a bridge."
+  ],
+  "source_files": {
+    "sloped_curve.py": "6ad1ecd9adbd92e4238c2b6999c47e67ba6185734a40c258ea3debd6e1aa80a3",
+    "rail.py": "c0665e59d3b4d0378ae3eb21bb05a8acb4b5b79f6c0f6eee38ba4203e7340abb",
+    "model.py": "b373c510b8aa347bead32bbc4f2af0e20ee37ad0b204f0174b2d878e08ec23f7",
+    "ports.py": "e62e912b0a0a11f8320a24c99662ca6c40f5c99fbbe46e56b876c9e286c825dd",
+    "render.py": "75f6037b0716dbd598b3dfb9ec6ad648cbe4a3ffcec5345bea6e50cc95ebeb51",
+    "viewer.html": "35b711e767de5cce075832ef8cdfc0359d3c2d39eafcbdeb729bb00e2e25f8dc"
+  },
+  "files": {
+    "brick.stl": "c9fc4499e87c2415d782879a7b0b27b0ac74210008908f2625d4aef6cddb8408",
+    "brick.step": "578a6d30d49459b91f22772e3f66ee063ad5980f68249f54929dde98b46b40ad",
+    "assembly.step": "438d8faf9d1d6f126bac1ca1ff70e0ae947cacb560acbdaa28a93f034f0c45ba"
+  },
+  "stl_tessellation": {
+    "linear_tolerance_mm": 0.01,
+    "angular_tolerance_radians": 0.1
+  }
+}
