@@ -2,6 +2,7 @@
 
 変則デュプロを作るための、パラメトリックCADと幾何検証の作業環境です。**現在の主対象とCLI既定値はDUPLO 2×4**です。短い試し刷り用2×2もあります。実物での嵌合は未検証です。
 
+- [次の印刷：DUPLO通常高さ2×2（突起2番＋受け3番）](examples/duplo-fit-trial-01/brick.stl) — [印刷・確認手順](docs/duplo-fit-trial-01.md)
 - [初回のDUPLO接続校正プレート（補正違いの低い2×2を5個、PLA換算約26.6 g）](examples/sim2real-duplo/plate.stl) — [印刷・評価手順](docs/sim2real-duplo.md)
 - [印刷用STL 2種類をまとめてダウンロード（ZIP）](prints/duplo_bricks.zip)
 - [DUPLO 2×4 STL](examples/duplo-2x4/brick.stl) — 本体63.8×31.8×19.2 mm

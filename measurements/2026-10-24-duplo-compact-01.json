@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-24",
+  "source": "User-reported fit observations and digital caliper readings in ChatGPT",
+  "printed_source_commit": "133191224585b5b93c87eb5a90305f12abbd9176",
+  "printed_source_path": "examples/sim2real-duplo/plate.stl",
+  "family": "duplo",
+  "coupon_body_height_mm": 6.4,
+  "setup": {
+    "printer_model": null,
+    "nozzle_mm": null,
+    "material": null,
+    "layer_height_mm": null,
+    "slicer": null,
+    "settings": null,
+    "reference_part": null,
+    "note": "Not reported in this thread; do not infer from fit results."
+  },
+  "fit_observations": [
+    {
+      "id": 1,
+      "receiver_on_genuine": "ぴったりすぎて取れない",
+      "genuine_on_studs": "大きすぎてハマらない"
+    },
+    {
+      "id": 2,
+      "receiver_on_genuine": "とてもぴったり、やや取りにくい",
+      "genuine_on_studs": "ちょうどいい、ほんの少しだけ大きめ？"
+    },
+    {
+      "id": 3,
+      "receiver_on_genuine": "とてもぴったり、取れる、ベスト",
+      "genuine_on_studs": "小さすぎてスカスカ"
+    },
+    {
+      "id": 4,
+      "receiver_on_genuine": "ややスカスカ",
+      "genuine_on_studs": "小さすぎてスカスカ（3番と同上）"
+    },
+    {
+      "id": 5,
+      "receiver_on_genuine": "スカスカ",
+      "genuine_on_studs": "小さすぎてスカスカ（3番と同上）"
+    }
+  ],
+  "measurements_mm": {
+    "genuine_stud_diameter": {
+      "range": [
+        9.31,
+        9.33
+      ],
+      "representative": 9.32
+    },
+    "coupon_2_stud_diameter": {
+      "range": [
+        9.27,
+        9.37
+      ],
+      "note": "ばらつき大きめ"
+    },
+    "coupon_3_stud_diameter": {
+      "range": [
+        8.97,
+        9.06
+      ]
+    },
+    "coupon_2_body_dimension": {
+      "range": [
+        31.51,
+        31.54
+      ]
+    },
+    "coupon_3_body_dimension": {
+      "range": [
+        31.51,
+        31.54
+      ]
+    }
+  },
+  "measurement_limitations": "Axis, height, individual stud, repeated-reading protocol and caliper accuracy not yet reported. Ranges are preserved, not treated as a known process standard deviation.",
+  "selection": {
+    "stud_coupon_id": 2,
+    "receiver_coupon_id": 3,
+    "stud_clearance_mm": 0.0,
+    "receiver_clearance_mm": 0.04,
+    "profile": "profiles/duplo-fit-trial-01.json",
+    "user_approved_next_step": true
+  },
+  "status": "User observed fit on compact coupons; mixed compensation at regular height remains physically unvalidated. Additional measurements pending."
+}
