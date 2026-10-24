@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "browser": "153.0.8010.0",
+  "input_files": {
+    "viewer.html": "44cc67aeeb75d82ff1ace032bbae812dd448bd8bad10beefa8ff255a09fd563b",
+    "report.json": "64eb632235aee2b346ec35b8e5cd95fe1e5725e5ba50a5c66c42cd54ea11aaf6",
+    "brick.stl": "cb4224f1e2525d64985d85f722dec8449eaaa2de4b3cd2fd1c7428ece3b8f670"
+  },
+  "captures": [
+    {
+      "name": "01-perspective",
+      "file": "01-perspective.png",
+      "sha256": "2e31868f6f954554638169556ad1019e88aabfe9b5bdcbf79b437e188c22fe34",
+      "pixels": {
+        "red": 140139,
+        "blue": 0
+      },
+      "status": "CAD・STL検証: PASS"
+    },
+    {
+      "name": "02-top",
+      "file": "02-top.png",
+      "sha256": "c963588a7f73f7011d6045a99501ae6045d92d8fa7ad9427f0a7e21a9dc6e78d",
+      "pixels": {
+        "red": 123504,
+        "blue": 0
+      },
+      "status": "CAD・STL検証: PASS"
+    },
+    {
+      "name": "03-underside",
+      "file": "03-underside.png",
+      "sha256": "81c3ce97d7fdd2d21083570c402be6edbf89e58fdfab25f3ee6980a5382fbaa9",
+      "pixels": {
+        "red": 145586,
+        "blue": 0
+      },
+      "status": "CAD・STL検証: PASS"
+    },
+    {
+      "name": "04-section",
+      "file": "04-section.png",
+      "sha256": "5e0664e3f0782c9cefe42fe5b46d96c4a1d3d65aa3508627babf8bf78083f630",
+      "pixels": {
+        "red": 86853,
+        "blue": 0
+      },
+      "status": "CAD・STL検証: PASS"
+    },
+    {
+      "name": "05-assembled",
+      "file": "05-assembled.png",
+      "sha256": "f855b5970ccabb0a16c779793e83a392c4306d21250a52af0bd81f843b3c92b3",
+      "pixels": {
+        "red": 64979,
+        "blue": 139948
+      },
+      "status": "設計上の干渉: 0.000000 mm³ / 検出なし"
+    },
+    {
+      "name": "06-exploded",
+      "file": "06-exploded.png",
+      "sha256": "49b144a4fe07dd45d65f5855524c3fcbd7106d4a0f1de3e24b8282bbff8461e8",
+      "pixels": {
+        "red": 111567,
+        "blue": 140091
+      },
+      "status": "分解表示中。現在位置の干渉判定は未計算。"
+    },
+    {
+      "name": "07-cross-90",
+      "file": "07-cross-90.png",
+      "sha256": "66ac6bd92ae3376c553965e3e5d6939a9cd7bc7a7ab716db265e75a79b932713",
+      "pixels": {
+        "red": 62626,
+        "blue": 134072
+      },
+      "status": "設計上の干渉: 0.000000 mm³ / 検出なし"
+    },
+    {
+      "name": "08-collision-control",
+      "file": "08-collision-control.png",
+      "sha256": "3e05ad223df78634f5ab6b6ccff0011e8914e374e091c2ebf0dcd2a91f85e5db",
+      "pixels": {
+        "red": 77071,
+        "blue": 137414
+      },
+      "status": "設計上の干渉: 51.946232 mm³ / あり"
+    },
+    {
+      "name": "09-orbit-zoom",
+      "file": "09-orbit-zoom.png",
+      "sha256": "81c1a06494197ec9a5edaad1f8e146e465d8e66e2ef1c6073e50d568076d3fc0",
+      "pixels": {
+        "red": 218707,
+        "blue": 0
+      },
+      "status": "CAD・STL検証: PASS"
+    },
+    {
+      "name": "10-mobile",
+      "file": "10-mobile.png",
+      "sha256": "8bf0dbfaff11c413bc4e37715e9ff6ea023412fbe0a080f5f2a2757851ffb718",
+      "pixels": {
+        "red": 49393,
+        "blue": 0
+      },
+      "status": "CAD・STL検証: PASS"
+    }
+  ],
+  "errors": [],
+  "automated_passed": true,
+  "visual_review_performed": false
+}

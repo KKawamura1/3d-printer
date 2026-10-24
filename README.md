@@ -70,7 +70,45 @@ tests/                 正常例・欠陥を検出する負例
 
 次の段階ではプリンター機種・ノズル・材料・スライサーを特定し、試し刷りの実測値からprofileを調整します。[設計の根拠・検証範囲・実測手順](docs/design.md)を参照してください。
 
-## ブラウザでの撮影と目視確認
+## インタラクティブに確認する（通常の開発ループ）
+
+CAD生成後、ブラウザを常駐させます。操作ごとの再起動・push・デプロイ・Actions待ちは不要です。
+
+```sh
+npm ci
+npx playwright install --with-deps chromium
+npm run browser:interactive -- build/first-print
+```
+
+起動後の入力はJSONを1行ずつ渡します。各操作の後に、スクリーンショットの絶対パス・所要時間・画面の検証表示を返します。撮影画像をエージェントが開き、必要な次の操作を判断できます。
+
+```json
+{"action":"view","value":"underside"}
+{"action":"mode","value":"section"}
+{"action":"view","value":"section"}
+{"action":"mode","value":"stack"}
+{"action":"view","value":"perspective"}
+{"action":"lift","value":8}
+{"action":"orbit","dx":100,"dy":40}
+{"action":"zoom","value":-120}
+{"action":"reload"}
+{"action":"close"}
+```
+
+別のターミナルで`python -m brickcad build`を再実行し、`reload`すると新しいCADが表示されます。`build`は数秒のCAD生成を含みますが、視点・組立の操作ではCADを再生成しません。今回の環境では操作と撮影が約0.17〜0.32秒、再読み込みと撮影が約0.33秒でした。速度は環境で変わります。
+
+標準のブラウザ導入ができないLinux環境では、npm配布のバイナリを使う経路も用意しています。
+
+```sh
+npm install --prefix /tmp/brick-browser-runtime --ignore-scripts @sparticuz/chromium@153.0.0
+BRICK_CHROMIUM_PACKAGE=/tmp/brick-browser-runtime/node_modules/@sparticuz/chromium/build/index.js npm run browser:interactive -- build/first-print
+```
+
+この経路は圧縮バイナリと描画ライブラリを`build/browser-runtime/`に展開します。tarの所有者変更を行わないため、所有者変更に制約のある環境でも使えます。Linux用の代替経路で、通常のMac/Windowsは標準Playwrightを使います。描画はWebGLの深度バッファを使い、裏側の面が手前へ出る描画順の問題を避けています。日本語UIの必要文字はOFLフォントのサブセットをHTMLへ埋め込んでいます。
+
+[実ブラウザの撮影一覧](examples/browser/review-sheet.jpg)・[目視確認記録](examples/browser/visual-review.md)も参照してください。
+
+## ブラウザでの一括撮影と目視確認（回帰確認）
 
 Node.js 22を用意し、CAD生成後に以下を実行します。
 
@@ -85,4 +123,4 @@ python scripts/review-sheet.py build/browser-qa
 
 自動検査はJavaScriptエラー、空のキャンバス、組立部品の描画漏れ、視点変更、ドラッグ・拡大縮小、表示上の干渉判定、モバイルの横はみ出しを確認します。形状の意味を理解した目視判定は行いません。`automated_passed`と`visual_review_performed`は別です。画像をエージェントが実際に開いて確認し、欠陥があれば修正・再撮影することが作業完了条件です。
 
-ローカルにブラウザを導入できない環境では、GitHub Actionsの`brick-cad-and-verification` artifactから同じ画像を取り出して確認します。未取得・未確認なら目視確認済みと扱いません。
+上のLinux用代替経路も使えない場合は、GitHub Actionsの`brick-cad-and-verification` artifactから同じ画像を取り出して確認します。未取得・未確認なら目視確認済みと扱いません。

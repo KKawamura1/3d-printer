@@ -2,7 +2,8 @@
   "name": "brick-cad-inspector",
   "private": true,
   "scripts": {
-    "browser:check": "node scripts/browser-check.cjs"
+    "browser:check": "node scripts/browser-check.cjs",
+    "browser:interactive": "node scripts/interactive-browser.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

@@ -13,6 +13,16 @@ def mesh(shape):
     return [v.toTuple() for v in verts], faces
 
 
+def outlines(shape):
+    segments=[]
+    for edge in shape.Edges():
+        points,_=edge.sample(0.03)
+        if (edge.startPoint()-edge.endPoint()).Length < 1e-7:
+            points.append(points[0])
+        segments.extend([[a.toTuple(),b.toTuple()] for a,b in zip(points,points[1:])])
+    return segments
+
+
 def preview(shape, p, out):
     fig = plt.figure(figsize=(14, 8), facecolor='#f5f7fa')
     cutter = cq.Workplane('XY').box(p.width+2,p.depth+2,30,centered=(True,False,False)).val()
@@ -43,8 +53,10 @@ def preview(shape, p, out):
 def viewer(shape, p, report, out):
     verts,faces=mesh(shape)
     cutter = cq.Workplane('XY').box(p.width+2,p.depth+2,30,centered=(True,False,False)).val()
-    cut_vertices, cut_faces = mesh(shape.cut(cutter))
+    cut_shape=shape.cut(cutter)
+    cut_vertices, cut_faces = mesh(cut_shape)
     template=(Path(__file__).parent/'viewer.html').read_text()
-    payload=json.dumps(dict(vertices=verts,faces=faces,section=dict(vertices=cut_vertices,faces=cut_faces),height=p.height,width=p.width,
+    template=template.replace('__FONT_CSS__',(Path(__file__).parent/'assets/viewer-font.css').read_text())
+    payload=json.dumps(dict(vertices=verts,faces=faces,edges=outlines(shape),section=dict(vertices=cut_vertices,faces=cut_faces,edges=outlines(cut_shape)),height=p.height,width=p.width,
                             report=report),separators=(',',':'))
     (out/'viewer.html').write_text(template.replace('__DATA__',payload))

@@ -15,7 +15,8 @@ const assert=require('node:assert/strict');
  for(const name of ['viewer.html','report.json','brick.stl'])result.input_files[name]=hash(await fs.readFile(path.join(input,name)));
  let browser,context,page;
  try{
-  browser=await chromium.launch({headless:true});
+  const {launchBrowser}=require('./browser-runtime.cjs');
+  browser=await launchBrowser();
   result.browser=browser.version();
   context=await browser.newContext({viewport:{width:1440,height:1000},deviceScaleFactor:1});
   await context.tracing.start({screenshots:true,snapshots:true,sources:true});
@@ -31,7 +32,7 @@ const assert=require('node:assert/strict');
   async function capture(name,blue=false){
    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
    const pixels=await page.locator('#view').evaluate(canvas=>{
-    const d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+    const gl=canvas.getContext('webgl');const d=new Uint8Array(canvas.width*canvas.height*4);gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,d);
     let red=0,blue=0;
     for(let i=0;i<d.length;i+=4){if(d[i]>70&&d[i]>d[i+1]*1.6&&d[i]>d[i+2]*1.5)red++;if(d[i+2]>65&&d[i+2]>d[i]*1.5&&d[i+1]>d[i]*1.5)blue++}
     return {red,blue};

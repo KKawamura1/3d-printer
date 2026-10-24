@@ -1,6 +1,8 @@
 <!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Brick CAD inspector</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#101923;color:#e9eff6;font:15px system-ui}header{padding:22px 28px;border-bottom:1px solid #344353}h1{margin:0 0 5px;font-size:24px}header p{margin:0;color:#acbdce}main{display:grid;grid-template-columns:1fr 320px;min-height:80vh}canvas{width:100%;height:75vh;touch-action:none;background:radial-gradient(ellipse at center,#253447,#101923)}aside{padding:22px;background:#172330}label,select,input,button{display:block;width:100%;margin:12px 0}select,button{padding:9px;background:#293d52;color:white;border:1px solid #50667a;border-radius:6px}p{line-height:1.6}.badge{padding:12px;background:#294154;border-radius:8px}small{color:#acbdce}a{color:#8dcaff}@media(max-width:700px){main{grid-template-columns:1fr}canvas{height:52vh}}
+__FONT_CSS__
+select,input,button{font:inherit}
+*{box-sizing:border-box}body{margin:0;background:#101923;color:#e9eff6;font:15px system-ui,BrickJP,sans-serif}header{padding:22px 28px;border-bottom:1px solid #344353}h1{margin:0 0 5px;font-size:24px}header p{margin:0;color:#acbdce}main{display:grid;grid-template-columns:1fr 320px;min-height:80vh}canvas{width:100%;height:75vh;touch-action:none;background:radial-gradient(ellipse at center,#253447,#101923)}aside{padding:22px;background:#172330}label,select,input,button{display:block;width:100%;margin:12px 0}select,button{padding:9px;background:#293d52;color:white;border:1px solid #50667a;border-radius:6px}p{line-height:1.6}.badge{padding:12px;background:#294154;border-radius:8px}small{color:#acbdce}a{color:#8dcaff}@media(max-width:700px){main{grid-template-columns:1fr}canvas{height:52vh}}
 </style>
 <header><h1>Brick CAD inspector</h1><p>実際のCAD形状を表示 · ドラッグで回転 · ホイールで拡大</p></header><main><canvas id="view"></canvas><aside>
 <label>表示<select id="mode"><option value="single">単体</option><option value="stack">上下の組み合わせ</option><option value="section">CAD断面（y &lt; 0）</option></select></label>
@@ -12,17 +14,32 @@
 <p><a href="preview.png">断面・4方向画像</a> · <a href="report.json">検証JSON</a></p><small id="dims"></small></aside></main>
 <script>
 const data=__DATA__;
-const canvas=document.getElementById('view'),ctx=canvas.getContext('2d');
+const canvas=document.getElementById('view');
+const gl=canvas.getContext('webgl',{antialias:true,preserveDrawingBuffer:true,alpha:true});
+if(!gl)throw new Error('WebGL is required for correct depth rendering');
+function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s}
+const program=gl.createProgram();
+gl.attachShader(program,shader(gl.VERTEX_SHADER,'attribute vec3 position;attribute vec3 color;varying vec3 rgb;void main(){gl_Position=vec4(position,1.0);rgb=color;}'));
+gl.attachShader(program,shader(gl.FRAGMENT_SHADER,'precision mediump float;varying vec3 rgb;void main(){gl_FragColor=vec4(rgb,1.0);}'));
+gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));
+gl.useProgram(program);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
+const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+for(const [name,offset] of [['position',0],['color',12]]){const a=gl.getAttribLocation(program,name);gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,3,gl.FLOAT,false,24,offset)}
 const mode=document.getElementById('mode'),pose=document.getElementById('pose'),lift=document.getElementById('lift');
 let yaw=-0.65,pitch=0.65,zoom=1,drag=null;
 const poses={aligned:[0,0,data.height,0]};
 for(const p of data.report.fit.poses)poses[p.name]=[...p.xyz_mm,p.rotation_deg*Math.PI/180];
 function camera(v){const [x,y,z]=v,c=Math.cos(yaw),s=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);let u=c*x-s*y,w=s*x+c*y;return [u,cp*(z-9)-sp*w,sp*(z-9)+cp*w]}
-function draw(){const dpr=devicePixelRatio||1,w=canvas.clientWidth,h=canvas.clientHeight;canvas.width=w*dpr;canvas.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);const scale=Math.min(w/(data.width*1.65),h/48)*zoom;
+function draw(){const dpr=devicePixelRatio||1,w=canvas.clientWidth,h=canvas.clientHeight;canvas.width=w*dpr;canvas.height=h*dpr;gl.viewport(0,0,canvas.width,canvas.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);const scale=Math.min(w/(data.width*1.65),h/48)*zoom;
  const scene=[{t:[0,0,0,0],color:[226,76,59]}];if(mode.value==='stack'){const p=poses[pose.value].slice();p[2]+=+lift.value;scene.push({t:p,color:[45,153,212]})}
  const source=mode.value==='section'?data.section:data;
  let tris=[];for(const obj of scene){const [tx,ty,tz,a]=obj.t,ca=Math.cos(a),sa=Math.sin(a);const vv=source.vertices.map(v=>camera([v[0]*ca-v[1]*sa+tx,v[0]*sa+v[1]*ca+ty,v[2]+tz]));for(const f of source.faces){const p=f.map(i=>vv[i]);const u=p[1].map((x,i)=>x-p[0][i]),v=p[2].map((x,i)=>x-p[0][i]);const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];let len=Math.hypot(...n)||1;const light=.55+.4*Math.abs((n[0]*.3+n[1]*.6+n[2]*.74)/len);tris.push({p,depth:p.reduce((s,v)=>s+v[2],0)/3,color:obj.color.map(v=>Math.round(v*light))})}}
- tris.sort((a,b)=>a.depth-b.depth);for(const tri of tris){ctx.beginPath();tri.p.forEach((v,i)=>{const x=w/2+v[0]*scale,y=h*.58-v[1]*scale;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();ctx.fillStyle=`rgb(${tri.color.join(',')})`;ctx.fill()}
+ // Depth is tested per pixel; centroid sorting incorrectly exposes hidden faces.
+ const vertices=[];for(const tri of tris)for(const v of tri.p)vertices.push(2*v[0]*scale/w,-.16+2*v[1]*scale/h,-v[2]/200,...tri.color.map(c=>c/255));
+ gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);
+ const lines=[];
+ for(const obj of scene){const [tx,ty,tz,a]=obj.t,ca=Math.cos(a),sa=Math.sin(a);for(const segment of source.edges)for(const point of segment){const v=camera([point[0]*ca-point[1]*sa+tx,point[0]*sa+point[1]*ca+ty,point[2]+tz]);lines.push(2*v[0]*scale/w,-.16+2*v[1]*scale/h,-v[2]/200-.00001,...obj.color.map(c=>c/255*.50))}}
+ gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(lines),gl.DYNAMIC_DRAW);gl.drawArrays(gl.LINES,0,lines.length/6);
  document.getElementById('liftText').value=(+lift.value).toFixed(1);
  const fit=data.report.fit;let row=pose.value==='aligned'?fit.insertion.find(x=>x.pair==='printed/printed'&&x.lift_mm===0):fit.poses.find(x=>x.name===pose.value);
  document.getElementById('status').textContent=mode.value!=='stack'?`CAD・STL検証: ${data.report.passed?'PASS':'FAIL'}`:(+lift.value!==0?'分解表示中。現在位置の干渉判定は未計算。':`設計上の干渉: ${row.intersection_mm3.toFixed(6)} mm³ / ${row.collision?'あり':'検出なし'}`);
