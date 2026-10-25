@@ -10,12 +10,14 @@
     "stud_diameter_mm": 9.4,
     "stud_hole_mm": 6.4,
     "required_bed_rotation_deg": 0,
-    "assumption": "14-coupon OD9.40/ID6.40 Inner wall samples achieve acceptable measured diameter and fit; results pending",
+    "assumption": "Upper OD9.40/ID6.40 supported by 14-coupon results; receiver OD13.50 supported by PR14 ID03. XY-compensated transfer remains unprinted.",
     "source_issue": "https://github.com/KKawamura1/3d-printer/issues/1",
     "body_correction_source": "docs/duplo-dimension-error-model.md, seven measured coupons from one earlier 16-coupon job",
-    "physical_fit_validated": false
+    "physical_fit_validated": false,
+    "tube_diameter_mm": 13.5,
+    "receiver_source": "PR #14 ID03 C-tube: user reports perfect fit on 2026-10-25"
   },
-  "fit_geometrically_clear": true,
+  "fit_geometrically_clear": false,
   "geometry": {
     "parameters": {
       "family": "duplo",
@@ -36,7 +38,7 @@
         25.4,
         25.4
       ],
-      "tube_outer_mm": 13.1,
+      "tube_outer_mm": 13.5,
       "tube_inner_mm": 9.4,
       "side_wall_xy_mm": [
         3.3000000000000007,
@@ -59,7 +61,7 @@
       "nonmanifold_edges": 0,
       "inconsistent_edges": 0,
       "degenerate_triangles": 0,
-      "signed_volume_mm3": 9991.909836116276,
+      "signed_volume_mm3": 10138.686482301207,
       "bounds_mm": [
         [
           -16.0,
@@ -98,7 +100,7 @@
     "limitation": "Rigid geometry only: no clutch force, elasticity, shrinkage, slicer or FEA prediction",
     "numerical_volume_tolerance_mm3": 1e-05,
     "self_wall_gap_mm": 0.0,
-    "self_tube_gap_mm": 0.06370849898476116,
+    "self_tube_gap_mm": -0.136291501015239,
     "insertion": [
       {
         "pair": "printed/printed",
@@ -115,20 +117,20 @@
       {
         "pair": "printed/printed",
         "lift_mm": 3.0,
-        "intersection_mm3": 0.0,
-        "collision": false
+        "intersection_mm3": 0.60782407441171,
+        "collision": true
       },
       {
         "pair": "printed/printed",
         "lift_mm": 1.5,
-        "intersection_mm3": 0.0,
-        "collision": false
+        "intersection_mm3": 1.55346272062972,
+        "collision": true
       },
       {
         "pair": "printed/printed",
         "lift_mm": 0.0,
-        "intersection_mm3": 0.0,
-        "collision": false
+        "intersection_mm3": 2.4991013668477455,
+        "collision": true
       },
       {
         "pair": "reference/printed",
@@ -145,20 +147,20 @@
       {
         "pair": "reference/printed",
         "lift_mm": 3.0,
-        "intersection_mm3": 0.0,
-        "collision": false
+        "intersection_mm3": 0.7908581480304111,
+        "collision": true
       },
       {
         "pair": "reference/printed",
         "lift_mm": 1.5,
-        "intersection_mm3": 0.0,
-        "collision": false
+        "intersection_mm3": 1.7364967990658293,
+        "collision": true
       },
       {
         "pair": "reference/printed",
         "lift_mm": 0.0,
-        "intersection_mm3": 0.0,
-        "collision": false
+        "intersection_mm3": 2.6821354501012635,
+        "collision": true
       },
       {
         "pair": "printed/reference",
@@ -200,8 +202,8 @@
           19.2
         ],
         "rotation_deg": 0,
-        "intersection_mm3": 0.0,
-        "collision": false
+        "intersection_mm3": 1.2495508478128263,
+        "collision": true
       },
       {
         "name": "cross_90",
@@ -211,8 +213,8 @@
           19.2
         ],
         "rotation_deg": 90,
-        "intersection_mm3": 0.0,
-        "collision": false
+        "intersection_mm3": 2.4991013668476825,
+        "collision": true
       },
       {
         "name": "half_pitch_negative_control",
@@ -222,7 +224,7 @@
           19.2
         ],
         "rotation_deg": 0,
-        "intersection_mm3": 163.9003455013975,
+        "intersection_mm3": 169.25125865684706,
         "collision": true
       },
       {
@@ -233,7 +235,7 @@
           18.9
         ],
         "rotation_deg": 0,
-        "intersection_mm3": 109.85260335309945,
+        "intersection_mm3": 114.9569276236543,
         "collision": true
       }
     ],
@@ -269,11 +271,12 @@
     "stud_diameter_mm": 9.335,
     "status": "Conditional offset-model illustrations, not verified predictions or measurement records"
   },
+  "receiver_evidence": "PR14 ID03: user reports perfect fit; transferred shape unprinted",
   "limitations": [
-    "The ongoing 14-coupon print has no physical results yet.",
+    "PR14 ID03 supports tube OD13.50; corrected body transfer is not physically validated.",
     "Body offsets come from seven earlier coupons in one job; scale versus offset is unresolved.",
     "Preserving cavity dimensions does not preserve stiffness, heat history or toolpaths.",
-    "No pitch, stud XY ellipticity, tube or Z compensation is inferred.",
+    "No pitch, stud XY ellipticity or Z compensation is inferred; receiver tube follows PR14 ID03.",
     "Print at rotation 0 degrees; CAD X must match printer X. Do not auto-rotate or scale.",
     "Reconfirm Inner wall in the final slice and remeasure all mating directions."
   ]

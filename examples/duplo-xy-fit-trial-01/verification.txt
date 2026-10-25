@@ -1,0 +1,132 @@
+test_default_duplo_independent_compensation_and_holes (test_calibration.CalibrationTest.test_default_duplo_independent_compensation_and_holes) ... ok
+test_duplo_full_height_option_keeps_connection_geometry (test_calibration.CalibrationTest.test_duplo_full_height_option_keeps_connection_geometry) ... ok
+test_duplo_reference_and_labelled_receiver (test_calibration.CalibrationTest.test_duplo_reference_and_labelled_receiver) ... ok
+test_labels_preserve_connection_surfaces (test_calibration.CalibrationTest.test_labels_preserve_connection_surfaces) ... ok
+test_male_female_independent (test_calibration.CalibrationTest.test_male_female_independent) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 1.211s
+
+OK
+
+test_dimensions_and_hollow_studs (test_duplo.DuploTests.test_dimensions_and_hollow_studs) ... ok
+test_family_reference_and_full_insertion_path (test_duplo.DuploTests.test_family_reference_and_full_insertion_path) ... ok
+test_hollow_stud_capping_is_rejected (test_duplo.DuploTests.test_hollow_stud_capping_is_rejected) ... ok
+test_lego_preserved_and_invalid_family (test_duplo.DuploTests.test_lego_preserved_and_invalid_family) ... ok
+test_small_brick_and_file_export (test_duplo.DuploTests.test_small_brick_and_file_export) ... ok
+test_tight_candidate_detected_both_directions (test_duplo.DuploTests.test_tight_candidate_detected_both_directions) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 1.269s
+
+OK
+
+ELBOW PASS {'valid_brep': True, 'one_solid': True, 'continuous_ball_path_clear': True, 'assembly_bodies_clear': True, 'ports_match': True, 'floor_present': True, 'oversize_detected': True, 'floor_step_detected': True, 'lateral_shift_detected': True, 'dimensions': True, 'mesh': True, 'mesh_volume': True, 'step_roundtrip': True, 'tube_holes': True, 'tube_walls': True, 'hollow_studs': True}
+test_exported_files_are_checked (test_elbow.ElbowTests.test_exported_files_are_checked) ... ok
+test_full_curved_course_and_negative_controls (test_elbow.ElbowTests.test_full_curved_course_and_negative_controls) ... ok
+test_grid_mating_and_hollow_upper_connection (test_elbow.ElbowTests.test_grid_mating_and_hollow_upper_connection) ... ok
+test_invalid_ball (test_elbow.ElbowTests.test_invalid_ball) ... ok
+test_sweep_covers_between_samples_and_both_caps (test_elbow.ElbowTests.test_sweep_covers_between_samples_and_both_caps) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 15.327s
+
+OK
+
+test_design_and_layout (test_experiment.ExperimentTests.test_design_and_layout) ... ok
+test_marks_leave_fit_surfaces_unchanged (test_experiment.ExperimentTests.test_marks_leave_fit_surfaces_unchanged) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 4.996s
+
+OK
+
+test_actual_export_and_corrupt_mesh_rejection (test_harness.HarnessTests.test_actual_export_and_corrupt_mesh_rejection) ... ok
+test_aligned_and_rotated_mating (test_harness.HarnessTests.test_aligned_and_rotated_mating) ... ok
+test_geometry_gate_rejects_capped_bottom (test_harness.HarnessTests.test_geometry_gate_rejects_capped_bottom) ... ok
+test_invalid_parameters (test_harness.HarnessTests.test_invalid_parameters) ... ok
+test_negative_controls_and_tolerance_direction (test_harness.HarnessTests.test_negative_controls_and_tolerance_direction) ... ok
+test_other_rectangles_and_changed_dimensions (test_harness.HarnessTests.test_other_rectangles_and_changed_dimensions) ... ok
+test_reference_dimensions_and_features (test_harness.HarnessTests.test_reference_dimensions_and_features) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.512s
+
+OK
+
+test_full_continuous_path_and_geometry_controls (test_pitagora.M1AssemblyTests.test_full_continuous_path_and_geometry_controls) ... ok
+test_geometry_error_even_with_unchanged_port_metadata (test_pitagora.M1AssemblyTests.test_geometry_error_even_with_unchanged_port_metadata) ... ok
+test_metadata_height_error_is_not_accepted (test_pitagora.M1AssemblyTests.test_metadata_height_error_is_not_accepted) ... ok
+test_grid_join_rotation_and_height (test_pitagora.PortTests.test_grid_join_rotation_and_height) ... ok
+test_reject_wrong_section_and_invalid_input (test_pitagora.PortTests.test_reject_wrong_section_and_invalid_input) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 1.173s
+
+OK
+
+rail PASS [63.8000002, 31.65, 19.13000010000001] rigid tube gap -0.03629150101523937
+brick PASS [31.8, 31.8, 23.700000099999997] rigid tube gap -0.03629150101523937
+test_ball_and_oversize_negative_control (test_rail.RailTests.test_ball_and_oversize_negative_control) ... ok
+test_exports_and_disclosed_interference (test_rail.RailTests.test_exports_and_disclosed_interference) ... ok
+test_profile_and_invalid_depth (test_rail.RailTests.test_profile_and_invalid_depth) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 31.525s
+
+OK
+
+test_only_intended_contact_features_change (test_receiver_trial.ReceiverTrialTests.test_only_intended_contact_features_change) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.746s
+
+OK
+
+SLOPED CURVE True {'valid_brep': True, 'one_solid': True, 'footprint': True, 'ports_match': True, 'wrong_height_rejected': True, 'wrong_grid_rejected': True, 'bodies_clear': True, 'existing_support_fit_envelope': True, 'sampled_ball_clear': True, 'continuous_floor_samples': True, 'low_ball_detected': True, 'receiver_holes': True, 'unused_corner_floors_removed': True, 'receiver_no_blocking_collision': True, 'all_16_studs_checked': True, 'receiver_trial_interference_only': True, 'receiver_half_pitch_detected': True, 'receiver_overinsert_detected': True, 'mesh': True, 'mesh_volume': True, 'step_roundtrip': True}
+test_ball_between_verification_samples_and_blockage (test_sloped_curve.SlopedCurveTests.test_ball_between_verification_samples_and_blockage) ... ok
+test_printable_export_and_limits (test_sloped_curve.SlopedCurveTests.test_printable_export_and_limits) ... ok
+test_real_endpoint_floors_and_horizontal_leadins (test_sloped_curve.SlopedCurveTests.test_real_endpoint_floors_and_horizontal_leadins) ... ok
+test_real_receiver_grid_and_roof (test_sloped_curve.SlopedCurveTests.test_real_receiver_grid_and_roof) ... ok
+test_removed_corner_floors_and_retained_connection (test_sloped_curve.SlopedCurveTests.test_removed_corner_floors_and_retained_connection) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 24.514s
+
+OK
+
+test_combined_replicates_and_bed_clearance (test_stud_trial.StudTrialTests.test_combined_replicates_and_bed_clearance) ... ok
+test_only_studs_change_and_holes_remain_open (test_stud_trial.StudTrialTests.test_only_studs_change_and_holes_remain_open) ... ok
+test_plan_and_stage_gate (test_stud_trial.StudTrialTests.test_plan_and_stage_gate) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 10.456s
+
+OK
+
+test_join_with_existing_rail (test_tunnel.TunnelTests.test_join_with_existing_rail) ... ok
+test_receiver_separated_from_passage (test_tunnel.TunnelTests.test_receiver_separated_from_passage) ... ok
+test_reject_insufficient_floor_and_roof (test_tunnel.TunnelTests.test_reject_insufficient_floor_and_roof) ... ok
+test_swept_ball_and_oversize_control (test_tunnel.TunnelTests.test_swept_ball_and_oversize_control) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.561s
+
+OK
+
+test_bounds_invalid_and_stud_selection (test_xy_trial.XYTrialTests.test_bounds_invalid_and_stud_selection) ... ok
+test_outer_faces_change_but_receiver_and_studs_do_not (test_xy_trial.XYTrialTests.test_outer_faces_change_but_receiver_and_studs_do_not) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 2.276s
+
+OK
+
+ALL MODULES PASS 48
+
+PASS build/duplo-2x4 | CAD 18049.658 mm^3 | STL 11116 triangles
+SWEEP -0.04 mm: self=5.35493 mm^3, reference_lower=1.76373 mm^3, reference_upper=1.77123 mm^3
+SWEEP +0.00 mm: self=0.00000 mm^3, reference_lower=0.00000 mm^3, reference_upper=0.00000 mm^3
+SWEEP +0.04 mm: self=0.00000 mm^3, reference_lower=0.00000 mm^3, reference_upper=0.00000 mm^3
+SWEEP +0.08 mm: self=0.00000 mm^3, reference_lower=0.00000 mm^3, reference_upper=0.00000 mm^3
+SWEEP +0.12 mm: self=0.00000 mm^3, reference_lower=0.00000 mm^3, reference_upper=0.00000 mm^3

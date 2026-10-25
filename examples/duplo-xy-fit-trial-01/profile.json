@@ -6,8 +6,10 @@
   "stud_diameter_mm": 9.4,
   "stud_hole_mm": 6.4,
   "required_bed_rotation_deg": 0,
-  "assumption": "14-coupon OD9.40/ID6.40 Inner wall samples achieve acceptable measured diameter and fit; results pending",
+  "assumption": "Upper OD9.40/ID6.40 supported by 14-coupon results; receiver OD13.50 supported by PR14 ID03. XY-compensated transfer remains unprinted.",
   "source_issue": "https://github.com/KKawamura1/3d-printer/issues/1",
   "body_correction_source": "docs/duplo-dimension-error-model.md, seven measured coupons from one earlier 16-coupon job",
-  "physical_fit_validated": false
+  "physical_fit_validated": false,
+  "tube_diameter_mm": 13.5,
+  "receiver_source": "PR #14 ID03 C-tube: user reports perfect fit on 2026-10-25"
 }

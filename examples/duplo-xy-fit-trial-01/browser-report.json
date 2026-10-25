@@ -2,9 +2,9 @@
   "schema_version": 1,
   "browser": "153.0.8010.0",
   "input_files": {
-    "viewer.html": "2088cc477b8b590d53213c3a938db37fde6cee2137ccbb7cb12e4879159907da",
-    "report.json": "e4b7a1a8813712050266132abbce376c48ba9d9b460c18b35cc61b29126651e8",
-    "brick.stl": "7b07563ea8c81fd051c74e3e441742b0a2e1b9fb487222eb66b8b83077f59b39"
+    "viewer.html": "75d9850b4747de4d724da2e6bd89602c38566214e6eb3a73ed4b6458da052098",
+    "report.json": "795a61a807a75ad32b5a940002bc13b175c78aa481fa707752948d7861cfaee6",
+    "brick.stl": "baad9d5ee555aba38f8a2377008da5c608124f3287e0c21e0bd0a55c64792a53"
   },
   "captures": [
     {
@@ -30,7 +30,7 @@
     {
       "name": "03-underside",
       "file": "03-underside.png",
-      "sha256": "2e40f2e3b692942d4a2070480a4b72e1680e1d3f8b0c0ae513ae820cb9bd0c12",
+      "sha256": "623e37bc0b4a0c128dcc9e354cbff58e44fdcd046cbea3a588a88e357664e226",
       "pixels": {
         "red": 191585,
         "blue": 0
@@ -40,9 +40,9 @@
     {
       "name": "04-section",
       "file": "04-section.png",
-      "sha256": "1fcebbb997af9ba06b00ca6220e776c10d118fe6f86375ff93be7da47eddeea5",
+      "sha256": "673498e5ffbbaa20c6c9a5fbe4d31d5e1dddd4299fe826337622dc26fe6c9554",
       "pixels": {
-        "red": 330365,
+        "red": 330763,
         "blue": 0
       },
       "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
@@ -50,17 +50,17 @@
     {
       "name": "05-assembled",
       "file": "05-assembled.png",
-      "sha256": "63d162510214c2ca2c9eb25b95f6423f52eef1bbe68bcb8f2d358c7a5f55aa8c",
+      "sha256": "fa2536b4e48176a25eeb1e4fbae2103350d4089bce3e6e63e7221ea04012f3fb",
       "pixels": {
         "red": 60875,
         "blue": 115672
       },
-      "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 0.000000 mm\u00b3 / \u691c\u51fa\u306a\u3057"
+      "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 2.499101 mm\u00b3 / \u3042\u308a"
     },
     {
       "name": "06-exploded",
       "file": "06-exploded.png",
-      "sha256": "cdebe6551fce36f8220ee98b3f22acaf20c79d027a6e176b991173e3f0db1089",
+      "sha256": "c5da77ff12ec5d0fbe0d30411de435ede42d5c6555a514643ef49eabf7a29d4b",
       "pixels": {
         "red": 67370,
         "blue": 93597
@@ -70,22 +70,22 @@
     {
       "name": "07-cross-90",
       "file": "07-cross-90.png",
-      "sha256": "eba917d8c34b836fa9ca80c421a1bb31e11e0d5add9b86e8b2dd6b26d21a9ad5",
+      "sha256": "ecbbf5a4ae4340c586e0f903608a47782564477e5fd222c5c8f54afcf9996a44",
       "pixels": {
         "red": 60865,
         "blue": 115627
       },
-      "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 0.000000 mm\u00b3 / \u691c\u51fa\u306a\u3057"
+      "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 2.499101 mm\u00b3 / \u3042\u308a"
     },
     {
       "name": "08-collision-control",
       "file": "08-collision-control.png",
-      "sha256": "ac8973dbaa668ebd88f5a07d1cd4b000ac496b5928bc0bd8e1babab066a1e84b",
+      "sha256": "afe71177ccea60ab4355f5df4e3c98149c878b6aa826c551c167b953d9535d5e",
       "pixels": {
         "red": 69896,
         "blue": 102110
       },
-      "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 163.900346 mm\u00b3 / \u3042\u308a"
+      "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 169.251259 mm\u00b3 / \u3042\u308a"
     },
     {
       "name": "09-orbit-zoom",
@@ -100,7 +100,7 @@
     {
       "name": "10-mobile",
       "file": "10-mobile.png",
-      "sha256": "329149a050d6f6c3743c4998dfa3378834868cf76ee58d1fffec10784f4b06af",
+      "sha256": "54c552173e2071a267a8332e1270c74b2e7e13465d52b9ad54e226d60b10be04",
       "pixels": {
         "red": 109002,
         "blue": 0

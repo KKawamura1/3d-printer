@@ -1,4 +1,4 @@
-"""Conditional 2x2 fit candidate: compensate body extents, preserve mating geometry."""
+"""Conditional 2x2 fit candidate: compensate body extents and adopt PR14 ID03 receiver."""
 from dataclasses import asdict, replace
 from pathlib import Path
 from types import SimpleNamespace
@@ -23,7 +23,10 @@ def build(profile):
         raise ValueError('Only local 2x2 body compensation is supported')
     if not (9.36<=dims[2]<=9.44 and 6.35<=dims[3]<=6.50):
         raise ValueError('Use stud dimensions within the current experiment range')
-    p=replace(nominal_brick('duplo',2,2),stud_radius=dims[2]/2,stud_inner_radius=dims[3]/2)
+    if not math.isfinite(profile['tube_diameter_mm']) or not 13.1<=profile['tube_diameter_mm']<=13.5:
+        raise ValueError('Receiver tube must stay within tested CAD range 13.10–13.50 mm')
+    p=replace(nominal_brick('duplo',2,2),stud_radius=dims[2]/2,stud_inner_radius=dims[3]/2,
+              tube_radius=profile['tube_diameter_mm']/2)
     outer=cq.Workplane('XY').box(dims[0],dims[1],p.height,centered=(True,True,False))
     outer=outer.edges('|Z').fillet(.8).edges('>Z').fillet(.8)
     # Receiver uses the unchanged 31.8x31.8 reference footprint: cavity remains
@@ -60,20 +63,21 @@ def export(out=Path('build/duplo-xy-fit-trial-01'),profile_path=DEFAULT_PROFILE)
         underside_span_xy_mm=[25.4-.1871,25.4-.0571],
         stud_diameter_mm=profile['stud_diameter_mm']-.065,
         status='Conditional offset-model illustrations, not verified predictions or measurement records')
-    report=dict(passed=True,physical_fit_validated=False,slicing_validated=False,
+    report=dict(passed=m['mesh']['passed'] and step and fit['negative_controls_passed'],physical_fit_validated=False,slicing_validated=False,
         profile=profile,fit_geometrically_clear=fit_clear,geometry=dict(parameters=dict(family='duplo',nx=2,ny=2,clearance=0,
             body_x_mm=profile['body_x_mm'],body_y_mm=profile['body_y_mm'],
             height_mm=19.2,stud_height_mm=4.5,stud_pitch_xy_mm=[16,16],
             stud_diameter_mm=2*p.stud_radius,stud_hole_mm=2*p.stud_inner_radius,
-            underside_span_xy_mm=[25.4,25.4],tube_outer_mm=13.1,tube_inner_mm=9.4,
+            underside_span_xy_mm=[25.4,25.4],tube_outer_mm=2*p.tube_radius,tube_inner_mm=9.4,
             side_wall_xy_mm=[(profile['body_x_mm']-25.4)/2,(profile['body_y_mm']-25.4)/2],
             roof_mm=1.6,corner_radius_mm=.8,stud_lip_radius_mm=.5,entry_chamfer_mm=.3),
             bounds_mm=exact_bounds(s)),mesh=m,step_roundtrip_passed=step,fit=fit,
         adjacent=adjacent,conditional_estimates=expected,
-        limitations=['The ongoing 14-coupon print has no physical results yet.',
+        receiver_evidence='PR14 ID03: user reports perfect fit; transferred shape unprinted',
+        limitations=['PR14 ID03 supports tube OD13.50; corrected body transfer is not physically validated.',
             'Body offsets come from seven earlier coupons in one job; scale versus offset is unresolved.',
             'Preserving cavity dimensions does not preserve stiffness, heat history or toolpaths.',
-            'No pitch, stud XY ellipticity, tube or Z compensation is inferred.',
+            'No pitch, stud XY ellipticity or Z compensation is inferred; receiver tube follows PR14 ID03.',
             'Print at rotation 0 degrees; CAD X must match printer X. Do not auto-rotate or scale.',
             'Reconfirm Inner wall in the final slice and remeasure all mating directions.'])
     (out/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')

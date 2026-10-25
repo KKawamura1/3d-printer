@@ -1,0 +1,230 @@
+{
+  "trial": {
+    "schema_version": 1,
+    "browser": "153.0.8010.0",
+    "input_files": {
+      "viewer.html": "756f2439cfc75cff27f63ea8c7c2d70b70773420128f2d9bc0595b8eaf9b1060",
+      "report.json": "b78a80a865882b8d6e0ff719fb4dc60a0701dd351eaf41bc08e9c3c80ce47112",
+      "brick.stl": "c4d188d427ec24aba4b9d9e98fa1894be454176b4b1f451e80e05dc2877ef792"
+    },
+    "captures": [
+      {
+        "name": "01-perspective",
+        "file": "01-perspective.png",
+        "sha256": "c4c6a5edb84d2cd4d58abaf07ccdc70454ab59f529b33060457f9b3b8727bea1",
+        "pixels": {
+          "red": 216047,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      },
+      {
+        "name": "02-top",
+        "file": "02-top.png",
+        "sha256": "0e1516a85fd73c202dd069a7fd1e289d0070ff8a10b41e29f63620ca30356ede",
+        "pixels": {
+          "red": 291449,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      },
+      {
+        "name": "03-underside",
+        "file": "03-underside.png",
+        "sha256": "ed33031800a992a75fec203caad51f20b047444a1a22202f8a98df5d80a780fb",
+        "pixels": {
+          "red": 191382,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      },
+      {
+        "name": "04-section",
+        "file": "04-section.png",
+        "sha256": "a17b7a29837ea3517863720f3fdca18acaf0095c5301c688d4eb47b1ac2e9c37",
+        "pixels": {
+          "red": 328286,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      },
+      {
+        "name": "05-assembled",
+        "file": "05-assembled.png",
+        "sha256": "33997a5d38d9a318176cfa77eaf7c3b03e2e9f693647c380763b9edc6e48542e",
+        "pixels": {
+          "red": 60666,
+          "blue": 115183
+        },
+        "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 0.000000 mm\u00b3 / \u691c\u51fa\u306a\u3057"
+      },
+      {
+        "name": "06-exploded",
+        "file": "06-exploded.png",
+        "sha256": "538b184884106c6ae43cdfcd31f005f5a8778b871a296f1104525f9ffcbf179e",
+        "pixels": {
+          "red": 67108,
+          "blue": 93175
+        },
+        "status": "\u5206\u89e3\u8868\u793a\u4e2d\u3002\u73fe\u5728\u4f4d\u7f6e\u306e\u5e72\u6e09\u5224\u5b9a\u306f\u672a\u8a08\u7b97\u3002"
+      },
+      {
+        "name": "07-cross-90",
+        "file": "07-cross-90.png",
+        "sha256": "d7e46f5ef24cef9293b2bf87dafab9f23cab273e39d9d53e211bff9804860232",
+        "pixels": {
+          "red": 60666,
+          "blue": 115178
+        },
+        "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 0.000000 mm\u00b3 / \u691c\u51fa\u306a\u3057"
+      },
+      {
+        "name": "08-collision-control",
+        "file": "08-collision-control.png",
+        "sha256": "e2c6c2fb64307962b258f1dd327a0ada5fb1ba00b801a6572b486d8b63401e76",
+        "pixels": {
+          "red": 69691,
+          "blue": 101836
+        },
+        "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 161.242703 mm\u00b3 / \u3042\u308a"
+      },
+      {
+        "name": "09-orbit-zoom",
+        "file": "09-orbit-zoom.png",
+        "sha256": "7a2424e4f15f3a63c946501e213022159702acc7365a73ea4c1cc279f2ffabca",
+        "pixels": {
+          "red": 280450,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      },
+      {
+        "name": "10-mobile",
+        "file": "10-mobile.png",
+        "sha256": "b62d6adb16c75bbf1469d69f695f10a71f605d2fa3a167c0a1dffc6ba833e30d",
+        "pixels": {
+          "red": 108837,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      }
+    ],
+    "errors": [],
+    "automated_passed": true,
+    "visual_review_performed": true
+  },
+  "regression": {
+    "schema_version": 1,
+    "browser": "153.0.8010.0",
+    "input_files": {
+      "viewer.html": "a610248f471893ff158db3420a5d211a26f6860e95d1a594cc4814a3b771a6f0",
+      "report.json": "7bdde5cdecc00a5e2f543fe742444900ba280feb2a046b47ee91d1ddc0d472c0",
+      "brick.stl": "4d838de2a1358e4ead2aa5c01af366d0b57c99bff1187963135e3aee6800aa58"
+    },
+    "captures": [
+      {
+        "name": "01-perspective",
+        "file": "01-perspective.png",
+        "sha256": "0c01789ad93279fc36b034f8a1129abd9958bb1490f235fb09dc6d58134cfca2",
+        "pixels": {
+          "red": 232600,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      },
+      {
+        "name": "02-top",
+        "file": "02-top.png",
+        "sha256": "541e75635563845854860ec3e0b47c04ad405d2555b6371957aa41e856e07aa7",
+        "pixels": {
+          "red": 381064,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      },
+      {
+        "name": "03-underside",
+        "file": "03-underside.png",
+        "sha256": "f1425a3db9191c6a914b179a031787971f30384989e39f425e74ce880127aaa3",
+        "pixels": {
+          "red": 199729,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      },
+      {
+        "name": "04-section",
+        "file": "04-section.png",
+        "sha256": "3f5f1e28aacf3271e9aed47dbd6a61f1697a02fe8de896842fbb7d5d6f6e2d85",
+        "pixels": {
+          "red": 273927,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      },
+      {
+        "name": "05-assembled",
+        "file": "05-assembled.png",
+        "sha256": "e27db0d8682c5dfabc841a042ebba32df3e5793e024563ac388ca2e79b6b2dd3",
+        "pixels": {
+          "red": 64850,
+          "blue": 141046
+        },
+        "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 0.000000 mm\u00b3 / \u691c\u51fa\u306a\u3057"
+      },
+      {
+        "name": "06-exploded",
+        "file": "06-exploded.png",
+        "sha256": "22fbd120e8e5f70bb945d571104a93dff95fb318dc891c209eebcae418f49d9e",
+        "pixels": {
+          "red": 75513,
+          "blue": 118428
+        },
+        "status": "\u5206\u89e3\u8868\u793a\u4e2d\u3002\u73fe\u5728\u4f4d\u7f6e\u306e\u5e72\u6e09\u5224\u5b9a\u306f\u672a\u8a08\u7b97\u3002"
+      },
+      {
+        "name": "07-cross-90",
+        "file": "07-cross-90.png",
+        "sha256": "8f8b49ee4c38ca65c4be82d321c8ef1596997af18987d92fd95492261ef2fecd",
+        "pixels": {
+          "red": 59566,
+          "blue": 128038
+        },
+        "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 0.000000 mm\u00b3 / \u691c\u51fa\u306a\u3057"
+      },
+      {
+        "name": "08-collision-control",
+        "file": "08-collision-control.png",
+        "sha256": "5002320a2a7efebaf9d4fe2222faba461e7eec0d62e646510a43e53e996d0904",
+        "pixels": {
+          "red": 70558,
+          "blue": 127831
+        },
+        "status": "\u8a2d\u8a08\u4e0a\u306e\u5e72\u6e09: 271.048189 mm\u00b3 / \u3042\u308a"
+      },
+      {
+        "name": "09-orbit-zoom",
+        "file": "09-orbit-zoom.png",
+        "sha256": "4a37f9b151796d4fcdff57322bc2c85a2c02cd357758c5d5bba6596774486e67",
+        "pixels": {
+          "red": 372090,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      },
+      {
+        "name": "10-mobile",
+        "file": "10-mobile.png",
+        "sha256": "05b797d3a1f436995bc316cbf888b90599650072f27f7f2054f9d6d22f800553",
+        "pixels": {
+          "red": 67290,
+          "blue": 0
+        },
+        "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+      }
+    ],
+    "errors": [],
+    "automated_passed": true,
+    "visual_review_performed": true
+  }
+}
