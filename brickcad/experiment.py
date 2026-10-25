@@ -40,7 +40,8 @@ def plan():
 
 def coupon(record):
     p=replace(nominal_brick('duplo',2,2),stud_radius=record['stud_diameter_mm']/2,
-              tube_radius=record['tube_diameter_mm']/2,wall=record['wall_mm'])
+              tube_radius=record['tube_diameter_mm']/2,wall=record['wall_mm'],
+              stud_inner_radius=record.get('stud_hole_diameter_mm',6.50)/2)
     raw=rounded_brick(p); tools=[]
     # Seven-segment ID recessed 0.25 mm into -Y exterior, z=9..14.
     # All marks lie above the bottom 4.5 mm mating zone and below the top rim.
