@@ -5,7 +5,7 @@ on:
       target:
         description: Generate one model
         type: choice
-        options: [duplo, duplo-2x2, rail, brick, tunnel, elbow, pitagora, sloped_curve, calibration, experiment, stud-holes, stud-combined, lego]
+        options: [duplo, duplo-2x2, rail, brick, tunnel, elbow, pitagora, sloped_curve, calibration, experiment, stud-holes, stud-combined, receiver-trial, lego]
         default: tunnel
       screenshots:
         description: Also capture browser screenshots
@@ -36,6 +36,7 @@ jobs:
             duplo-2x2) python -m brickcad build --profile profiles/duplo-2x2.json --out build/model ;;
             rail|brick) python -m brickcad.rail --kind "$TARGET" --out build/model ;;
             tunnel|elbow|pitagora|sloped_curve) python -m "brickcad.$TARGET" --out build/model ;;
+            receiver-trial) python -m brickcad.receiver_trial --out build/model ;;
             stud-combined) python -m brickcad.stud_trial --stage combined --hole 6.40 --out build/model ;;
             stud-holes) python -m brickcad.stud_trial --out build/model ;;
             experiment) python -m brickcad.experiment --out build/model ;;
@@ -61,6 +62,7 @@ jobs:
             sloped_curve) node scripts/sloped-curve-browser-check.cjs build/model build/browser-qa ;;
             elbow) node scripts/elbow-browser-check.cjs build/model build/browser-qa ;;
             pitagora) node scripts/pitagora-browser-check.cjs build/model build/browser-qa ;;
+            receiver-trial) npm run browser:check -- build/model/02 build/browser-qa ;;
             stud-combined) npm run browser:check -- build/model/03 build/browser-qa ;;
             stud-holes) npm run browser:check -- build/model/03 build/browser-qa ;;
             experiment) npm run browser:check -- build/model/sample build/browser-qa ;;
