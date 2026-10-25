@@ -58,16 +58,17 @@ class SlopedCurveTests(unittest.TestCase):
         self.assertTrue(all(j['compatible'] for j in self.report['joints']))
         self.assertGreater(self.report['low_ball_negative_control_mm3'],VOLUME_TOL)
 
-    def test_cut_tips_removed_without_changing_contact_or_track(self):
+    def test_bottom_only_rounding_keeps_receiver_contact_and_track(self):
         old,_ = build_curve(softened=False)
         tips = cut_receiver_edges(old)
         self.assertEqual(len(tips),20)
-        for edge in tips:
-            self.assertFalse(self.shape.isInside(edge.Center()),edge.Center().toTuple())
+        # The 20 vertical cut corners deliberately remain unfilleted in F:
+        # their R0.70 treatment caused Bambu Studio's floating cantilever warning.
         finish = self.report['receiver_finish']
-        self.assertAlmostEqual(finish['cut_edge_radius_mm'],.7)
+        self.assertAlmostEqual(finish['cut_edge_radius_mm'],0.0)
         self.assertAlmostEqual(finish['bottom_edge_radius_mm'],.5)
-        self.assertGreater(finish['removed_volume_mm3'],40)
+        self.assertEqual(finish['clipped_vertical_corners'],20)
+        self.assertGreater(finish['removed_volume_mm3'],1)
         self.assertLess(finish['removed_contact_above_entry_mm3'],VOLUME_TOL)
         self.assertLess(finish['added_contact_above_entry_mm3'],VOLUME_TOL)
         self.assertLess(finish['changed_track_mm3'],VOLUME_TOL)
