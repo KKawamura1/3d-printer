@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 import cadquery as cq
-from brickcad.sloped_curve import export, ball_centre, BALL
+from brickcad.sloped_curve import export, ball_centre, BALL, build_curve, cut_receiver_edges
 from brickcad.verify import intersection, VOLUME_TOL
 
 
@@ -58,6 +58,33 @@ class SlopedCurveTests(unittest.TestCase):
         self.assertTrue(all(j['compatible'] for j in self.report['joints']))
         self.assertGreater(self.report['low_ball_negative_control_mm3'],VOLUME_TOL)
 
+    def test_cut_tips_removed_without_changing_contact_or_track(self):
+        old,_ = build_curve(softened=False)
+        tips = cut_receiver_edges(old)
+        self.assertEqual(len(tips),20)
+        for edge in tips:
+            self.assertFalse(self.shape.isInside(edge.Center()),edge.Center().toTuple())
+        finish = self.report['receiver_finish']
+        self.assertAlmostEqual(finish['cut_edge_radius_mm'],.7)
+        self.assertAlmostEqual(finish['bottom_edge_radius_mm'],.5)
+        self.assertGreater(finish['removed_volume_mm3'],40)
+        self.assertLess(finish['removed_contact_above_entry_mm3'],VOLUME_TOL)
+        self.assertLess(finish['added_contact_above_entry_mm3'],VOLUME_TOL)
+        self.assertLess(finish['changed_track_mm3'],VOLUME_TOL)
+        self.assertFalse(finish['physical_touch_validated'])
+        # The three complete tubes still have their original OD above the entry.
+        for x,y in [(-16,-16),(0,0),(16,16)]:
+            self.assertTrue(self.shape.isInside(cq.Vector(x+6.64,y,1)))
+            self.assertFalse(self.shape.isInside(cq.Vector(x+6.66,y,1)))
+
+    def test_bottom_lips_are_rounded_on_the_exported_solid(self):
+        # Probe a full tube away from the clipped ends. At z=0 a R0.5
+        # quarter-circle retreats .5 mm; by z=.5 the original radius returns.
+        self.assertFalse(self.shape.isInside(cq.Vector(6.4,0,.01)))
+        self.assertTrue(self.shape.isInside(cq.Vector(6.4,0,.2)))
+        self.assertFalse(self.shape.isInside(cq.Vector(4.9,0,.01)))
+        self.assertTrue(self.shape.isInside(cq.Vector(4.9,0,.2)))
+
     def test_removed_corner_floors_and_retained_connection(self):
         for x,y in [(-16,16),(-24,24),(24,-24)]:
             self.assertFalse(self.shape.isInside(cq.Vector(x,y,6.1)))
@@ -74,5 +101,6 @@ class SlopedCurveTests(unittest.TestCase):
         self.assertFalse(audit['rigid_fit_clear'])
         self.assertGreater(audit['insertion'][-1]['total_intersection_mm3'],VOLUME_TOL)
         self.assertLess(audit['measured_9p32_stud_intersection_mm3'],VOLUME_TOL)
+
 
 

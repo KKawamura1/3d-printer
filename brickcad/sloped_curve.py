@@ -23,6 +23,8 @@ RAIL = Rail()
 # T30 isolates the same 13.30 mm tube used here, with a 3.20 mm wall.
 RECEIVER_WALL = 3.20
 RECEIVER_TUBE_DIAMETER = 13.30
+CUT_EDGE_RADIUS = .7
+BOTTOM_EDGE_RADIUS = .5
 
 
 def curve_profile():
@@ -116,18 +118,69 @@ def receiver_audit(shape,p):
         no_blocking_collision=all(v['non_tube_intersection_mm3']<VOLUME_TOL for v in insertion))
 
 
-def build_curve():
+def cut_receiver_edges(shape):
+    """Vertical corners created by clipping the receiver, excluding tube seams."""
+    edges = []
+    for edge in shape.Edges():
+        b = edge.BoundingBox()
+        c = edge.Center()
+        radius = math.hypot(c.x+32, c.y-32)
+        if (edge.geomType() == 'LINE' and b.zlen > 4.4
+                and b.zmax < RAIL.floor-RAIL.roof+1e-5
+                and b.xlen < 1e-5 and b.ylen < 1e-5
+                and min(abs(radius-(RADIUS-RAIL.width/2)), abs(radius-63.9)) < 1e-4):
+            edges.append(edge)
+    return edges
+
+
+def build_curve(*, softened=True):
     p = curve_profile()
     base = cq.Workplane('XY').box(p.width,p.depth,RAIL.floor,centered=(True,True,False))
     base = base.edges('|Z').fillet(.8).edges('>Z').fillet(.5)
-    base = receiver(p,base,RAIL.floor-RAIL.roof,RAIL.entry)
+    # Round the finished bottom after trimming. A chamfer before trimming leaves
+    # the newly exposed cut edges sharp. Keep the old geometry reproducible.
+    base = receiver(p,base,RAIL.floor-RAIL.roof,0 if softened else RAIL.entry)
     loft = cq.Solid.makeLoft([section(i/24) for i in range(25)], ruled=False)
     # Trim at physical body faces, preserving the 0.1 mm cell-boundary inset.
     footprint = cq.Workplane('XY').box(p.width,p.depth,60,centered=(True,True,False)).val()
     shape = base.union(loft.intersect(footprint)).val().intersect(curved_footprint()).clean()
+    if softened:
+        cut_edges = cut_receiver_edges(shape)
+        if len(cut_edges) != 20:
+            raise ValueError('Reassess clipped receiver corners after footprint changes')
+        shape = shape.fillet(CUT_EDGE_RADIUS, cut_edges).clean()
+        bottom_edges = [e for e in shape.Edges()
+                        if abs(e.BoundingBox().zmin) < 1e-5
+                        and abs(e.BoundingBox().zmax) < 1e-5]
+        shape = shape.fillet(BOTTOM_EDGE_RADIUS, bottom_edges).clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError('Sloped curve must be one valid solid')
     return shape,p
+
+
+def finish_audit(shape):
+    """Compare actual contact material and track with the printed trial-01 CAD.
+
+    The 9.40 mm synthetic studs provide a conservative contact envelope. This
+    proves material preservation in that envelope, not real clutch force.
+    """
+    old,p = build_curve(softened=False)
+    removed = old.cut(shape)
+    added = shape.cut(old)
+    above_entry = cq.Solid.makeBox(100,100,50,cq.Vector(-50,-50,BOTTOM_EDGE_RADIUS))
+    track = cq.Solid.makeBox(100,100,50,cq.Vector(-50,-50,RAIL.floor-RAIL.roof))
+    reference = build(nominal_brick('duplo',4,4)).translate((0,0,-19.2))
+    def contact_delta(delta):
+        clipped = delta.intersect(above_entry)
+        return intersection(clipped,reference) if clipped.Solids() else 0.0
+    return dict(cut_edge_radius_mm=CUT_EDGE_RADIUS,bottom_edge_radius_mm=BOTTOM_EDGE_RADIUS,
+        clipped_vertical_corners=len(cut_receiver_edges(old)),
+        removed_volume_mm3=removed.Volume(),added_volume_mm3=added.Volume(),
+        removed_contact_above_entry_mm3=contact_delta(removed),
+        added_contact_above_entry_mm3=contact_delta(added),
+        changed_track_mm3=intersection(removed,track)+intersection(added,track),
+        physical_touch_validated=False,
+        limitation='Contact envelope preserved above z=0.50 mm; entry profile changed. Printed touch and retention require a new trial.')
 
 
 def ports():
@@ -174,6 +227,7 @@ def verify(shape,p):
     footprint = cq.Workplane('XY').box(63.8,63.8,60,centered=(True,True,False)).val()
     outside = shape.cut(footprint).Volume()
     audit = receiver_audit(shape,p)
+    finish = finish_audit(shape)
     corner_floor = [shape.isInside(cq.Vector(x,y,6.1)) for x,y in [(-16,16),(24,-24),(-24,24)]]
     checks = dict(valid_brep=shape.isValid(),one_solid=len(shape.Solids())==1,
         footprint=outside<VOLUME_TOL,
@@ -188,12 +242,16 @@ def verify(shape,p):
         unused_corner_floors_removed=not any(corner_floor),
         receiver_no_blocking_collision=audit['no_blocking_collision'],
         all_16_studs_checked=len(audit['studs'])==16,
+        clipped_corners_softened=finish['clipped_vertical_corners']==20 and finish['removed_volume_mm3']>1,
+        contact_material_preserved=max(finish['removed_contact_above_entry_mm3'],finish['added_contact_above_entry_mm3'])<VOLUME_TOL,
+        track_geometry_preserved=finish['changed_track_mm3']<VOLUME_TOL,
         receiver_trial_interference_only=audit['intentional_tube_radial_interference_mm']<.05,
         receiver_half_pitch_detected=audit['half_pitch_negative_mm3']>VOLUME_TOL,
         receiver_overinsert_detected=audit['overinsert_non_tube_negative_mm3']>VOLUME_TOL)
     return dict(checks=checks,joints=joints,body_intersections_mm3=pairs,
                 ball_samples=samples,low_ball_negative_control_mm3=blocked,
-                support_fit_intersection_mm3=support_fit,outside_footprint_mm3=outside,receiver_audit=audit)
+                support_fit_intersection_mm3=support_fit,outside_footprint_mm3=outside,receiver_audit=audit,
+                receiver_finish=finish)
 
 
 def render(shape,p,report,out):
@@ -230,7 +288,7 @@ def render(shape,p,report,out):
     (out/'viewer.html').write_text(html)
 
 
-def export(out=Path('build/duplo-sloped-curve-trial-01')):
+def export(out=Path('build/duplo-sloped-curve-trial-02')):
     out = Path(out); out.mkdir(parents=True,exist_ok=True)
     shape,p = build_curve()
     report = verify(shape,p)
@@ -242,7 +300,7 @@ def export(out=Path('build/duplo-sloped-curve-trial-01')):
     report['checks'].update(mesh=m['passed'],mesh_volume=abs(m['signed_volume_mm3']-shape.Volume())/shape.Volume()<.001,
         step_roundtrip=restored.isValid() and len(restored.Solids())==1
         and abs(restored.Volume()-shape.Volume())/shape.Volume()<1e-7)
-    report.update(kind='duplo-sloped-curve-trial-01',passed=all(report['checks'].values()),
+    report.update(kind='duplo-sloped-curve-trial-02',passed=all(report['checks'].values()),
         geometry=dict(bounds_mm=[m['bounds_mm'][1][i]-m['bounds_mm'][0][i] for i in range(3)],
                       brep_conservative_bounds_mm=exact_bounds(shape),volume_mm3=shape.Volume(),parameters=asdict(p)),
         drop_mm=DROP,turn_radius_mm=RADIUS,rail=asdict(RAIL),ports=[asdict(v) for v in ports()],
@@ -252,6 +310,7 @@ def export(out=Path('build/duplo-sloped-curve-trial-01')):
         limitations=['49 static sphere samples, not continuous clearance or rolling dynamics.',
             '4x4 envelope and port grid inferred from user; middle curvature is our design.',
             'Corner floors and unsupported tube portions removed; receiver wall 3.20 mm, tube OD 13.30 mm follow measured T30 candidate.',
+            'Trial-02 rounds clipped vertical corners R0.70 and bottom edges R0.50; touch and retention after this change are not physically validated.',
             'T30 full-height 2x2 receiver was adequate; this curved, partly open receiver and partial supports remain untested.',
             'No upper studs: Gap infill / Inner wall stud calibration is not applicable to this part.',
             'Synthetic 9.40 mm studs retain known 0.036 mm radial tube trial interference; no other blocking collision.',
@@ -270,6 +329,7 @@ def export(out=Path('build/duplo-sloped-curve-trial-01')):
 
 if __name__ == '__main__':
     import argparse
-    ap = argparse.ArgumentParser(); ap.add_argument('--out',type=Path,default=Path('build/duplo-sloped-curve-trial-01'))
+    ap = argparse.ArgumentParser(); ap.add_argument('--out',type=Path,default=Path('build/duplo-sloped-curve-trial-02'))
     export(ap.parse_args().out)
+
 

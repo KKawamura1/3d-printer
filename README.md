@@ -4,7 +4,7 @@
 
 - [NEW：上面Inner wall校正](docs/duplo-stud-inner-wall.md) — **[14個まとめて印刷するZIP](prints/duplo_stud_combined_14.zip)**、[穴径4条件ZIP](prints/duplo_stud_holes.zip)、[外径3条件×2個の仮候補ZIP](prints/duplo_stud_diameters_ID6p40_provisional.zip)。まず印刷せず線種を確認。
 
-- [4×4の坂カーブ試作01（STL ZIP）](prints/duplo_sloped_curve_trial_01.zip) — [寸法・印刷手順](docs/duplo-sloped-curve-trial-01.md)。#1の04 T30に合わせ受け壁3.20 mm、実物嵌合は未検証。
+- [4×4の坂カーブ試作02（STL ZIP）](prints/duplo_sloped_curve_trial_02.zip) — [寸法・印刷手順](docs/duplo-sloped-curve-trial-02.md)。切断後の底面チューブ端をR0.7、底の縁をR0.5で丸める。新版の触感・保持力は実物未検証。[旧試作01](docs/duplo-sloped-curve-trial-01.md)も保存。
 
 - [NEW：16個・通常高さの大規模校正実験01](docs/duplo-experiment-01.md) — [印刷・測定一式ZIP](prints/duplo_experiment_01.zip)、基準8個＋独立寸法変更8個。実物未検証。
 
@@ -174,3 +174,4 @@ Pythonのimport依存をたどり、変更したモジュールを使うテス�
 全テストを明示的に回したい時は Actions → `CAD tests` → Run workflow。ローカルでは `python scripts/ci-tests.py`、PR相当の選択は `python scripts/ci-tests.py --base <base SHA>`、対象確認だけなら `--plan` を付けます。
 
 生成物やローカルブラウザが使えない時の撮影は Actions → `CAD preview (manual)` → Run workflow で対象モデルを1つ選びます。撮影が必要なら `screenshots` をオンにします。選んだモデルの生成・検証を1回行い、スクリーンショットが不要ならNode.js・Chromiumをインストールしません。`brick-cad-and-verification` artifact（7日保存）から取得してください。撮影成功と画像の目視確認は別です。旧レゴと校正プレートも、この手動実行で必要時のみ生成できます。
+
