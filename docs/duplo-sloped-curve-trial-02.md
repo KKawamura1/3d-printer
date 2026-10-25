@@ -1,38 +1,48 @@
-# 坂カーブ 試作02：底面の切断端を丸める
+# 坂カーブ 試作02：サポート警告を回避した底面R0.50版（F）
 
-試作01への実物フィードバック「坂カーブは良好だが、途中で切れた底面チューブがギザギザして痛い」を反映した改訂。旧版は[試作01](duplo-sloped-curve-trial-01.md)に保存する。
+試作01への実物フィードバック「坂カーブは良好だが、途中で切れた底面チューブがギザギザして痛い」を受けて、切断後の底面の輪郭をR0.50mmで丸める。**縦角のR0.70mmは適用しない。** 新しい縦角R0.70がBambu Studioの「浮動片持ち梁」警告を誘発することがA〜Gの実スライスで確認されたため。
 
-- [印刷用STL](../examples/duplo-sloped-curve-trial-02/brick.stl)
-- [STL・STEP・プレビュー・検証結果のZIP](../prints/duplo_sloped_curve_trial_02.zip)
-- [実ブラウザの確認画像](../examples/duplo-sloped-curve-trial-02/review-sheet.jpg)
-- [検証結果](../examples/duplo-sloped-curve-trial-02/report.json)
+- [F仕様の印刷用STL](../examples/duplo-sloped-curve-trial-02/brick.stl)（CAD再生成で更新）
+- [STL・STEP・HTML・検証結果ZIP](../prints/duplo_sloped_curve_trial_02.zip)（再生成で更新）
+- [検証レポート](../examples/duplo-sloped-curve-trial-02/report.json)
+- [旧試作01](duplo-sloped-curve-trial-01.md)
+- [警告の詳細比較](https://github.com/KKawamura1/3d-printer/pull/13#issuecomment-6397603631)
 
-## 変更した形
+## 新版で維持する寸法
 
-カーブの輪郭で床とチューブを切った**後**、切断で生じた縦の角20か所（チューブ端と側壁端）をR0.70 mmで丸める。底面の縁全周は、切断前の0.30 mm面取りから、切断後のR0.50 mm丸みに置き換える。切断で新しく現れる縁にも丸みがつく。
+- 4×4デュプロ占有範囲、16mm格子、19.20mm落差、球の走路・入口・出口は変更しない。
+- 下面チューブ外径は **13.50mm**、内径9.40mm、受け壁3.20mm、2×2相当の内法25.40mmを維持。PR #14 ID3での「ぴったり」という評価に基づく候補で、今回の切断4×4受けの実物嵌合は未確認。
+- 入口は旧版0.30mm面取りを用いず、**切断後の底面の水平な縁だけR0.50mmで丸める**。縦の切断角20か所は加工しない。CAD全周の底面R0.50はSTLの層判定改善が確認された選択だが、縦角に鋭さが残る可能性がある。
 
-2026-10-25、PR #14のID3（03 C-tube）が「ぴったり」という実物報告を受け、チューブ外径を13.30→**13.50 mm**へ更新。内径9.40 mm、受け壁3.20 mm（2×2相当内法25.40 mm）、16 mm格子、4×4占有範囲、19.20 mm落差は維持する。[結果記録](../measurements/2026-10-25-receiver-id03-feedback.json)・[issue #1](https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6396705976)。レールの走行面・入口・出口も変えない。
+## 警告切り分けの根拠
 
-底から0.50 mmまでは差し込み口の形が変わる。その上の嵌合部分は**同じ13.50 mmチューブの丸め前CAD**との差分と合成9.40 mm突起の接触領域を突き合わせ、接触領域で失われた材料・追加された材料とも0 mm³であることを確認する。これは保持力の計算ではない。底面の輪郭は凹凸を残し、尖った端を丸くする設計。
+同一のBambu Studio 2.8.02.61 / A1 mini / PLA Basic / ノズル0.4 / 積層0.20mm / サポートOFFで実スライス比較：
 
-## 印刷と実物確認
+| 条件 | チューブOD | 縦角R0.70 | 底面R0.50 | 警告 |
+|---|---:|---|---|---|
+| A | 13.30 | なし（旧面取り） | なし | なし |
+| B | 13.50 | なし（旧面取り） | なし | なし |
+| C | 13.30 | あり | あり | **あり** |
+| D | 13.50 | あり | あり | **あり** |
+| E | 13.50 | あり | なし | **あり** |
+| F | 13.50 | **なし** | **あり** | **なし** |
+| G | 13.50 | あり（旧面取り併用） | なし | **あり** |
 
-STLをmm単位・100%で読み込み、水平な受け面をプレート側に置く。大きさは約63.8×63.8×38.33 mm。比較しやすいよう、従来のA1 mini・0.4 mmノズル・PLA Basic・0.20 mm積層などの条件を維持する。スライスプレビューで底面の丸み付近、チューブの壁、ブリッジを確認する。
+**警告なしはユーザーによるF診断モデルの実スライス結果であって、印刷成功・触感・保持力の証明ではない。** 正式STL再生成後も同設定で再スライスし、スライサー警告なしを確認すること。
 
-印刷後は大人が切断端・底の縁を指でなぞり、痛みやバリが残らないか確認する。その後、旧版と同じ相手ブロックで着座・着脱・傾けたときの保持を比較し、球の通過も確認する。3MFと配置方向を残す。
+## 印刷前・印刷後の確認
 
-この改訂の `physical_fit_validated`、`physical_rolling_validated`、`physical_touch_validated` は未検証。旧版の良好な実物評価を新版の評価へ引き継がない。印刷品の触感と保持力は試し刷りで確認する。
+印刷用STLをmm/100%で読み込み、水平な受け面をプレート側に置く。サイズは約63.8×63.8×38.33mm、サポートOFF。まずBambu Studioで**浮動片持ち梁警告がないことを確認**。警告が出た場合は印刷せず3MFを保存して原因分析する。
+
+印刷後、**大人が切断された縦角20か所を特に丁寧に触って**、尖り・積層バリ・破片がないか確認する。痛ければ子どもには渡さず、局所面取り/手仕上げまたは別形状を検討する。純正DUPLOとの嵌合・着脱・曲げ保持、球通過、ブリッジ天井の垂れも確認する。
+
+`physical_fit_validated`, `physical_rolling_validated`, `physical_touch_validated` はF新版に対していずれもfalse。旧版の実物結果は引き継がない。
 
 ## 再生成
 
 ```sh
 python -m brickcad.sloped_curve --out build/duplo-sloped-curve-trial-02
-python -m unittest discover -s tests -v
-BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" node scripts/sloped-curve-browser-check.cjs build/duplo-sloped-curve-trial-02 build/sloped-curve-browser
-python scripts/review-sheet.py build/sloped-curve-browser
+python -m unittest discover -s tests -p 'test_sloped_curve.py' -v
 ```
 
-13.50 mmの丸め前形状は `build_curve(softened=False)`、旧試作01（13.30 mm・丸め前）は `build_curve(softened=False, tube_diameter=13.30)` で再現できる。検証は旧版との差分、16突起・5挿入高さ、走路と球の静的49位置、メッシュ、STEP再読込を含む。
-
-
-ID3の2×2全面受けと、本品の切断された4×4受けでは剛性・接触箇所が異なるため、移植後の保持は実物未検証。合成9.40 mm突起との半径方向約0.136 mmの意図したチューブ干渉は記録し、チューブ外の衝突は不具合として検出する。従来の13.30 mmでの約0.036 mmとは区別する。丸みの検証は同径同士で比較し、走路は変更しない。
+`build_curve(softened=False, tube_diameter=13.50)` は旧入口面取り0.30mm（B）との比較用、`build_curve(softened=True)` がF。13.30mm旧版も再現可能。検査にはBRep単一ソリッド・水密STL・STEP再読込・16スタッド×挿入5高さ・49静的球サンプル・走路不変性・底面R0.50の接触差分が含まれる。
