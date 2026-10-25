@@ -8,17 +8,29 @@ import math
 import zipfile
 import cadquery as cq
 from .experiment import coupon, export_stl
+from .model import nominal_brick
 from .render import viewer
 from .verify import exact_bounds, fit_report
 
 
 def plan(stage='holes', hole=None):
-    if stage not in ('holes', 'diameters'):
+    if stage not in ('holes', 'diameters', 'combined'):
         raise ValueError('Unknown stage')
     if stage == 'holes' and hole is not None:
         raise ValueError('Hole stage uses the four predefined hole diameters')
-    if stage == 'diameters' and (hole is None or not math.isfinite(hole) or not 6.35 <= hole <= 6.50):
+    if stage in ('diameters', 'combined') and (hole is None or not math.isfinite(hole) or not 6.35 <= hole <= 6.50):
         raise ValueError('Select a hole diameter in 6.35..6.50 after slicing stage 1')
+    if stage == 'combined':
+        # Seven pairs on opposite bed positions, leaving two opposite corners empty.
+        # OD9.40/ID6.40 appears in both groups: four independent coupons in total.
+        records=plan('holes')
+        records += [dict(r,replicate=2) for r in plan('holes')]
+        records += plan('diameters',hole)
+        pairs=[(1,0),(2,0),(3,0),(0,1),(1,1),(2,1),(3,1)]
+        slots=pairs[:4]+[(3-c,3-r) for c,r in pairs[:4]]+pairs[4:]+[(3-c,3-r) for c,r in reversed(pairs[4:])]
+        for i,(record,(col,row)) in enumerate(zip(records,slots)):
+            record.update(id=f'{i+1:02}',bed_center_xy_mm=[27+42*col,153-42*row])
+        return records
     # Same rotation, symmetrical duplicate positions, no auto-arranging on import.
     cases = [(9.40, h, 1) for h in (6.50, 6.45, 6.40, 6.35)] if stage == 'holes' else [
         (d, hole, rep) for rep, ds in [(1, (9.36, 9.40, 9.44)), (2, (9.44, 9.40, 9.36))] for d in ds]
@@ -77,12 +89,20 @@ def generate(out, stage='holes', hole=None):
             'No physical fit, hole compatibility or repeatability has been validated.',
             'Placement/exclusion zones and sliced brim must be checked before printing.'])
     (out/'report.json').write_text(json.dumps(report,indent=2)+'\n')
+    if stage == 'combined':
+        vout=out/'plate-view';vout.mkdir()
+        view_report=dict(passed=True,physical_fit_validated=False,
+            geometry=dict(bounds_mm=bounds,parameters={'clearance':'see report.json'}),
+            fit=dict(poses=[],insertion=[]))
+        viewer(plate,nominal_brick('duplo',10,10),view_report,vout)
+        (vout/'brick.stl').write_bytes((out/'plate.stl').read_bytes())
+        (vout/'report.json').write_text(json.dumps(view_report,indent=2)+'\n')
     with (out/'slicing-and-fit.csv').open('w',newline='') as f:
         w=csv.writer(f)
         w.writerow(['id','stud_diameter_mm','hole_diameter_mm','slicer_version','middle_layer_z_mm',
             'stud_-X-Y_role','stud_-X+Y_role','stud_+X-Y_role','stud_+X+Y_role',
             'seated','inverted_retention','removable','after_10_cycles','notes'])
-        for r in records:w.writerow([r['id'],r['stud_diameter_mm'],r['stud_hole_diameter_mm']]+['']*12)
+        for r in records:w.writerow([r['id'],r['stud_diameter_mm'],r['stud_hole_diameter_mm']]+['']*11)
     with (out/'measurements.csv').open('w',newline='') as f:
         w=csv.writer(f);w.writerow(['id','stud','local_axis','repeat','diameter_mm','notes'])
         for r in records:
@@ -115,8 +135,8 @@ def package(out,destination):
 if __name__=='__main__':
     import argparse
     ap=argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('--stage',choices=['holes','diameters'],default='holes')
-    ap.add_argument('--hole',type=float,help='Stage 2 only: hole diameter selected after slicing stage 1')
+    ap.add_argument('--stage',choices=['holes','diameters','combined'],default='holes')
+    ap.add_argument('--hole',type=float,help='Diameter group: hole diameter selected after slicing stage 1')
     ap.add_argument('--out',type=Path,default=Path('build/duplo-stud-holes'))
     ap.add_argument('--zip',type=Path)
     args=ap.parse_args()

@@ -18,6 +18,26 @@ class StudTrialTests(unittest.TestCase):
             self.assertEqual(sum(r['stud_diameter_mm']==d for r in rows),2)
         self.assertEqual({r['stud_hole_diameter_mm'] for r in rows},{6.40})
 
+    def test_combined_replicates_and_bed_clearance(self):
+        rows=plan('combined',6.40)
+        self.assertEqual(len(rows),14)
+        self.assertEqual(len({r['id'] for r in rows}),14)
+        from collections import Counter,defaultdict
+        counts=Counter((r['stud_diameter_mm'],r['stud_hole_diameter_mm']) for r in rows)
+        self.assertEqual(counts[(9.40,6.40)],4)
+        self.assertEqual(sorted(counts.values()),[2,2,2,2,2,4])
+        positions=defaultdict(list)
+        for r in rows:
+            x,y=r['bed_center_xy_mm']
+            self.assertTrue(20.9 < x < 159.1 and 20.9 < y < 159.1)
+            positions[(r['stage'],r['stud_diameter_mm'],r['stud_hole_diameter_mm'])].append((x,y))
+        for pair in positions.values():
+            self.assertEqual(len(pair),2)
+            self.assertEqual([sum(v) for v in zip(*pair)],[180,180])
+        for i,a in enumerate(rows):
+            for b in rows[i+1:]:
+                self.assertGreaterEqual(max(abs(x-y) for x,y in zip(a['bed_center_xy_mm'],b['bed_center_xy_mm'])),42)
+
     def test_only_studs_change_and_holes_remain_open(self):
         rows=plan()+plan('diameters',6.40)
         _,baseline=coupon(rows[0])
