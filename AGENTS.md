@@ -4,7 +4,7 @@
 - The user's actual target is DUPLO. Read docs/duplo.md. Default CLI/profile is DUPLO 2x4; keep legacy LEGO examples explicit. DUPLO is not a uniform 2x mesh scale: it has hollow studs and separate dimensional presets.
 - Fit references must use the same family preset; never compare a DUPLO candidate against the 8 mm LEGO reference by accident.
 
-- At the start of a fresh session, read docs/new-session.md and follow its bootstrap and real-screenshot smoke check. Do not assume an old Chromium installation, build directory, shell environment or process/session ID still exists.
+- At the start of a fresh session, consult docs/new-session.md for setup as needed; do not assume an old Chromium installation, build directory, shell environment or process/session ID still exists. Do not launch the browser or smoke-test a legacy/default model as routine bootstrap when the current change does not require it. For a relevant visual check, use the **changed model's** viewer.
 - Read README.md and docs/design.md first. Units: millimetres, Z up, bottom rim z=0.
 - Use CadQuery BRep as the authoritative solid. Change parameters/source, regenerate, inspect the actual previews, and run geometric tests before claiming success.
 - **Targeted verification only by default.** For a model-specific CAD change, run only its relevant test file(s), e.g. `python -m unittest discover -s tests -p 'test_receiver_trial.py' -v`. For PR changes, use `python scripts/ci-tests.py --base <base-sha> --plan` to inspect the selected tests and then omit `--plan` to run them once. Do not use `python -m unittest discover -s tests -v` as the routine validation step.
