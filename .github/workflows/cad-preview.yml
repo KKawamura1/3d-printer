@@ -5,7 +5,7 @@ on:
       target:
         description: Generate one model
         type: choice
-        options: [duplo, duplo-2x2, rail, brick, tunnel, elbow, pitagora, calibration, experiment, lego]
+        options: [duplo, duplo-2x2, rail, brick, tunnel, elbow, pitagora, calibration, experiment, stud-holes, lego]
         default: tunnel
       screenshots:
         description: Also capture browser screenshots
@@ -36,6 +36,7 @@ jobs:
             duplo-2x2) python -m brickcad build --profile profiles/duplo-2x2.json --out build/model ;;
             rail|brick) python -m brickcad.rail --kind "$TARGET" --out build/model ;;
             tunnel|elbow|pitagora) python -m "brickcad.$TARGET" --out build/model ;;
+            stud-holes) python -m brickcad.stud_trial --out build/model ;;
             experiment) python -m brickcad.experiment --out build/model ;;
             calibration) python -m brickcad.calibration build/model ;;
             lego) python -m brickcad build --profile profiles/first-print.json --out build/model ;;
@@ -58,6 +59,7 @@ jobs:
           case "$TARGET" in
             elbow) node scripts/elbow-browser-check.cjs build/model build/browser-qa ;;
             pitagora) node scripts/pitagora-browser-check.cjs build/model build/browser-qa ;;
+            stud-holes) npm run browser:check -- build/model/03 build/browser-qa ;;
             experiment) npm run browser:check -- build/model/sample build/browser-qa ;;
             calibration) npm run browser:check -- build/model/view-5 build/browser-qa ;;
             *) npm run browser:check -- build/model build/browser-qa ;;
@@ -69,4 +71,3 @@ jobs:
           name: brick-cad-and-verification
           path: build/
           retention-days: 7
-
