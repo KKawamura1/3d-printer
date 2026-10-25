@@ -2,6 +2,10 @@
 
 変則デュプロを作るための、パラメトリックCADと幾何検証の作業環境です。**現在の主対象とCLI既定値はDUPLO 2×4**です。短い試し刷り用2×2もあります。旧試作2×2は実物で接続・遊べたものの、突起がきつい・裏面が緩い・角が痛いという評価。新しい丸角版・レールは実物未検証です。
 
+- [4×4の坂カーブ試作01（STL ZIP）](prints/duplo_sloped_curve_trial_01.zip) — [寸法・印刷手順](docs/duplo-sloped-curve-trial-01.md)。#1の04 T30に合わせ受け壁3.20 mm、実物嵌合は未検証。
+
+- [NEW：16個・通常高さの大規模校正実験01](docs/duplo-experiment-01.md) — [印刷・測定一式ZIP](prints/duplo_experiment_01.zip)、基準8個＋独立寸法変更8個。実物未検証。
+
 - [NEW：90度の隠しトンネル試作01（STL ZIP）](prints/duplo_elbow_trial_01.zip) — 4×4ポッチ・2段高さ。新しく1個印刷して曲がる隠し通路を試せます。[印刷・接続手順](docs/duplo-elbow-trial-01.md)（実物未検証）
 - [2段トンネル試作01（STL ZIP）](prints/duplo_tunnel_trial_01.zip) — [寸法・印刷・確認手順](docs/duplo-tunnel-trial-01.md)
 - [ピタゴラ M1：レール→隠し通路2個→レール](docs/pitagora-m1.md) — 接続ポート規格、連続通過のCAD検証、組立・実物試験手順（実物未検証）
@@ -169,9 +173,3 @@ Pythonのimport依存をたどり、変更したモジュールを使うテス�
 
 生成物やローカルブラウザが使えない時の撮影は Actions → `CAD preview (manual)` → Run workflow で対象モデルを1つ選びます。撮影が必要なら `screenshots` をオンにします。選んだモデルの生成・検証を1回行い、スクリーンショットが不要ならNode.js・Chromiumをインストールしません。`brick-cad-and-verification` artifact（7日保存）から取得してください。撮影成功と画像の目視確認は別です。旧レゴと校正プレートも、この手動実行で必要時のみ生成できます。
 
-
-## 4×4・90度下りカーブ
-
-黄色い既存カーブと同じ占有サイズで1段下る、余分な床を除いた帯状の[試作01の設計・印刷手順](docs/duplo-sloped-curve-trial-01.md)。[印刷用ZIP](prints/duplo_sloped_curve_trial_01.zip)にSTL・STEPと自己完結プレビューを同梱。
-
-このカーブの受けは保持力未補正です。#1の追加測定から側壁接触の校正が必要と判断しており、寸法維持を適合済みという意味には扱いません。詳しくは上記手順の寸法再評価を参照してください。

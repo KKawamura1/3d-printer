@@ -246,6 +246,19 @@
   "outside_footprint_mm3": 0.0,
   "receiver_audit": {
     "reference": "Synthetic DUPLO 4x4, 16 hollow studs, OD 9.40 mm",
+    "calibration": {
+      "source_issue": "https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6391525189",
+      "source_coupon": "04 T30",
+      "wall_mm": 3.2,
+      "tube_diameter_mm": 13.3,
+      "full_4x4_cavity_mm": [
+        57.4,
+        57.4
+      ],
+      "equivalent_2x2_cavity_mm": 25.4,
+      "transfer_validated": false,
+      "limitation": "Curved footprint removes opposing side walls: T30 receiver result does not validate this curve or partial supports."
+    },
     "insertion": [
       {
         "lift_mm": 5.7,
@@ -367,15 +380,15 @@
       {
         "x_mm": 24.0,
         "y_mm": 24.0,
-        "intersection_mm3": 0.09112480753890742,
+        "intersection_mm3": 0.09112480753890748,
         "non_tube_intersection_mm3": 0.0
       }
     ],
     "measured_9p32_stud_intersection_mm3": 0.0,
     "seating_roof_clearance_mm": 0.25,
     "intentional_tube_radial_interference_mm": 0.03629150101524026,
-    "half_pitch_negative_mm3": 432.28100054021985,
-    "overinsert_non_tube_negative_mm3": 208.0885402994407,
+    "half_pitch_negative_mm3": 433.4772969023891,
+    "overinsert_non_tube_negative_mm3": 209.89779555067415,
     "rigid_fit_clear": false,
     "no_blocking_collision": true
   },
@@ -390,9 +403,9 @@
     "brep_conservative_bounds_mm": [
       63.79629321253121,
       63.83712694889283,
-      38.329941913221894
+      38.329941913221795
     ],
-    "volume_mm3": 41107.56555476365,
+    "volume_mm3": 41124.79029398305,
     "parameters": {
       "family": "duplo",
       "nx": 4,
@@ -403,7 +416,7 @@
       "stud_radius": 4.6,
       "stud_height": 4.5,
       "stud_inner_radius": 3.25,
-      "wall": 3.16,
+      "wall": 3.2,
       "roof": 1.6,
       "tube_radius": 6.65,
       "tube_inner_radius": 4.7,
@@ -465,7 +478,7 @@
     "nonmanifold_edges": 0,
     "inconsistent_edges": 0,
     "degenerate_triangles": 0,
-    "signed_volume_mm3": 41099.91036316302,
+    "signed_volume_mm3": 41117.09924870652,
     "bounds_mm": [
       [
         -31.899999618530273,
@@ -487,23 +500,25 @@
   "limitations": [
     "49 static sphere samples, not continuous clearance or rolling dynamics.",
     "4x4 envelope and port grid inferred from user; middle curvature is our design.",
-    "Corner floors and unsupported tube portions removed; retained receiver fit dimensions unchanged.",
+    "Corner floors and unsupported tube portions removed; receiver wall 3.20 mm, tube OD 13.30 mm follow measured T30 candidate.",
+    "T30 full-height 2x2 receiver was adequate; this curved, partly open receiver and partial supports remain untested.",
+    "No upper studs: Gap infill / Inner wall stud calibration is not applicable to this part.",
     "Synthetic 9.40 mm studs retain known 0.036 mm radial tube trial interference; no other blocking collision.",
     "Raised approach on nominal support retains known 0.036 mm radial trial interference.",
     "Spline BRep bounding box is conservative; footprint also checked by solid subtraction.",
     "Slicer inspection and a real print are required; internal ceiling is a bridge."
   ],
   "source_files": {
-    "sloped_curve.py": "270fe3f4722e1abaaf7c615f2323942355daed8ead6ec79472aa6a427bd6ecea",
+    "sloped_curve.py": "080f03c7cefe14adceb0689e5af9452e2b6ad2741efb6525b5d2c80abb87d038",
     "rail.py": "c0665e59d3b4d0378ae3eb21bb05a8acb4b5b79f6c0f6eee38ba4203e7340abb",
     "model.py": "b373c510b8aa347bead32bbc4f2af0e20ee37ad0b204f0174b2d878e08ec23f7",
     "ports.py": "e62e912b0a0a11f8320a24c99662ca6c40f5c99fbbe46e56b876c9e286c825dd",
     "render.py": "75f6037b0716dbd598b3dfb9ec6ad648cbe4a3ffcec5345bea6e50cc95ebeb51",
-    "viewer.html": "35b711e767de5cce075832ef8cdfc0359d3c2d39eafcbdeb729bb00e2e25f8dc"
+    "viewer.html": "817d275c3537c2bc2b41ed075afa099bdedb4d0c84857390e39977faf4bd3ae7"
   },
   "files": {
-    "brick.stl": "4cb0cebea6ab1bde8a6ac1fd96f3f16d9431b4aa32818fce66e609de55726ded",
-    "brick.step": "fb87c38ad6ba039b4e60b80fe36621e4be7bdf7a3b31c4d7c1ca40386c7c084f",
-    "assembly.step": "82aecc21d48db61612c90781702b43693918de9104c8d84b94f8114991b89f43"
+    "brick.stl": "4cb61ccee86d65f7aed51cb100d52c3359406fe3b35afb74570de884497a0972",
+    "brick.step": "72dc5e9f4303d551b5d35434dc388f2e59877928046f34e2140b7c76fef720f9",
+    "assembly.step": "2dba484cf76f11fd7623655893310cae158fc789014e82981d1a336e6265605a"
   }
 }

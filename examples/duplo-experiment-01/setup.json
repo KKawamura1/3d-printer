@@ -1,0 +1,133 @@
+{
+  "actual_print_performed": false,
+  "source_issue": 1,
+  "printer": "Bambu Lab A1 mini",
+  "nozzle_mm": 0.4,
+  "material": "Bambu PLA Basic",
+  "slicer_version_expected": "2.8.02.61",
+  "actual_slicer_version": null,
+  "expected_settings": {
+    "layer_height": 0.2,
+    "wall_loops": 2,
+    "outer_wall_line_width": 0.42,
+    "inner_wall_line_width": 0.45,
+    "outer_wall_speed": 200,
+    "wall_generator": "classic",
+    "sparse_infill_pattern": "grid",
+    "sparse_infill_density": "15%",
+    "filament_flow_ratio": 0.98,
+    "xy_contour_compensation": 0,
+    "xy_hole_compensation": 0,
+    "elefant_foot_compensation": 0,
+    "seam_position": "aligned",
+    "apply_scarf_seam_on_circles": 1,
+    "enable_circle_compensation": 0,
+    "print_sequence": "by layer",
+    "enable_support": 0,
+    "brim_type": "auto_brim",
+    "brim_width": 5
+  },
+  "actual_settings": {},
+  "reference_part": null,
+  "gcode_sha256": null,
+  "project_3mf_sha256": null,
+  "actual_centers_and_rotations_verified": false,
+  "fit_results": [
+    {
+      "id": "01",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "02",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "03",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "04",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "05",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "06",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "07",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "08",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "09",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "10",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "11",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "12",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "13",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "14",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "15",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    },
+    {
+      "id": "16",
+      "genuine_on_printed": null,
+      "printed_on_genuine": null,
+      "notes": null
+    }
+  ]
+}

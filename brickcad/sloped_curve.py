@@ -19,6 +19,16 @@ RADIUS = 48.0
 DROP = 19.2
 BALL = 24.26
 RAIL = Rail()
+# Issue #1, measured coupon 04/T30: seven measured receivers were adequate;
+# T30 isolates the same 13.30 mm tube used here, with a 3.20 mm wall.
+RECEIVER_WALL = 3.20
+RECEIVER_TUBE_DIAMETER = 13.30
+
+
+def curve_profile():
+    return replace(fit_profile(4), ny=4, height=RAIL.height+DROP,
+                   wall=RECEIVER_WALL, tube_radius=RECEIVER_TUBE_DIAMETER/2)
+
 
 
 def height(t):
@@ -91,6 +101,12 @@ def receiver_audit(shape,p):
     shifted = intersection(shape,reference.translate((8,0,-refp.height)))
     overinsert = intersection(non_tube,reference.translate((0,0,-refp.height+.5)))
     return dict(reference='Synthetic DUPLO 4x4, 16 hollow studs, OD 9.40 mm',
+        calibration=dict(source_issue='https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6391525189',
+            source_coupon='04 T30',wall_mm=p.wall,tube_diameter_mm=2*p.tube_radius,
+            full_4x4_cavity_mm=[p.width-2*p.wall,p.depth-2*p.wall],
+            equivalent_2x2_cavity_mm=31.8-2*p.wall,
+            transfer_validated=False,
+            limitation='Curved footprint removes opposing side walls: T30 receiver result does not validate this curve or partial supports.'),
         insertion=insertion,studs=studs,
         measured_9p32_stud_intersection_mm3=intersection(shape,measured),
         seating_roof_clearance_mm=RAIL.floor-RAIL.roof-refp.stud_height,
@@ -101,7 +117,7 @@ def receiver_audit(shape,p):
 
 
 def build_curve():
-    p = replace(fit_profile(4), ny=4, height=RAIL.height+DROP)
+    p = curve_profile()
     base = cq.Workplane('XY').box(p.width,p.depth,RAIL.floor,centered=(True,True,False))
     base = base.edges('|Z').fillet(.8).edges('>Z').fillet(.5)
     base = receiver(p,base,RAIL.floor-RAIL.roof,RAIL.entry)
@@ -235,7 +251,9 @@ def export(out=Path('build/duplo-sloped-curve-trial-01')):
         stl_tessellation=dict(linear_tolerance_mm=.01,angular_tolerance_radians=.1),
         limitations=['49 static sphere samples, not continuous clearance or rolling dynamics.',
             '4x4 envelope and port grid inferred from user; middle curvature is our design.',
-            'Corner floors and unsupported tube portions removed; retained receiver fit dimensions unchanged.',
+            'Corner floors and unsupported tube portions removed; receiver wall 3.20 mm, tube OD 13.30 mm follow measured T30 candidate.',
+            'T30 full-height 2x2 receiver was adequate; this curved, partly open receiver and partial supports remain untested.',
+            'No upper studs: Gap infill / Inner wall stud calibration is not applicable to this part.',
             'Synthetic 9.40 mm studs retain known 0.036 mm radial tube trial interference; no other blocking collision.',
             'Raised approach on nominal support retains known 0.036 mm radial trial interference.',
             'Spline BRep bounding box is conservative; footprint also checked by solid subtraction.',
@@ -254,3 +272,4 @@ if __name__ == '__main__':
     import argparse
     ap = argparse.ArgumentParser(); ap.add_argument('--out',type=Path,default=Path('build/duplo-sloped-curve-trial-01'))
     export(ap.parse_args().out)
+

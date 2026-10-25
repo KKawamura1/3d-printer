@@ -1,4 +1,3 @@
-FULL SUITE BEFORE MESH-BOUNDS ASSERTION CORRECTION
 test_default_duplo_independent_compensation_and_holes (test_calibration.CalibrationTest.test_default_duplo_independent_compensation_and_holes) ... ok
 test_duplo_full_height_option_keeps_connection_geometry (test_calibration.CalibrationTest.test_duplo_full_height_option_keeps_connection_geometry) ... ok
 test_duplo_reference_and_labelled_receiver (test_calibration.CalibrationTest.test_duplo_reference_and_labelled_receiver) ... ok
@@ -16,6 +15,8 @@ test_full_curved_course_and_negative_controls (test_elbow.ElbowTests.test_full_c
 test_grid_mating_and_hollow_upper_connection (test_elbow.ElbowTests.test_grid_mating_and_hollow_upper_connection) ... ok
 test_invalid_ball (test_elbow.ElbowTests.test_invalid_ball) ... ok
 test_sweep_covers_between_samples_and_both_caps (test_elbow.ElbowTests.test_sweep_covers_between_samples_and_both_caps) ... ok
+test_design_and_layout (test_experiment.ExperimentTests.test_design_and_layout) ... ok
+test_marks_leave_fit_surfaces_unchanged (test_experiment.ExperimentTests.test_marks_leave_fit_surfaces_unchanged) ... ok
 test_actual_export_and_corrupt_mesh_rejection (test_harness.HarnessTests.test_actual_export_and_corrupt_mesh_rejection) ... ok
 test_aligned_and_rotated_mating (test_harness.HarnessTests.test_aligned_and_rotated_mating) ... ok
 test_geometry_gate_rejects_capped_bottom (test_harness.HarnessTests.test_geometry_gate_rejects_capped_bottom) ... ok
@@ -35,7 +36,7 @@ ok
 test_profile_and_invalid_depth (test_rail.RailTests.test_profile_and_invalid_depth) ... ok
 SLOPED CURVE True {'valid_brep': True, 'one_solid': True, 'footprint': True, 'ports_match': True, 'wrong_height_rejected': True, 'wrong_grid_rejected': True, 'bodies_clear': True, 'existing_support_fit_envelope': True, 'sampled_ball_clear': True, 'continuous_floor_samples': True, 'low_ball_detected': True, 'receiver_holes': True, 'unused_corner_floors_removed': True, 'receiver_no_blocking_collision': True, 'all_16_studs_checked': True, 'receiver_trial_interference_only': True, 'receiver_half_pitch_detected': True, 'receiver_overinsert_detected': True, 'mesh': True, 'mesh_volume': True, 'step_roundtrip': True}
 test_ball_between_verification_samples_and_blockage (test_sloped_curve.SlopedCurveTests.test_ball_between_verification_samples_and_blockage) ... ok
-test_printable_export_and_limits (test_sloped_curve.SlopedCurveTests.test_printable_export_and_limits) ... FAIL
+test_printable_export_and_limits (test_sloped_curve.SlopedCurveTests.test_printable_export_and_limits) ... ok
 test_real_endpoint_floors_and_horizontal_leadins (test_sloped_curve.SlopedCurveTests.test_real_endpoint_floors_and_horizontal_leadins) ... ok
 test_real_receiver_grid_and_roof (test_sloped_curve.SlopedCurveTests.test_real_receiver_grid_and_roof) ... ok
 test_removed_corner_floors_and_retained_connection (test_sloped_curve.SlopedCurveTests.test_removed_corner_floors_and_retained_connection) ... ok
@@ -44,31 +45,7 @@ test_receiver_separated_from_passage (test_tunnel.TunnelTests.test_receiver_sepa
 test_reject_insufficient_floor_and_roof (test_tunnel.TunnelTests.test_reject_insufficient_floor_and_roof) ... ok
 test_swept_ball_and_oversize_control (test_tunnel.TunnelTests.test_swept_ball_and_oversize_control) ... ok
 
-======================================================================
-FAIL: test_printable_export_and_limits (test_sloped_curve.SlopedCurveTests.test_printable_export_and_limits)
 ----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/workspace/scratch/566dce362e96/3d-printer/tests/test_sloped_curve.py", line 26, in test_printable_export_and_limits
-    self.assertAlmostEqual(size,63.8,delta=.02)  # .01 mm STL tessellation tolerance
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: 63.794870376586914 != 63.8 within 4 places (0.005129623413083095 difference)
-
-----------------------------------------------------------------------
-Ran 40 tests in 100.662s
-
-FAILED (failures=1)
-
-The sole failure compared rounded/clipped STL bounds to 63.8 at 0.0001 mm. Difference was 0.00513 mm. The assertion now uses 0.02 mm for a 0.01 mm tessellated mesh; the separate BRep outside-footprint volume check stays strict. CAD/source geometry was not changed to satisfy this assertion.
-
-FINAL AFFECTED TESTS
-SLOPED CURVE True {'valid_brep': True, 'one_solid': True, 'footprint': True, 'ports_match': True, 'wrong_height_rejected': True, 'wrong_grid_rejected': True, 'bodies_clear': True, 'existing_support_fit_envelope': True, 'sampled_ball_clear': True, 'continuous_floor_samples': True, 'low_ball_detected': True, 'receiver_holes': True, 'unused_corner_floors_removed': True, 'receiver_no_blocking_collision': True, 'all_16_studs_checked': True, 'receiver_trial_interference_only': True, 'receiver_half_pitch_detected': True, 'receiver_overinsert_detected': True, 'mesh': True, 'mesh_volume': True, 'step_roundtrip': True}
-test_ball_between_verification_samples_and_blockage (test_sloped_curve.SlopedCurveTests.test_ball_between_verification_samples_and_blockage) ... ok
-test_printable_export_and_limits (test_sloped_curve.SlopedCurveTests.test_printable_export_and_limits) ... ok
-test_real_endpoint_floors_and_horizontal_leadins (test_sloped_curve.SlopedCurveTests.test_real_endpoint_floors_and_horizontal_leadins) ... ok
-test_real_receiver_grid_and_roof (test_sloped_curve.SlopedCurveTests.test_real_receiver_grid_and_roof) ... ok
-test_removed_corner_floors_and_retained_connection (test_sloped_curve.SlopedCurveTests.test_removed_corner_floors_and_retained_connection) ... ok
-
-----------------------------------------------------------------------
-Ran 5 tests in 30.869s
+Ran 42 tests in 89.274s
 
 OK

@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-25",
+  "source_issue": "https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6391525189",
+  "measured_coupons": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "07",
+    "10",
+    "15"
+  ],
+  "unmeasured_coupons": [
+    "05",
+    "06",
+    "08",
+    "09",
+    "11",
+    "12",
+    "13",
+    "14",
+    "16"
+  ],
+  "receiver_result": "All seven measured full-height 2x2 receivers adequate; curve not printed",
+  "selected_source_coupon": "04 T30",
+  "changes": {
+    "wall_mm": [
+      3.16,
+      3.2
+    ],
+    "tube_diameter_mm": [
+      13.3,
+      13.3
+    ],
+    "equivalent_2x2_cavity_mm": [
+      25.48,
+      25.4
+    ]
+  },
+  "unchanged": [
+    "16 mm pitch",
+    "4x4 envelope",
+    "rail section",
+    "19.2 mm drop",
+    "removed corner floors",
+    "tube bore 9.40 mm"
+  ],
+  "upper_stud_calibration_applicable": false,
+  "physical_fit_validated": false,
+  "physical_rolling_validated": false,
+  "limitations": [
+    "Opposing side walls partly removed; transfer not physically validated",
+    "No global scale or bed-axis compensation from one job",
+    "Partial support stability/retention requires separate physical tests"
+  ]
+}

@@ -22,6 +22,14 @@ class SlopedCurveTests(unittest.TestCase):
         self.assertTrue(self.report['passed'],self.report['checks'])
         self.assertFalse(self.report['physical_fit_validated'])
         self.assertFalse(self.report['physical_rolling_validated'])
+        # Compare actual exported contact wall, not only the source parameter.
+        # 4x4 west face is -31.9; cavity starts at -28.7 (3.20 mm wall).
+        self.assertTrue(self.shape.isInside(cq.Vector(-28.72,-16,1)))
+        self.assertFalse(self.shape.isInside(cq.Vector(-28.68,-16,1)))
+        calibration = self.report['receiver_audit']['calibration']
+        self.assertAlmostEqual(calibration['equivalent_2x2_cavity_mm'],25.40)
+        self.assertEqual(calibration['source_coupon'],'04 T30')
+        self.assertFalse(calibration['transfer_validated'])
         for size in self.report['geometry']['bounds_mm'][:2]:
             self.assertAlmostEqual(size,63.8,delta=.02)  # .01 mm STL tessellation tolerance
         self.assertEqual(self.report['drop_mm'],19.2)
@@ -66,4 +74,5 @@ class SlopedCurveTests(unittest.TestCase):
         self.assertFalse(audit['rigid_fit_clear'])
         self.assertGreater(audit['insertion'][-1]['total_intersection_mm3'],VOLUME_TOL)
         self.assertLess(audit['measured_9p32_stud_intersection_mm3'],VOLUME_TOL)
+
 
