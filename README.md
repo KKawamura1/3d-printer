@@ -4,6 +4,8 @@
 
 - [NEW：上面Inner wall校正](docs/duplo-stud-inner-wall.md) — **[14個まとめて印刷するZIP](prints/duplo_stud_combined_14.zip)**、[穴径4条件ZIP](prints/duplo_stud_holes.zip)、[外径3条件×2個の仮候補ZIP](prints/duplo_stud_diameters_ID6p40_provisional.zip)。まず印刷せず線種を確認。
 
+- [4×4の坂カーブ試作01（STL ZIP）](prints/duplo_sloped_curve_trial_01.zip) — [寸法・印刷手順](docs/duplo-sloped-curve-trial-01.md)。#1の04 T30に合わせ受け壁3.20 mm、実物嵌合は未検証。
+
 - [NEW：16個・通常高さの大規模校正実験01](docs/duplo-experiment-01.md) — [印刷・測定一式ZIP](prints/duplo_experiment_01.zip)、基準8個＋独立寸法変更8個。実物未検証。
 
 - [NEW：90度の隠しトンネル試作01（STL ZIP）](prints/duplo_elbow_trial_01.zip) — 4×4ポッチ・2段高さ。新しく1個印刷して曲がる隠し通路を試せます。[印刷・接続手順](docs/duplo-elbow-trial-01.md)（実物未検証）
