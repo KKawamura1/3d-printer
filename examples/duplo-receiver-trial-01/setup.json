@@ -1,0 +1,25 @@
+{
+  "actual_print_performed": false,
+  "physical_fit_validated": false,
+  "printer": "Bambu Lab A1 mini",
+  "nozzle_mm": 0.4,
+  "material": "Bambu PLA Basic",
+  "required_rotation_deg": 0,
+  "scale_percent": 100,
+  "expected_settings": {
+    "layer_height_mm": 0.2,
+    "wall_loops": 2,
+    "wall_generator": "Classic",
+    "outer_wall_line_width_mm": 0.42,
+    "inner_wall_line_width_mm": 0.45,
+    "sparse_infill_percent": 15,
+    "sparse_infill_pattern": "Grid",
+    "filament_flow_ratio": 0.98,
+    "xy_contour_compensation_mm": 0,
+    "xy_hole_compensation_mm": 0,
+    "print_sequence": "by layer"
+  },
+  "actual_settings": {},
+  "project_3mf_sha256": null,
+  "gcode_sha256": null
+}
