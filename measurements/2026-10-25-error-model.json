@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "units": "mm",
+  "scope": "Conditional descriptive model for reported readings; not unloaded geometry, machine accuracy, or a validated CAD compensation.",
+  "source_snapshot": "2026-10-25-error-model-sources.json",
+  "counts": {
+    "observation_records": 129,
+    "measured_experiment_parts": 7,
+    "unmeasured_experiment_parts": [
+      "05",
+      "06",
+      "08",
+      "09",
+      "11",
+      "12",
+      "13",
+      "14",
+      "16"
+    ],
+    "controlled_same_site_repeats": 0
+  },
+  "current_stud_part_means": [
+    {
+      "part": "01",
+      "cad_mm": 9.4,
+      "observed_mm": 9.15,
+      "role": "gap_infill"
+    },
+    {
+      "part": "02",
+      "cad_mm": 9.2,
+      "observed_mm": 8.96,
+      "role": "gap_infill"
+    },
+    {
+      "part": "03",
+      "cad_mm": 9.4,
+      "observed_mm": 9.14,
+      "role": "gap_infill"
+    },
+    {
+      "part": "04",
+      "cad_mm": 9.4,
+      "observed_mm": 9.17,
+      "role": "gap_infill"
+    },
+    {
+      "part": "07",
+      "cad_mm": 9.32,
+      "observed_mm": 9.09,
+      "role": "gap_infill"
+    },
+    {
+      "part": "10",
+      "cad_mm": 9.36,
+      "observed_mm": 9.145,
+      "role": "gap_infill"
+    },
+    {
+      "part": "15",
+      "cad_mm": 9.48,
+      "observed_mm": 9.415,
+      "role": "inner_wall"
+    }
+  ],
+  "stud_role_offsets": {
+    "gap_infill": {
+      "n": 6,
+      "mean": -0.23749999999999982,
+      "sample_sd": 0.016046806535881065,
+      "minimum": -0.2599999999999998,
+      "maximum": -0.21499999999999986,
+      "domain_cad_mm": [
+        9.2,
+        9.4
+      ],
+      "loo_within_job_rmse_mm": 0.01757839583124679
+    },
+    "inner_wall": {
+      "n": 1,
+      "mean": -0.06500000000000128,
+      "sample_sd": null,
+      "minimum": -0.06500000000000128,
+      "maximum": -0.06500000000000128,
+      "domain_cad_mm": [
+        9.48,
+        9.48
+      ],
+      "validated": false
+    },
+    "observed_role_offset_difference_mm": 0.17249999999999854,
+    "causal_role_effect_identifiable": false,
+    "single_offset_training_rmse_mm": 0.06186720472437799,
+    "role_offsets_training_rmse_mm": 0.013562026818605251,
+    "gap_free_slope_loo_rmse_mm": 0.028114254501653366,
+    "free_slope_adopted": false
+  },
+  "current_straight_wall_offsets": {
+    "body_span": {
+      "X": {
+        "n": 7,
+        "mean": -0.20428571428571526,
+        "sample_sd": 0.012724180205607696,
+        "minimum": -0.22000000000000242,
+        "maximum": -0.19000000000000128
+      },
+      "Y": {
+        "n": 7,
+        "mean": -0.06714285714285799,
+        "sample_sd": 0.01976047040118704,
+        "minimum": -0.08999999999999986,
+        "maximum": -0.03999999999999915
+      }
+    },
+    "receiver_span": {
+      "X": {
+        "n": 7,
+        "mean": -0.18714285714285545,
+        "sample_sd": 0.03773340063934833,
+        "minimum": -0.23999999999999844,
+        "maximum": -0.13999999999999702
+      },
+      "Y": {
+        "n": 7,
+        "mean": -0.05714285714285542,
+        "sample_sd": 0.04191828786034581,
+        "minimum": -0.09999999999999787,
+        "maximum": 0.0
+      }
+    }
+  },
+  "straight_wall_validation": {
+    "body_span": {
+      "part_held_out_rmse_mm": 0.017950549357115264,
+      "max_abs_error_mm": 0.03166666666666866
+    },
+    "receiver_span": {
+      "part_held_out_rmse_mm": 0.04307615994440033,
+      "max_abs_error_mm": 0.06666666666666465
+    }
+  },
+  "effective_wall_thickness_paired": {
+    "n": 14,
+    "mean": 3.1932142857142853,
+    "sample_sd": 0.01338873562955968,
+    "minimum": 3.17,
+    "maximum": 3.209999999999999
+  },
+  "receiver_minus_body_error_paired": {
+    "n": 14,
+    "mean": 0.013571428571431201,
+    "sample_sd": 0.02677747125911936,
+    "minimum": -0.01999999999999602,
+    "maximum": 0.060000000000002274
+  },
+  "compact_stud_detail_descriptive": {
+    "02": {
+      "n": 8,
+      "mean": 9.35125,
+      "sample_sd": 0.02642374473299139,
+      "minimum": 9.32,
+      "maximum": 9.39
+    },
+    "03": {
+      "n": 8,
+      "mean": 9.0275,
+      "sample_sd": 0.01581138830084192,
+      "minimum": 9,
+      "maximum": 9.05
+    }
+  },
+  "current_xy_absolute_difference": {
+    "stud_od": {
+      "n": 7,
+      "mean": 0.02857142857142847,
+      "sample_sd": 0.021930626551750914,
+      "minimum": 0.0,
+      "maximum": 0.06999999999999851
+    },
+    "tube_od": {
+      "n": 7,
+      "mean": 0.12571428571428608,
+      "sample_sd": 0.0645128263363554,
+      "minimum": 0.0600000000000005,
+      "maximum": 0.25
+    }
+  },
+  "unidentified_parameters": [
+    "caliper absolute bias and pure repeatability",
+    "measurement-force compliance and contact geometry bias",
+    "between-job variance",
+    "independent bed-position and rotation effects",
+    "global scale versus feature/size offsets",
+    "unloaded roundness",
+    "tube/inner-diameter compensation",
+    "quantitative clutch force"
+  ],
+  "automatic_cad_compensation_enabled": false
+}
