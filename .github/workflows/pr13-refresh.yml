@@ -21,7 +21,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Generate PR13 F geometry, validate and refresh STL/STEP/report
         run: |
-          python -m unittest tests.test_sloped_curve -v
+          python -m unittest discover -s tests -p 'test_sloped_curve.py' -v
           python -m brickcad.sloped_curve --out examples/duplo-sloped-curve-trial-02
           python - <<'PY'
           from pathlib import Path
