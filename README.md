@@ -64,12 +64,12 @@ Python 3.11を使用します。MacではまずPython 3.11を用意し、以下�
 python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
-python -m unittest discover -s tests -v
-python -m brickcad all
+# 標準DUPLO 2x4だけを生成（校正スイープなし）
+python -m brickcad build
 open build/duplo-2x4/viewer.html
 ```
 
-Mac以外では最後のHTMLをブラウザで開いてください。主要なCAD・数値計算・描画依存はバージョン固定していますが、全推移依存のlockfileではありません。検証時の実バージョンはレポートに残します。
+Mac以外では最後のHTMLをブラウザで開いてください。**CAD変更時は対象モデルのテストと生成だけを実行します。** たとえば下面比較の変更なら `python -m unittest discover -s tests -p 'test_receiver_trial.py' -v` と `python -m brickcad.receiver_trial --out build/duplo-receiver-trial-01` です。過去モデルの全テストや `python -m brickcad all` は必須ではありません。依存先の選択は `python scripts/ci-tests.py --base <base-sha> --plan` で確認できます。主要なCAD・数値計算・描画依存はバージョン固定していますが、全推移依存のlockfileではありません。検証時の実バージョンはレポートに残します。
 
 ```sh
 # 合成の名目寸法モデル

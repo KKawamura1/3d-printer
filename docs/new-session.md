@@ -63,9 +63,11 @@ npm run browser:interactive -- examples/duplo-2x4
 
 LinuxでのOSパッケージ導入には、その環境に応じた権限が必要な場合がある。ブラウザの導入が失敗したときは成功扱いにしない。
 
-## 3. 撮影・画像確認まで行う
+## 3. 変更対象の見た目を確認する場合だけ撮影する
 
-上の`examples/duplo-2x4`はrepoに含まれる生成済みモデルなので、CADの再生成前でもブラウザ単独の起動確認ができる。常駐プロセスの標準入力へ、以下を1行ずつ送る。
+画像確認が必要ない文書・CIのみの変更では、このブラウザ起動・撮影自体を省略する。CAD変更時は原則として**変更したモデルのviewer**を使い、過去の別モデルを機械的に起動しない。
+
+上の`examples/duplo-2x4`はrepoに含まれる生成済みモデルなので、**デフォルト2×4またはブラウザ基盤そのものを検証するときの例**としてはCAD再生成前でも起動できる。それ以外の試作品では対象モデルのviewerパスに置き換える。常駐プロセスの標準入力へ、以下を1行ずつ送る。
 
 ```json
 {"action":"capture"}
@@ -80,25 +82,34 @@ ChatGPT Workでエージェントが起動するときは、対話可能な端�
 
 ## 4. CADを生成して、同じブラウザへ反映
 
-別の端末/コマンドからrepoのルートで実行する。
+**新規セッションの起動は全モデルのテスト・再生成を要求しない。** 別の端末/コマンドから、変更したモデルのテストと生成だけを実行する。例：下面保持力の3条件試作品を変更した場合。
 
 ```sh
-python -m unittest discover -s tests -v
-python -m brickcad all
+python -m unittest discover -s tests -p 'test_receiver_trial.py' -v
+python -m brickcad.receiver_trial --out build/duplo-receiver-trial-01
 ```
 
-常駐ブラウザを生成先`build/duplo-2x4`で起動し直す。
+別のモデルでは、該当する `tests/test_*.py` と専用生成コマンドに置き換える。複数モジュールや共通実装を変更したPRでは、次のように依存先を選ぶ（`<base-sha>` はPRの比較元のコミットSHA）。
 
 ```sh
-BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:interactive -- build/duplo-2x4
+python scripts/ci-tests.py --base <base-sha> --plan
+python scripts/ci-tests.py --base <base-sha>
 ```
 
-以後はCAD変更後に`python -m brickcad build`を実行し、同じブラウザへ`{"action":"reload"}`を送る。視点・回転・分解・拡大縮小だけならCADの再生成は不要。終了時は`{"action":"close"}`を送る。
+`python -m unittest discover -s tests -v` や `python -m brickcad all` を毎回実行しない。後者はデフォルトDUPLO 2x4の生成に加えて5条件の校正スイープを行う。共有基盤に広い影響があるとき、または明示的な全件検証依頼があるときに限り範囲を広げる。
 
-回帰確認をまとめて行う場合も同じChromiumを使える。
+常駐ブラウザを**今回生成したモデル**のviewerへ向ける。下面試作品01の場合：
 
 ```sh
-BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:check -- build/duplo-2x4 build/browser-qa
+BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:interactive -- build/duplo-receiver-trial-01/01
+```
+
+以後は対象モデルだけを再生成し、同じブラウザへ `{"action":"reload"}` を送る。視点・回転・分解・拡大縮小だけならCADの再生成は不要。終了時は `{"action":"close"}` を送る。
+
+まとめて画面を検証する場合も、対象モデルのパスを指定する。
+
+```sh
+BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:check -- build/duplo-receiver-trial-01/01 build/browser-qa
 python scripts/review-sheet.py build/browser-qa
 ```
 
