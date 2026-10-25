@@ -23,7 +23,7 @@ RAIL = Rail()
 # wall and 16 mm pitch; the curved, rounded receiver still requires a print.
 RECEIVER_WALL = 3.20
 RECEIVER_TUBE_DIAMETER = 13.50
-CUT_EDGE_RADIUS = .7
+CUT_EDGE_RADIUS = 0.0  # F candidate: R0.70 on cut vertical tips triggers slicer cantilever warning.
 BOTTOM_EDGE_RADIUS = .5
 
 
@@ -137,18 +137,19 @@ def build_curve(*, softened=True, tube_diameter=RECEIVER_TUBE_DIAMETER):
     p = replace(curve_profile(),tube_radius=tube_diameter/2)
     base = cq.Workplane('XY').box(p.width,p.depth,RAIL.floor,centered=(True,True,False))
     base = base.edges('|Z').fillet(.8).edges('>Z').fillet(.5)
-    # Round the finished bottom after trimming. A chamfer before trimming leaves
-    # the newly exposed cut edges sharp. Keep the old geometry reproducible.
+    # F trial: round only the finished bottom after clipping. R0.70 fillets on
+    # 20 cut vertical edges caused Bambu Studio's floating-cantilever warning.
+    # Their touch safety is unvalidated. Keep the old B candidate reproducible.
     base = receiver(p,base,RAIL.floor-RAIL.roof,0 if softened else RAIL.entry)
     loft = cq.Solid.makeLoft([section(i/24) for i in range(25)], ruled=False)
     # Trim at physical body faces, preserving the 0.1 mm cell-boundary inset.
     footprint = cq.Workplane('XY').box(p.width,p.depth,60,centered=(True,True,False)).val()
     shape = base.union(loft.intersect(footprint)).val().intersect(curved_footprint()).clean()
     if softened:
-        cut_edges = cut_receiver_edges(shape)
-        if len(cut_edges) != 20:
+        # Assert the cut corners have not silently changed, but do NOT fillet them.
+        # A controlled E/F/G slicer test isolated this fillet as the warning source.
+        if len(cut_receiver_edges(shape)) != 20:
             raise ValueError('Reassess clipped receiver corners after footprint changes')
-        shape = shape.fillet(CUT_EDGE_RADIUS, cut_edges).clean()
         bottom_edges = [e for e in shape.Edges()
                         if abs(e.BoundingBox().zmin) < 1e-5
                         and abs(e.BoundingBox().zmax) < 1e-5]
@@ -181,7 +182,7 @@ def finish_audit(shape):
         changed_track_mm3=intersection(removed,track)+intersection(added,track),
         comparison_tube_diameter_mm=2*p.tube_radius,
         physical_touch_validated=False,
-        limitation='Contact envelope preserved above z=0.50 mm; entry profile changed. Printed touch and retention require a new trial.')
+        limitation='Bottom R0.50 applied only; cut vertical edges remain sharp because R0.70 triggered slicer warning. Contact preserved above z=0.50 mm; physical touch and retention untested.')
 
 
 def ports():
@@ -243,7 +244,8 @@ def verify(shape,p):
         unused_corner_floors_removed=not any(corner_floor),
         receiver_no_blocking_collision=audit['no_blocking_collision'],
         all_16_studs_checked=len(audit['studs'])==16,
-        clipped_corners_softened=finish['clipped_vertical_corners']==20 and finish['removed_volume_mm3']>1,
+        cut_vertical_edges_not_filleted=finish['clipped_vertical_corners']==20
+            and finish['cut_edge_radius_mm']==0 and finish['removed_volume_mm3']>1,
         contact_material_preserved=max(finish['removed_contact_above_entry_mm3'],finish['added_contact_above_entry_mm3'])<VOLUME_TOL,
         track_geometry_preserved=finish['changed_track_mm3']<VOLUME_TOL,
         receiver_trial_interference_only=0<audit['intentional_tube_radial_interference_mm']<=13.5/2+4.7-math.sqrt(2)*8+1e-6,
@@ -311,12 +313,13 @@ def export(out=Path('build/duplo-sloped-curve-trial-02')):
         limitations=['49 static sphere samples, not continuous clearance or rolling dynamics.',
             '4x4 envelope and port grid inferred from user; middle curvature is our design.',
             'Corner floors and unsupported tube portions removed; receiver wall 3.20 mm, tube OD 13.50 mm follows PR14 ID03 fit feedback.',
-            'Trial-02 rounds clipped vertical corners R0.70 and bottom edges R0.50; touch and retention after this change are not physically validated.',
+            'Trial-02 F only rounds bottom edges R0.50; clipped vertical corners R0.70 removed after user slicer A-G tests showed cantilever warning; tactile safety and retention still require a print.',
             'PR14 ID03 full-height 2x2 receiver was reported perfect; this curved, partly open receiver and partial supports remain untested.',
             'No upper studs: Gap infill / Inner wall stud calibration is not applicable to this part.',
             'Synthetic 9.40 mm studs retain known 0.136 mm radial tube trial interference; no other blocking collision.',
             'Raised approach on nominal support retains known 0.036 mm radial trial interference.',
             'Spline BRep bounding box is conservative; footprint also checked by solid subtraction.',
+            'User F diagnostic: warning absent with support disabled in Bambu Studio 2.8.02.61 / A1 mini / 0.20mm; regenerate and reslice final STL to reconfirm.',
             'Slicer inspection and a real print are required; internal ceiling is a bridge.'],
         source_files={n:hashlib.sha256((Path(__file__).parent/n).read_bytes()).hexdigest()
                       for n in ('sloped_curve.py','rail.py','model.py','ports.py','render.py','viewer.html')},
