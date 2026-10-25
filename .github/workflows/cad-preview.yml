@@ -5,7 +5,7 @@ on:
       target:
         description: Generate one model
         type: choice
-        options: [duplo, duplo-2x2, rail, brick, tunnel, elbow, pitagora, calibration, experiment, lego]
+        options: [duplo, duplo-2x2, rail, brick, tunnel, elbow, pitagora, calibration, experiment, xy-trial, lego]
         default: tunnel
       screenshots:
         description: Also capture browser screenshots
@@ -36,6 +36,7 @@ jobs:
             duplo-2x2) python -m brickcad build --profile profiles/duplo-2x2.json --out build/model ;;
             rail|brick) python -m brickcad.rail --kind "$TARGET" --out build/model ;;
             tunnel|elbow|pitagora) python -m "brickcad.$TARGET" --out build/model ;;
+            xy-trial) python -m brickcad.xy_trial --out build/model ;;
             experiment) python -m brickcad.experiment --out build/model ;;
             calibration) python -m brickcad.calibration build/model ;;
             lego) python -m brickcad build --profile profiles/first-print.json --out build/model ;;

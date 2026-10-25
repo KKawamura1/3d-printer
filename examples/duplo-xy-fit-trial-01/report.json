@@ -1,0 +1,280 @@
+{
+  "passed": true,
+  "physical_fit_validated": false,
+  "slicing_validated": false,
+  "profile": {
+    "name": "duplo-xy-fit-trial-01",
+    "status": "conditional_experimental_candidate",
+    "body_x_mm": 32.0,
+    "body_y_mm": 31.87,
+    "stud_diameter_mm": 9.4,
+    "stud_hole_mm": 6.4,
+    "required_bed_rotation_deg": 0,
+    "assumption": "14-coupon OD9.40/ID6.40 Inner wall samples achieve acceptable measured diameter and fit; results pending",
+    "source_issue": "https://github.com/KKawamura1/3d-printer/issues/1",
+    "body_correction_source": "docs/duplo-dimension-error-model.md, seven measured coupons from one earlier 16-coupon job",
+    "physical_fit_validated": false
+  },
+  "fit_geometrically_clear": true,
+  "geometry": {
+    "parameters": {
+      "family": "duplo",
+      "nx": 2,
+      "ny": 2,
+      "clearance": 0,
+      "body_x_mm": 32.0,
+      "body_y_mm": 31.87,
+      "height_mm": 19.2,
+      "stud_height_mm": 4.5,
+      "stud_pitch_xy_mm": [
+        16,
+        16
+      ],
+      "stud_diameter_mm": 9.4,
+      "stud_hole_mm": 6.4,
+      "underside_span_xy_mm": [
+        25.4,
+        25.4
+      ],
+      "tube_outer_mm": 13.1,
+      "tube_inner_mm": 9.4,
+      "side_wall_xy_mm": [
+        3.3000000000000007,
+        3.235000000000001
+      ],
+      "roof_mm": 1.6,
+      "corner_radius_mm": 0.8,
+      "stud_lip_radius_mm": 0.5,
+      "entry_chamfer_mm": 0.3
+    },
+    "bounds_mm": [
+      32.0,
+      31.87,
+      23.700000000000003
+    ]
+  },
+  "mesh": {
+    "mesh": {
+      "triangles": 20704,
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "degenerate_triangles": 0,
+      "signed_volume_mm3": 9991.909836116276,
+      "bounds_mm": [
+        [
+          -16.0,
+          -15.9350004196167,
+          -8.604228440844963e-16
+        ],
+        [
+          16.0,
+          15.9350004196167,
+          23.700000762939453
+        ]
+      ],
+      "passed": true
+    },
+    "collapsed_triangles_removed": 4
+  },
+  "step_roundtrip_passed": true,
+  "fit": {
+    "reference": "synthetic duplo nominal model; not an OEM scan",
+    "reference_parameters": {
+      "family": "duplo",
+      "nx": 2,
+      "ny": 2,
+      "pitch": 16.0,
+      "body_gap": 0.2,
+      "height": 19.2,
+      "stud_radius": 4.7,
+      "stud_height": 4.5,
+      "stud_inner_radius": 3.25,
+      "wall": 3.2,
+      "roof": 1.6,
+      "tube_radius": 6.55,
+      "tube_inner_radius": 4.7,
+      "clearance": 0.0
+    },
+    "limitation": "Rigid geometry only: no clutch force, elasticity, shrinkage, slicer or FEA prediction",
+    "numerical_volume_tolerance_mm3": 1e-05,
+    "self_wall_gap_mm": 0.0,
+    "self_tube_gap_mm": 0.06370849898476116,
+    "insertion": [
+      {
+        "pair": "printed/printed",
+        "lift_mm": 5.7,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 4.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 1.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/printed",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 5.7,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 4.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 1.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "reference/printed",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 5.7,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 4.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 3.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 1.5,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "pair": "printed/reference",
+        "lift_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      }
+    ],
+    "poses": [
+      {
+        "name": "one_stud_offset",
+        "xyz_mm": [
+          16.0,
+          0,
+          19.2
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "name": "cross_90",
+        "xyz_mm": [
+          0,
+          0,
+          19.2
+        ],
+        "rotation_deg": 90,
+        "intersection_mm3": 0.0,
+        "collision": false
+      },
+      {
+        "name": "half_pitch_negative_control",
+        "xyz_mm": [
+          8.0,
+          0,
+          19.2
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 163.9003455013975,
+        "collision": true
+      },
+      {
+        "name": "overinsert_negative_control",
+        "xyz_mm": [
+          0,
+          0,
+          18.9
+        ],
+        "rotation_deg": 0,
+        "intersection_mm3": 109.85260335309945,
+        "collision": true
+      }
+    ],
+    "negative_controls_passed": true
+  },
+  "adjacent": [
+    {
+      "offset_xyz_mm": [
+        32,
+        0,
+        0
+      ],
+      "intersection_mm3": 0.0
+    },
+    {
+      "offset_xyz_mm": [
+        0,
+        32,
+        0
+      ],
+      "intersection_mm3": 0.0
+    }
+  ],
+  "conditional_estimates": {
+    "body_xy_mm": [
+      31.7957,
+      31.8029
+    ],
+    "underside_span_xy_mm": [
+      25.212899999999998,
+      25.3429
+    ],
+    "stud_diameter_mm": 9.335,
+    "status": "Conditional offset-model illustrations, not verified predictions or measurement records"
+  },
+  "limitations": [
+    "The ongoing 14-coupon print has no physical results yet.",
+    "Body offsets come from seven earlier coupons in one job; scale versus offset is unresolved.",
+    "Preserving cavity dimensions does not preserve stiffness, heat history or toolpaths.",
+    "No pitch, stud XY ellipticity, tube or Z compensation is inferred.",
+    "Print at rotation 0 degrees; CAD X must match printer X. Do not auto-rotate or scale.",
+    "Reconfirm Inner wall in the final slice and remeasure all mating directions."
+  ]
+}

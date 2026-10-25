@@ -2,6 +2,8 @@
 
 変則デュプロを作るための、パラメトリックCADと幾何検証の作業環境です。**現在の主対象とCLI既定値はDUPLO 2×4**です。短い試し刷り用2×2もあります。旧試作2×2は実物で接続・遊べたものの、突起がきつい・裏面が緩い・角が痛いという評価。新しい丸角版・レールは実物未検証です。
 
+- [XY方向差を考慮した通常高さ2×2・条件付き候補01](docs/duplo-xy-fit-trial-01.md) — [STL・STEP一式ZIP](prints/duplo_xy_fit_trial_01.zip)。14個実験の成功を仮定した未検証候補。
+
 - [NEW：16個・通常高さの大規模校正実験01](docs/duplo-experiment-01.md) — [印刷・測定一式ZIP](prints/duplo_experiment_01.zip)、基準8個＋独立寸法変更8個。実物未検証。
 
 - [NEW：90度の隠しトンネル試作01（STL ZIP）](prints/duplo_elbow_trial_01.zip) — 4×4ポッチ・2段高さ。新しく1個印刷して曲がる隠し通路を試せます。[印刷・接続手順](docs/duplo-elbow-trial-01.md)（実物未検証）

@@ -1,0 +1,13 @@
+{
+  "name": "duplo-xy-fit-trial-01",
+  "status": "conditional_experimental_candidate",
+  "body_x_mm": 32.00,
+  "body_y_mm": 31.87,
+  "stud_diameter_mm": 9.40,
+  "stud_hole_mm": 6.40,
+  "required_bed_rotation_deg": 0,
+  "assumption": "14-coupon OD9.40/ID6.40 Inner wall samples achieve acceptable measured diameter and fit; results pending",
+  "source_issue": "https://github.com/KKawamura1/3d-printer/issues/1",
+  "body_correction_source": "docs/duplo-dimension-error-model.md, seven measured coupons from one earlier 16-coupon job",
+  "physical_fit_validated": false
+}
