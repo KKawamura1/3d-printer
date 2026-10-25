@@ -1,0 +1,410 @@
+{
+  "slicing_observed": true,
+  "physical_fit_validated": false,
+  "jobs": [
+    {
+      "filename": "plate_PLA_1h11m.gcode",
+      "library_file_id": "libfile_fd8beabb34088191a65db702f1d9f55a",
+      "sha256": "1a47211c92940404a0d41910737d70ff2c790221b6c9331f66750676c189a87c",
+      "source_plate": "duplo-stud-holes",
+      "slicer": "BambuStudio 02.08.02.61",
+      "z_range_mm": [
+        19.8,
+        22.8
+      ],
+      "layers_per_stud": 16,
+      "coupons": [
+        {
+          "id": "01",
+          "stud_diameter_mm": 9.4,
+          "hole_diameter_mm": 6.5,
+          "center_xy_mm": [
+            69.0,
+            111
+          ],
+          "roles": [
+            "Gap infill",
+            "Outer wall"
+          ],
+          "stud_layer_samples": 64,
+          "stable_all_four_studs": true,
+          "toolpaths": {
+            "Gap infill": {
+              "commanded_line_width_mm": [
+                0.67907,
+                0.679074
+              ],
+              "commanded_speed_mm_s": [
+                165.0543,
+                165.0555
+              ]
+            },
+            "Outer wall": {
+              "commanded_line_width_mm": [
+                0.42,
+                0.42
+              ],
+              "commanded_speed_mm_s": [
+                200.0,
+                200.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "02",
+          "stud_diameter_mm": 9.4,
+          "hole_diameter_mm": 6.45,
+          "center_xy_mm": [
+            111.0,
+            111
+          ],
+          "roles": [
+            "Inner wall",
+            "Outer wall"
+          ],
+          "stud_layer_samples": 64,
+          "stable_all_four_studs": true,
+          "toolpaths": {
+            "Inner wall": {
+              "commanded_line_width_mm": [
+                0.45,
+                0.45
+              ],
+              "commanded_speed_mm_s": [
+                257.9348,
+                257.9348
+              ]
+            },
+            "Outer wall": {
+              "commanded_line_width_mm": [
+                0.42,
+                0.42
+              ],
+              "commanded_speed_mm_s": [
+                200.0,
+                200.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "03",
+          "stud_diameter_mm": 9.4,
+          "hole_diameter_mm": 6.4,
+          "center_xy_mm": [
+            69.0,
+            69
+          ],
+          "roles": [
+            "Inner wall",
+            "Outer wall"
+          ],
+          "stud_layer_samples": 64,
+          "stable_all_four_studs": true,
+          "toolpaths": {
+            "Inner wall": {
+              "commanded_line_width_mm": [
+                0.45,
+                0.45
+              ],
+              "commanded_speed_mm_s": [
+                257.9348,
+                257.9348
+              ]
+            },
+            "Outer wall": {
+              "commanded_line_width_mm": [
+                0.42,
+                0.42
+              ],
+              "commanded_speed_mm_s": [
+                200.0,
+                200.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "04",
+          "stud_diameter_mm": 9.4,
+          "hole_diameter_mm": 6.35,
+          "center_xy_mm": [
+            111.0,
+            69
+          ],
+          "roles": [
+            "Inner wall",
+            "Outer wall"
+          ],
+          "stud_layer_samples": 64,
+          "stable_all_four_studs": true,
+          "toolpaths": {
+            "Inner wall": {
+              "commanded_line_width_mm": [
+                0.45,
+                0.45
+              ],
+              "commanded_speed_mm_s": [
+                257.9348,
+                257.9348
+              ]
+            },
+            "Outer wall": {
+              "commanded_line_width_mm": [
+                0.42,
+                0.42
+              ],
+              "commanded_speed_mm_s": [
+                200.0,
+                200.0
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "filename": "plate_PLA_1h41m.gcode",
+      "library_file_id": "libfile_458a7541a56081918b014261695380bb",
+      "sha256": "91db3a7300f6c8f3a3afb9b01a1bed2eaf9999798db81154158ff3ff31b7383c",
+      "source_plate": "duplo-stud-diameters",
+      "slicer": "BambuStudio 02.08.02.61",
+      "z_range_mm": [
+        19.8,
+        22.8
+      ],
+      "layers_per_stud": 16,
+      "coupons": [
+        {
+          "id": "01",
+          "stud_diameter_mm": 9.36,
+          "hole_diameter_mm": 6.4,
+          "center_xy_mm": [
+            48.0,
+            111
+          ],
+          "roles": [
+            "Inner wall",
+            "Outer wall"
+          ],
+          "stud_layer_samples": 64,
+          "stable_all_four_studs": true,
+          "toolpaths": {
+            "Inner wall": {
+              "commanded_line_width_mm": [
+                0.45,
+                0.45
+              ],
+              "commanded_speed_mm_s": [
+                257.9348,
+                257.9348
+              ]
+            },
+            "Outer wall": {
+              "commanded_line_width_mm": [
+                0.42,
+                0.42
+              ],
+              "commanded_speed_mm_s": [
+                200.0,
+                200.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "02",
+          "stud_diameter_mm": 9.4,
+          "hole_diameter_mm": 6.4,
+          "center_xy_mm": [
+            90.0,
+            111
+          ],
+          "roles": [
+            "Inner wall",
+            "Outer wall"
+          ],
+          "stud_layer_samples": 64,
+          "stable_all_four_studs": true,
+          "toolpaths": {
+            "Inner wall": {
+              "commanded_line_width_mm": [
+                0.45,
+                0.45
+              ],
+              "commanded_speed_mm_s": [
+                257.9348,
+                257.9348
+              ]
+            },
+            "Outer wall": {
+              "commanded_line_width_mm": [
+                0.42,
+                0.42
+              ],
+              "commanded_speed_mm_s": [
+                200.0,
+                200.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "03",
+          "stud_diameter_mm": 9.44,
+          "hole_diameter_mm": 6.4,
+          "center_xy_mm": [
+            132.0,
+            111
+          ],
+          "roles": [
+            "Inner wall",
+            "Outer wall"
+          ],
+          "stud_layer_samples": 64,
+          "stable_all_four_studs": true,
+          "toolpaths": {
+            "Inner wall": {
+              "commanded_line_width_mm": [
+                0.45,
+                0.45
+              ],
+              "commanded_speed_mm_s": [
+                257.9348,
+                257.9348
+              ]
+            },
+            "Outer wall": {
+              "commanded_line_width_mm": [
+                0.42,
+                0.42
+              ],
+              "commanded_speed_mm_s": [
+                200.0,
+                200.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "04",
+          "stud_diameter_mm": 9.44,
+          "hole_diameter_mm": 6.4,
+          "center_xy_mm": [
+            48.0,
+            69
+          ],
+          "roles": [
+            "Inner wall",
+            "Outer wall"
+          ],
+          "stud_layer_samples": 64,
+          "stable_all_four_studs": true,
+          "toolpaths": {
+            "Inner wall": {
+              "commanded_line_width_mm": [
+                0.45,
+                0.45
+              ],
+              "commanded_speed_mm_s": [
+                257.9348,
+                257.9348
+              ]
+            },
+            "Outer wall": {
+              "commanded_line_width_mm": [
+                0.42,
+                0.42
+              ],
+              "commanded_speed_mm_s": [
+                200.0,
+                200.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "05",
+          "stud_diameter_mm": 9.4,
+          "hole_diameter_mm": 6.4,
+          "center_xy_mm": [
+            90.0,
+            69
+          ],
+          "roles": [
+            "Inner wall",
+            "Outer wall"
+          ],
+          "stud_layer_samples": 64,
+          "stable_all_four_studs": true,
+          "toolpaths": {
+            "Inner wall": {
+              "commanded_line_width_mm": [
+                0.45,
+                0.45
+              ],
+              "commanded_speed_mm_s": [
+                257.9348,
+                257.9348
+              ]
+            },
+            "Outer wall": {
+              "commanded_line_width_mm": [
+                0.42,
+                0.42
+              ],
+              "commanded_speed_mm_s": [
+                200.0,
+                200.0
+              ]
+            }
+          }
+        },
+        {
+          "id": "06",
+          "stud_diameter_mm": 9.36,
+          "hole_diameter_mm": 6.4,
+          "center_xy_mm": [
+            132.0,
+            69
+          ],
+          "roles": [
+            "Inner wall",
+            "Outer wall"
+          ],
+          "stud_layer_samples": 64,
+          "stable_all_four_studs": true,
+          "toolpaths": {
+            "Inner wall": {
+              "commanded_line_width_mm": [
+                0.45,
+                0.45
+              ],
+              "commanded_speed_mm_s": [
+                257.9348,
+                257.9348
+              ]
+            },
+            "Outer wall": {
+              "commanded_line_width_mm": [
+                0.42,
+                0.42
+              ],
+              "commanded_speed_mm_s": [
+                200.0,
+                200.0
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "method": "Positive extrusion G1/G2/G3 endpoints grouped by expected unrotated bed positions and stud centers; FEATURE tags classified over 16 cylinder layers.",
+  "limitations": [
+    "Correspondence assumes the provided plates were centered without rotation; observed paths match expected stud footprints.",
+    "Line widths and feedrates are slicer commands, not measured deposition or achieved speed.",
+    "The 14-coupon combined plate has not been sliced or printed."
+  ]
+}
