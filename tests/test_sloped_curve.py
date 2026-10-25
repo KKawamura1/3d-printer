@@ -28,7 +28,7 @@ class SlopedCurveTests(unittest.TestCase):
         self.assertFalse(self.shape.isInside(cq.Vector(-28.68,-16,1)))
         calibration = self.report['receiver_audit']['calibration']
         self.assertAlmostEqual(calibration['equivalent_2x2_cavity_mm'],25.40)
-        self.assertEqual(calibration['source_coupon'],'04 T30')
+        self.assertEqual(calibration['source_coupon'],'PR14 ID03 C-tube')
         self.assertFalse(calibration['transfer_validated'])
         for size in self.report['geometry']['bounds_mm'][:2]:
             self.assertAlmostEqual(size,63.8,delta=.02)  # .01 mm STL tessellation tolerance
@@ -72,16 +72,16 @@ class SlopedCurveTests(unittest.TestCase):
         self.assertLess(finish['added_contact_above_entry_mm3'],VOLUME_TOL)
         self.assertLess(finish['changed_track_mm3'],VOLUME_TOL)
         self.assertFalse(finish['physical_touch_validated'])
-        # The three complete tubes still have their original OD above the entry.
+        # The three complete tubes still have the adopted 13.50 mm OD above the entry.
         for x,y in [(-16,-16),(0,0),(16,16)]:
-            self.assertTrue(self.shape.isInside(cq.Vector(x+6.64,y,1)))
-            self.assertFalse(self.shape.isInside(cq.Vector(x+6.66,y,1)))
+            self.assertTrue(self.shape.isInside(cq.Vector(x+6.74,y,1)))
+            self.assertFalse(self.shape.isInside(cq.Vector(x+6.76,y,1)))
 
     def test_bottom_lips_are_rounded_on_the_exported_solid(self):
         # Probe a full tube away from the clipped ends. At z=0 a R0.5
         # quarter-circle retreats .5 mm; by z=.5 the original radius returns.
-        self.assertFalse(self.shape.isInside(cq.Vector(6.4,0,.01)))
-        self.assertTrue(self.shape.isInside(cq.Vector(6.4,0,.2)))
+        self.assertFalse(self.shape.isInside(cq.Vector(6.5,0,.01)))
+        self.assertTrue(self.shape.isInside(cq.Vector(6.5,0,.2)))
         self.assertFalse(self.shape.isInside(cq.Vector(4.9,0,.01)))
         self.assertTrue(self.shape.isInside(cq.Vector(4.9,0,.2)))
 
@@ -100,7 +100,8 @@ class SlopedCurveTests(unittest.TestCase):
         # Known trial interference must be disclosed rather than called clear.
         self.assertFalse(audit['rigid_fit_clear'])
         self.assertGreater(audit['insertion'][-1]['total_intersection_mm3'],VOLUME_TOL)
-        self.assertLess(audit['measured_9p32_stud_intersection_mm3'],VOLUME_TOL)
+        self.assertGreater(audit['measured_9p32_stud_intersection_mm3'],VOLUME_TOL)
+
 
 
 

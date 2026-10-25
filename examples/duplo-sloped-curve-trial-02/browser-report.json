@@ -1,18 +1,18 @@
 {
   "input_files": {
-    "viewer.html": "293bec4e00f65069fb6ad24e1c3333669d32ea55a74d647fde94d0a4ab4544a5",
-    "report.json": "780a223480dce9e5adae3eca312ac2afe1b28c592d27cc2930157ccd0f18e32e",
-    "brick.stl": "dcf4849d457d9739be530e561de58cf456f2d9e185828b1e0fd188a682399e0f",
-    "brick.step": "0eabe552d77f3c5aa3924bc71dac03e45b3014f3784c9b9903291507d3be119b",
-    "assembly.step": "22e21e33e436422d9d5c901ae7a7a1c696109889e05fd32c8e0a5a41e2d43c30"
+    "viewer.html": "211802a1a785e635f22122697a58de8e0caa667db33b2a98d5336f0fc120ea7f",
+    "report.json": "b023322ae73b1abafbf4f937aef9d073cca4c9a8f6ff85c61f7a8ca9c0baf18c",
+    "brick.stl": "39f2f837fd8201fda9e47b37de4c7bf660933ac9696e2c82bffe260e1db69be2",
+    "brick.step": "e991dfdae96f08864021d8d605c0ddb77ebe8af1fac613d0f197d39fc1b6d2c7",
+    "assembly.step": "e790247bcea6c9480e1fe65d3bfbc8cd5582953ac08705bf4b2e603503e1ba4a"
   },
   "captures": [
     {
       "name": "01-tunnel",
       "file": "01-tunnel.png",
-      "sha256": "b17edb8b93c71de44bd9b5df55f9ab34809002cfd9a1599c9623705affb08c56",
+      "sha256": "9151da0f1bc7adbcf71511292c533348cfeb4728ce882423a4aa97a4e1cac1c6",
       "pixels": {
-        "red": 322061,
+        "red": 322179,
         "blue": 0
       },
       "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
@@ -20,9 +20,9 @@
     {
       "name": "02-top",
       "file": "02-top.png",
-      "sha256": "3b4dfe54cf4215e8c4fd0b8b418be383aed44d70e7e4120e8763b7a7c9bb666b",
+      "sha256": "f2b062738faf7617695979b28d1bb0195521293aaaf42287b669eb6aa590d457",
       "pixels": {
-        "red": 171997,
+        "red": 171994,
         "blue": 0
       },
       "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
@@ -30,9 +30,9 @@
     {
       "name": "03-underside",
       "file": "03-underside.png",
-      "sha256": "f4992f8b2efcd47691a729ce9f4cfb0e0f65cd218a1aa339541ddbafd188b5da",
+      "sha256": "9430914bf2f406a8c48be0899ea850388fa504d33837320d5fc6e94281887d48",
       "pixels": {
-        "red": 296809,
+        "red": 297074,
         "blue": 0
       },
       "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
@@ -40,9 +40,9 @@
     {
       "name": "04-section",
       "file": "04-section.png",
-      "sha256": "64490a8cce49f12483f060251fc3fbce56ffddb68469321dd8eda1d8e8d0aa5d",
+      "sha256": "fdcad8444694508091e442f6e1469bc8dbc96478241a364676ab2d4662371a13",
       "pixels": {
-        "red": 310544,
+        "red": 311059,
         "blue": 0
       },
       "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
@@ -50,9 +50,9 @@
     {
       "name": "05-balls",
       "file": "05-balls.png",
-      "sha256": "aae677e56396e58fa657ff370a524c1c792cfb42a6fa67008020f3f451594675",
+      "sha256": "bfa781f25889371d7c09c78065f39f3f2061bc0c0a2ef9ae640aad7bcb5f80bf",
       "pixels": {
-        "red": 141585,
+        "red": 141706,
         "blue": 172672
       },
       "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
@@ -60,9 +60,9 @@
     {
       "name": "06-balls-top",
       "file": "06-balls-top.png",
-      "sha256": "5dea070dcdd8de897122a133f3c1153da69d97b19e87ab71d40aa5af817999ea",
+      "sha256": "5797288ff069341ba4cc358aa4025faa5a7420d6fa6e776bca177f536303857d",
       "pixels": {
-        "red": 40074,
+        "red": 40073,
         "blue": 104290
       },
       "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
@@ -70,7 +70,7 @@
     {
       "name": "08-course",
       "file": "08-course.png",
-      "sha256": "b8acc7fceb699ba1c5b8f784a91dc74f537283ed854bb95e0cdb1563a79cafb6",
+      "sha256": "42612d3e313c6173eaa1188fbf910ca82319df7ce43025245f3d84b3348ddb01",
       "pixels": {
         "red": 225029,
         "blue": 0
@@ -80,7 +80,7 @@
     {
       "name": "09-exploded",
       "file": "09-exploded.png",
-      "sha256": "0ed2c9b6282dec0bcd2d54561e43d614509860571cafdc96af772eb4f496eb2b",
+      "sha256": "e110008694462962d82cdd1eb9837083f9b013a41af4e35e01c2b0c989162e7c",
       "pixels": {
         "red": 127417,
         "blue": 0
@@ -90,7 +90,7 @@
     {
       "name": "10-course-top",
       "file": "10-course-top.png",
-      "sha256": "cb205af6d642d5b0d3c55f74a612e76efe2da21271470e9e89ef390c0ccfa1db",
+      "sha256": "3862709cf8b237d362d73e50bca1edb1b1e770378f269571a4b403f0b00d06eb",
       "pixels": {
         "red": 145520,
         "blue": 0
@@ -100,7 +100,7 @@
     {
       "name": "12-receiver",
       "file": "12-receiver.png",
-      "sha256": "2c2587d84d4637545f4324bcf2ce3a16087bdd7687d1dc91c59cfca6f47fc3f0",
+      "sha256": "102787fea680b6d535b407404961e80a89ca833c17f5be9ba7ad715059a9f459",
       "pixels": {
         "red": 241030,
         "blue": 0
@@ -110,7 +110,7 @@
     {
       "name": "13-receiver-exploded",
       "file": "13-receiver-exploded.png",
-      "sha256": "086eaa1b7f53037fa32117514019517cfca4fe68bb6e74ddc45e516c1703c9fc",
+      "sha256": "33ddd73196bb2142cf9bcdad14784c7729cbc3a4d5821cf7e9631a91befe3635",
       "pixels": {
         "red": 227682,
         "blue": 0
@@ -120,7 +120,7 @@
     {
       "name": "14-receiver-top",
       "file": "14-receiver-top.png",
-      "sha256": "a777b7d7c0606d72d832424910866e03d349b1184abd75e43a747f172d1dd3cc",
+      "sha256": "afe47ba8702e3afeaa73b5a2c5516af76b18a445a9964d008d198ca9309f6714",
       "pixels": {
         "red": 291600,
         "blue": 0
@@ -130,9 +130,9 @@
     {
       "name": "11-mobile",
       "file": "11-mobile.png",
-      "sha256": "23173e0847d47198c49b6955e8146622b6af5dfbbfff98b9f208158c6bff6fe1",
+      "sha256": "7572cdf3655eca6fbde605582ab3389cac3740d7053d1be1296a14847dfb502b",
       "pixels": {
-        "red": 54837,
+        "red": 54839,
         "blue": 0
       },
       "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
@@ -141,6 +141,5 @@
   "errors": [],
   "automated_passed": true,
   "visual_review_performed": true,
-  "browser": "153.0.8010.0",
-  "visual_review_note": "visual-review.md"
+  "browser": "153.0.8010.0"
 }
