@@ -1,26 +1,10 @@
 # 新規セッションからの起動
 
-前セッションの実行プロセス・仮想環境・Chromium・`build/`が残っている前提にはしない。repoの追跡ファイルから起動し直せる。ブラウザは起動後に常駐させ、変更ごとのActionsやデプロイを待たずに操作する。
+前セッションのプロセス・依存・Chromium・build/の存在を前提にしない。現在の構成は [repository-layout.md](repository-layout.md) を参照。
 
-## 1. repoと依存を用意
+## CADの準備
 
-このprivate repoをGitHub接続経由、または認証済みgitで取得し、repoのルートに移動する。ChatGPT WorkではGitHubコネクターが使えても、シェルの`git clone`が認証できるとは限らない。その場合は接続済みGitHubの機能で取得する。パスはセッションごとに変わるため、以前の`/workspace/scratch/...`を再利用しない。
-
-必要なものはPython 3.11（3.12でも動作確認済み）、Node.js 22、npm。Linux代替ブラウザはx86_64 Linuxで動作確認済み。tarコマンドも使用する。
-
-```sh
-python --version
-node --version
-npm --version
-```
-
-CAD用パッケージがなければインストールする。既に利用できるWorkランタイムでも、まずimportとバージョンを確認する。
-
-```sh
-python -c 'import cadquery, matplotlib, numpy; print(cadquery.__version__, matplotlib.__version__, numpy.__version__)'
-```
-
-import失敗やバージョン不一致時は、Python環境を準備する。
+認証済みgitまたは接続済みGitHub経由でリポジトリを取得する。コネクターが使えてもシェルのgit認証が使えるとは限らない。Python 3.11を用意し、依存がまだなければ次を実行する。
 
 ```sh
 python3.11 -m venv .venv
@@ -28,106 +12,65 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Python 3.11がなく3.12がある場合は、上の`python3.11`を`python3.12`へ置き換える。以後は同じPython環境を使う。別のシェル/ツール呼び出しでは`source .venv/bin/activate`を再実行するか、`.venv/bin/python`を直接使う。
+起動確認のために全テストや旧モデルを生成する必要はない。変更するフォルダのREADMEを読み、そのテストと生成コマンドだけを実行する。
 
 ```sh
-npm ci
+python -m unittest experiments.receiver_fit.test -v
+python -m experiments.receiver_fit.design --out build/receiver-fit
 ```
 
-## 2. Chromiumを用意
-
-### ChatGPT WorkのLinux環境で実証した経路
-
-このrepoのWork環境では、Playwright自体は存在していてもブラウザの実行ファイルは当初なかった。通常のダウンロードは不完全なZIPになり、npm配布のChromiumで起動できた。新規Workセッションでは、この経路から始めてよい。
-
-```sh
-npm install --prefix ./build/browser-package --ignore-scripts --no-audit --no-fund @sparticuz/chromium@153.0.0
-```
-
-起動コマンドごとに、次の環境変数を渡す。前セッションのパッケージや、一時的な`export`が次のシェルに引き継がれる前提にしない。
-
-```sh
-BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:interactive -- examples/duplo-2x4
-```
-
-`{"ready":true,...}`が出れば起動している。起動処理が圧縮バイナリ・フォント・SwiftShaderを`build/browser-runtime/`へ展開する。tarの元所有者は復元しない。`build/`は再生成可能な作業用ファイルで、gitへ追加しない。
-
-このLinuxバイナリをMac/Windowsへ流用しない。OSの共有ライブラリなどが異なる環境での動作を保証するものではない。
-
-### 通常のMac/Windows/Linux環境
-
-```sh
-npx playwright install --with-deps chromium
-npm run browser:interactive -- examples/duplo-2x4
-```
-
-LinuxでのOSパッケージ導入には、その環境に応じた権限が必要な場合がある。ブラウザの導入が失敗したときは成功扱いにしない。
-
-## 3. 変更対象の見た目を確認する場合だけ撮影する
-
-画像確認が必要ない文書・CIのみの変更では、このブラウザ起動・撮影自体を省略する。CAD変更時は原則として**変更したモデルのviewer**を使い、過去の別モデルを機械的に起動しない。
-
-上の`examples/duplo-2x4`はrepoに含まれる生成済みモデルなので、**デフォルト2×4またはブラウザ基盤そのものを検証するときの例**としてはCAD再生成前でも起動できる。それ以外の試作品では対象モデルのviewerパスに置き換える。常駐プロセスの標準入力へ、以下を1行ずつ送る。
-
-```json
-{"action":"capture"}
-{"action":"view","value":"underside"}
-{"action":"mode","value":"section"}
-{"action":"view","value":"section"}
-```
-
-各応答の`ok:true`、`errors:[]`、`screenshot`の絶対パスを確認し、返されたPNGを画像表示ツールで実際に開く。`ready:true`や画像ファイルの存在だけでは目視確認完了ではない。
-
-ChatGPT Workでエージェントが起動するときは、対話可能な端末セッション（例: `exec_command`の`tty:true`）で実行する。返された実行セッションIDを保持し、同じプロセスへ`write_stdin`でJSON行を送る。セッションIDは新規セッションへ引き継がない。プロセスが終了していれば起動し直す。
-
-## 4. CADを生成して、同じブラウザへ反映
-
-**新規セッションの起動は全モデルのテスト・再生成を要求しない。** 別の端末/コマンドから、変更したモデルのテストと生成だけを実行する。例：下面保持力の3条件試作品を変更した場合。
-
-```sh
-python -m unittest discover -s tests -p 'test_receiver_trial.py' -v
-python -m brickcad.receiver_trial --out build/duplo-receiver-trial-01
-```
-
-別のモデルでは、該当する `tests/test_*.py` と専用生成コマンドに置き換える。複数モジュールや共通実装を変更したPRでは、次のように依存先を選ぶ（`<base-sha>` はPRの比較元のコミットSHA）。
+複数モジュールに影響する変更はimport依存から選ぶ。
 
 ```sh
 python scripts/ci-tests.py --base <base-sha> --plan
 python scripts/ci-tests.py --base <base-sha>
 ```
 
-`python -m unittest discover -s tests -v` や `python -m brickcad all` を毎回実行しない。後者はデフォルトDUPLO 2x4の生成に加えて5条件の校正スイープを行う。共有基盤に広い影響があるとき、または明示的な全件検証依頼があるときに限り範囲を広げる。
+## 変更した形状を確認する
 
-常駐ブラウザを**今回生成したモデル**のviewerへ向ける。下面試作品01の場合：
+CAD形状やviewerを変更した場合は、そのモデルを生成して実ブラウザで確認する。配置・import・文書だけの変更では撮影は不要。viewerはGitに保存しないため、STLだけから起動するのではなく対象の生成先を指定する。
+
+Node.js 22を用意し、必要時のみ導入する。
 
 ```sh
-BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:interactive -- build/duplo-receiver-trial-01/01
+npm ci
+npx playwright install --with-deps chromium
+# 例: 上で生成した下面比較の01を表示
+npm run browser:interactive -- build/receiver-fit/01
 ```
 
-以後は対象モデルだけを再生成し、同じブラウザへ `{"action":"reload"}` を送る。視点・回転・分解・拡大縮小だけならCADの再生成は不要。終了時は `{"action":"close"}` を送る。
+常駐プロセスの標準入力へJSONを1行ずつ送る。ChatGPT Workでは対話可能な端末セッションを使い、同じセッションの標準入力へ書き込む。セッションIDを次回へ引き継がない。
 
-まとめて画面を検証する場合も、対象モデルのパスを指定する。
+```json
+{"action":"view","value":"underside"}
+{"action":"mode","value":"section"}
+{"action":"view","value":"section"}
+{"action":"reload"}
+{"action":"close"}
+```
+
+別の端末で同じモデルを再生成してreloadする。視点変更・回転・拡大だけならCADは再生成しない。各応答のスクリーンショットを実際に開き、形状を目視確認する。コマンド成功や画像の存在だけで目視確認済みと扱わない。
+
+## Linuxで標準Chromiumを取得できない場合
+
+x86_64 Linuxではnpm配布の代替バイナリを利用できる。Mac/Windowsでは標準Playwrightを使う。
 
 ```sh
-BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:check -- build/duplo-receiver-trial-01/01 build/browser-qa
+npm install --prefix ./build/browser-package --ignore-scripts --no-audit --no-fund @sparticuz/chromium@153.0.0
+BRICK_CHROMIUM_PACKAGE="$PWD/build/browser-package/node_modules/@sparticuz/chromium/build/index.js" npm run browser:interactive -- build/receiver-fit/01
+```
+
+この経路は圧縮バイナリ等をbuild/browser-runtime/へ展開する。所有者情報は復元しない。環境変数は起動ごとに指定する。
+
+## 一括撮影
+
+```sh
+npm run browser:check -- build/receiver-fit/01 build/browser-qa
 python scripts/review-sheet.py build/browser-qa
 ```
 
-## 再起動時の切り分け
+返された画像を実際に開き、上面・下面・断面・組立・分解・交差姿勢を確認する。特有の表示を持つ坂カーブ・90度トンネル・組立実験にはscripts/の専用撮影コマンドを使う。ローカルの標準経路も代替経路も使えないときは、手動のCAD previewで対象を一つ選んで撮影する。取得していない画像を確認済みと扱わない。
 
-| 症状 | 確認・対応 |
-|---|---|
-| `Cannot find module 'playwright'` | repoルートで`npm ci`を実行する。Workランタイムに偶然あるNodeモジュールへ依存しない |
-| `Executable doesn't exist` | Playwrightのライブラリ導入とブラウザ実体の導入は別。手順2を行う |
-| ZIPの展開失敗 | ダウンロード失敗。Linux用npm配布経路を使う |
-| `chown`の`EINVAL` | npmパッケージの`executablePath()`を直接呼ばず、repoの起動スクリプトを使う |
-| 日本語が四角になる | 最新の生成済みHTMLか確認。日本語UIフォントはrepoの`brickcad/assets/`から埋め込まれる |
-| runtimeの展開途中で中断・バージョン変更 | ブラウザを終了し、作業用`build/browser-runtime/`を退避してから起動し直す |
-| `file`/HTMLが見つからない | 作業ディレクトリと`examples/duplo-2x4`または`build/duplo-2x4`の指定を確認 |
-| 別のツールからlocalhostへ接続できない | 実行環境が別のネットワーク空間の場合がある。本手順は`file://`でHTMLを開き、HTTPサーバーを必要としない |
+## 印刷用STLの更新
 
-通常の開発はこの常駐ブラウザで反復する。ローカルの導入・起動が解決できない場合に限り、CIの撮影結果取得やデプロイ先をクラウドブラウザで操作する方法を検討する。
-
-## 再現確認記録
-
-2026-10-24、通常レゴを対象にしていた時点でrepoの追跡ファイルだけを新しいディレクトリへ展開し、既存の`build/`・`node_modules/`・前のChromium常駐プロセスを利用せずに確認した。`npm ci`、Linux用Chromiumの新規配置、生成済みサンプルでの起動、通常撮影・裏面撮影、終了コマンドまで実行できた。両撮影の応答は`ok:true`・`errors:[]`で、裏面PNGも実際に開いて確認した。この検証は同じWork環境内の別ディレクトリでの再現であり、全く異なるOS・共有ライブラリ構成や将来の全Work環境での保証ではない。
+採用するSTLだけをパーツ／実験のフォルダへコピーする。途中のSTEP・HTML・PNG・自動検証JSON・ZIPはbuild/に残す。印刷条件と実測値、判断の記録はソースと別に保存する。

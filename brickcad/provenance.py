@@ -6,8 +6,10 @@ from .standards import FAMILIES, fit_profile
 
 
 def design_manifest(part, *, channel=None, channel_standard=None, finish=None):
-    root = Path(__file__).parent
-    sources = sorted(root.glob('*.py')) + [root/'viewer.html', root/'assets/viewer-font.css']
+    root = Path(__file__).resolve().parents[1]
+    sources = sorted((root/'brickcad').glob('*.py'))
+    sources += sorted((root/'parts').glob('*/design.py'))
+    sources += [root/'brickcad/viewer.html', root/'brickcad/assets/viewer-font.css']
     return dict(
         family_standard_id=FAMILIES[part.family].id,
         fit_baseline=asdict(fit_profile(part.fit_profile_id)) if part.fit_profile_id else None,

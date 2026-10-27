@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - 'brickcad/**/*.py'
+      - 'parts/**/*.py'
+      - 'parts/**/*.json'
+      - 'experiments/**/*.py'
+      - 'experiments/**/*.json'
       - 'profiles/**'
       - 'tests/**'
       - 'requirements.txt'
