@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 import cadquery as cq
 from .model import Brick, build, nominal_brick, from_profile
+from .provenance import design_manifest
 from .verify import geometry_report, fit_report, mesh_check, intersection, place, VOLUME_TOL
 from .render import preview, viewer
 
@@ -30,7 +31,7 @@ def export(p,out):
     mesh_dims = [hi-lo for lo,hi in zip(*m['bounds_mm'])]
     mesh_agrees = (all(abs(a-b)<1e-4 for a,b in zip(mesh_dims,g['bounds_mm']))
                    and abs(m['signed_volume_mm3']-shape.Volume())/shape.Volume()<0.001)
-    report=dict(schema_version=1, geometry=g, mesh=m, step_roundtrip_passed=step_ok, fit=fit,
+    report=dict(schema_version=1, design=design_manifest(p), geometry=g, mesh=m, step_roundtrip_passed=step_ok, fit=fit,
                 physical_fit_validated=False, fit_geometrically_clear=fit_clear, mesh_matches_cad=mesh_agrees,
                 environment={k:importlib.metadata.version(k) for k in ('cadquery','cadquery-ocp','numpy','matplotlib')},
                 files={name:hashlib.sha256((out/name).read_bytes()).hexdigest() for name in ('brick.stl','brick.step')},
@@ -79,3 +80,4 @@ def main():
 
 
 if __name__=='__main__':main()
+

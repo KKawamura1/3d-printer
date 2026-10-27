@@ -63,8 +63,7 @@ def geometry_report(p, shape):
     expected = [p.width, p.depth, p.height+p.stud_height]
     actual = exact_bounds(shape)
     # Independent analytical volume of shell, studs and tube annuli.
-    cavity_w = p.width-2*(p.wall-p.clearance)
-    cavity_d = p.depth-2*(p.wall-p.clearance)
+    cavity_w, cavity_d = p.cavity_xy
     volume = (p.width*p.depth*p.height - cavity_w*cavity_d*(p.height-p.roof)
               + p.nx*p.ny*math.pi*((p.stud_radius-p.clearance)**2-p.stud_inner_radius**2)*p.stud_height
               + (p.nx-1)*(p.ny-1)*math.pi*((p.tube_radius-p.clearance)**2-p.tube_inner_radius**2)*(p.height-p.roof))
@@ -104,12 +103,14 @@ def fit_report(p, shape):
         poses.append(dict(name=label,xyz_mm=xyz,rotation_deg=angle,intersection_mm3=v,collision=v>VOLUME_TOL))
     # Nearest nominal wall/tube to a stud. Positive = geometric air gap.
     r = p.stud_radius-p.clearance
-    wall_gap = p.pitch/2-p.body_gap/2-(p.wall-p.clearance)-r
+    wall_gaps = [(span-(n-1)*p.pitch)/2-r for span,n in zip(p.cavity_xy,(p.nx,p.ny))]
+    wall_gap = min(wall_gaps)
     tube_gap = math.sqrt(2)*(p.pitch/2)-(p.tube_radius-p.clearance)-r
     return dict(reference=f'synthetic {p.family} nominal model; not an OEM scan',
                 reference_parameters=asdict(ref_p),
                 limitation='Rigid geometry only: no clutch force, elasticity, shrinkage, slicer or FEA prediction',
                 numerical_volume_tolerance_mm3=VOLUME_TOL,
-                self_wall_gap_mm=wall_gap,self_tube_gap_mm=tube_gap,
+                self_wall_gap_mm=wall_gap,self_wall_gap_xy_mm=wall_gaps,self_tube_gap_mm=tube_gap,
                 insertion=rows, poses=poses,
                 negative_controls_passed=all(x['collision'] for x in poses if 'negative_control' in x['name']))
+

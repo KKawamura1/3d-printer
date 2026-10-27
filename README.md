@@ -58,6 +58,10 @@ STLは既にデュプロ寸法です。スライサーではmm単位・100%で�
 
 `preview.png`の組立図は見やすいように2.5 mm浮かせています。HTMLでは追加高さ0 mmに戻して組立状態を確認できます。相手は合成の名目モデルです。純正をスキャン・実測したものではありません。
 
+## パーツを追加するための共通設計
+
+[共通規格からパーツを作る](docs/shared-part-design.md)。版付きの寸法は `brickcad/standards.py`、突起/下面の共通生成は `brickcad/connections.py` に置いています。新規パーツは `brick_from_fit('duplo-nominal-v1', nx=2, ny=2, height_units=1)` のように条件を明示します。外形補正 `body_offset_xy` と下面内壁 `receiver_inset_xy` は独立です。既存の実験・CLI既定値・印刷ファイルの条件は維持します。
+
 ## 再生成
 
 Python 3.11を使用します。MacではまずPython 3.11を用意し、以下をrepoのルートで実行してください。
@@ -178,4 +182,5 @@ Pythonのimport依存をたどり、変更したモジュールを使うテス�
 全テストを明示的に回したい時は Actions → `CAD tests` → Run workflow。ローカルでは `python scripts/ci-tests.py`、PR相当の選択は `python scripts/ci-tests.py --base <base SHA>`、対象確認だけなら `--plan` を付けます。
 
 生成物やローカルブラウザが使えない時の撮影は Actions → `CAD preview (manual)` → Run workflow で対象モデルを1つ選びます。撮影が必要なら `screenshots` をオンにします。選んだモデルの生成・検証を1回行い、スクリーンショットが不要ならNode.js・Chromiumをインストールしません。`brick-cad-and-verification` artifact（7日保存）から取得してください。撮影成功と画像の目視確認は別です。旧レゴと校正プレートも、この手動実行で必要時のみ生成できます。
+
 

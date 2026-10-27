@@ -1,0 +1,99 @@
+{
+  "test_files": 13,
+  "test_count": 57,
+  "passed": true,
+  "results": [
+    {
+      "test_file": "tests/test_calibration.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 5,
+      "elapsed_seconds": 1.282
+    },
+    {
+      "test_file": "tests/test_duplo.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 6,
+      "elapsed_seconds": 1.331
+    },
+    {
+      "test_file": "tests/test_elbow.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 5,
+      "elapsed_seconds": 17.547
+    },
+    {
+      "test_file": "tests/test_experiment.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 2,
+      "elapsed_seconds": 5.282
+    },
+    {
+      "test_file": "tests/test_harness.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 7,
+      "elapsed_seconds": 1.485
+    },
+    {
+      "test_file": "tests/test_pitagora.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 5,
+      "elapsed_seconds": 1.241
+    },
+    {
+      "test_file": "tests/test_rail.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 3,
+      "elapsed_seconds": 34.915
+    },
+    {
+      "test_file": "tests/test_receiver_trial.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 1,
+      "elapsed_seconds": 4.654
+    },
+    {
+      "test_file": "tests/test_shared_standards.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 7,
+      "elapsed_seconds": 0.313
+    },
+    {
+      "test_file": "tests/test_sloped_curve.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 7,
+      "elapsed_seconds": 44.205
+    },
+    {
+      "test_file": "tests/test_stud_trial.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 3,
+      "elapsed_seconds": 11.968
+    },
+    {
+      "test_file": "tests/test_tunnel.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 4,
+      "elapsed_seconds": 0.624,
+      "verification": "Separate unittest run: 4 tests, OK; final summary observed in command output"
+    },
+    {
+      "test_file": "tests/test_xy_trial.py",
+      "exit_code": 0,
+      "passed": true,
+      "test_count": 2,
+      "elapsed_seconds": 2.539
+    }
+  ]
+}

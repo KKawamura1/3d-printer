@@ -1,25 +1,28 @@
 """Two-course DUPLO tunnel trial: shared receiver, rail-matched circular floor."""
-from dataclasses import dataclass, asdict, replace
+from dataclasses import dataclass, asdict
 from pathlib import Path
 import hashlib
 import json
 import math
 import struct
 import cadquery as cq
-from .model import receiver, nominal_brick, build
-from .rail import Rail, fit_profile
+from .model import receiver, nominal_brick, build, brick_from_fit
+from .rail import Rail
+from .standards import BALL_TRACK, ROUNDED_EDGES
+from .connections import make_studs
+from .provenance import design_manifest
 from .render import viewer, mesh, outlines, preview
 from .verify import intersection, exact_bounds, mesh_check, place, VOLUME_TOL
 
 
 @dataclass(frozen=True)
 class Tunnel:
-    floor: float = 6.35
-    radius: float = Rail().radius
+    floor: float = BALL_TRACK.floor
+    radius: float = BALL_TRACK.radius
     ceiling: float = 34.8
     cavity_height: float = 4.75
     entry: float = .3
-    ball_diameter: float = 24.26
+    ball_diameter: float = BALL_TRACK.ball_diameter
 
     def __post_init__(self):
         if any(not math.isfinite(v) or v <= 0 for v in asdict(self).values()):
@@ -38,9 +41,9 @@ class Tunnel:
 
 
 def build_tunnel(t=Tunnel()):
-    p=replace(fit_profile(),height=38.4)
+    p=brick_from_fit('duplo-rail-trial-v1', nx=2, ny=2, height_units=2)
     outer=cq.Workplane('XY').box(p.width,p.depth,p.height,centered=(True,True,False))
-    outer=outer.edges('|Z').fillet(.8).edges('>Z').fillet(.8)
+    outer=outer.edges('|Z').fillet(ROUNDED_EDGES.corner_radius).edges('>Z').fillet(ROUNDED_EDGES.corner_radius)
     result=receiver(p,outer,t.cavity_height,t.entry)
     # YZ section, X is the passage axis. Circular bottom is identical to rail 01.
     # Circular arc to 45 degrees, then 45-degree roof slopes and a short bridge.
@@ -61,9 +64,8 @@ def build_tunnel(t=Tunnel()):
     if len(mouths)!=8:
         raise ValueError(f'Expected four section edges at each mouth, got {len(mouths)}')
     result=result.newObject(mouths).chamfer(t.entry)
-    studs=(cq.Workplane('XY',origin=(0,0,p.height)).pushPoints(p.studs())
-           .circle(p.stud_radius).circle(p.stud_inner_radius).extrude(p.stud_height))
-    studs=studs.edges('>Z').fillet(.5)
+    studs=make_studs(p.studs(), p.height, p.stud_radius-p.clearance,
+                     p.stud_inner_radius, p.stud_height, lip_radius=ROUNDED_EDGES.stud_lip_radius)
     shape=result.union(studs).val().clean()
     if not shape.isValid() or len(shape.Solids())!=1:
         raise ValueError('Tunnel must be one valid solid')
@@ -126,6 +128,7 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
         fit_within_trial_envelope=math.sqrt(2)*8-p.tube_radius-4.7>=-.05,
         initial_insertion_clear=all(not r['collision'] for r in fit['insertion'] if r['lift_mm']==5.7))
     report=dict(schema_version=1,kind='tunnel',passed=all(checks.values()),
+        design=design_manifest(p, channel=t, channel_standard=BALL_TRACK, finish=ROUNDED_EDGES),
         geometry=dict(bounds_mm=bounds,volume_mm3=shape.Volume(),parameters=asdict(p),checks=checks),
         tunnel=asdict(t),bridge_width_mm=t.bridge_width,roof_thickness_mm=p.height-t.ceiling,
         mesh=m,collapsed_stl_triangles_removed=collapsed,
@@ -171,3 +174,4 @@ if __name__=='__main__':
     import argparse
     ap=argparse.ArgumentParser();ap.add_argument('--out',type=Path,default=Path('build/duplo-tunnel-trial-01'))
     export(ap.parse_args().out)
+
