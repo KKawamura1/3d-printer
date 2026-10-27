@@ -4,14 +4,14 @@
 
 ## 初回の接続校正
 
-まず印刷するものは[補正違い2×2を5個配置したプレート](../examples/sim2real-duplo/plate.stl)です。[評価・補正の手順](sim2real-duplo.md)に沿って、純正DUPLOへの接続を上下別々に確認できます。`python -m brickcad.calibration`で再生成します。
+まず印刷するものは[補正違い2×2を5個配置したプレート](../experiments/initial_calibration/plate.stl)です。[評価・補正の手順](../experiments/initial_calibration/README.md)に沿って、純正DUPLOへの接続を上下別々に確認できます。`python -m experiments.initial_calibration.design`で再生成します。
 
 ## 印刷用ファイル
 
-[名前付きSTL 2種類をまとめたZIP](../prints/duplo_bricks.zip)からも取得できる。中のファイル名は`duplo_2x4.stl`と`duplo_2x2.stl`。
+[名前付きSTL 2種類をまとめたZIP](https://github.com/KKawamura1/3d-printer/blob/c0ff73d59efe906385426e859ac26ff70e7f650e/prints/duplo_bricks.zip)からも取得できる。中のファイル名は`duplo_2x4.stl`と`duplo_2x2.stl`。
 
-- `examples/duplo-2x4/brick.stl`: 2×4、本体63.8 × 31.8 × 19.2 mm、スタッド込み高さ23.7 mm。
-- `examples/duplo-2x2/brick.stl`: 2×2、本体31.8 × 31.8 × 19.2 mm、スタッド込み高さ23.7 mm。
+- `parts/basic_brick/model.stl`: 2×4、本体63.8 × 31.8 × 19.2 mm、スタッド込み高さ23.7 mm。
+- `experiments/nominal_duplo_2x2/model.stl`: 2×2、本体31.8 × 31.8 × 19.2 mm、スタッド込み高さ23.7 mm。
 - 同じフォルダのSTEPは他CADへ渡す用途。viewer.htmlはダウンロードして開く自己完結型ビューアー。
 
 **スライサーにはmm単位・100%で読み込む。これらのSTLは既にデュプロ寸法なので、さらに200%へ拡大しない。** 旧`examples/first-print/`は通常レゴ寸法のまま。
@@ -44,13 +44,13 @@
 
 ```sh
 # 既定の対象はDUPLO 2×4。形状生成・検証・公差5候補生成。
-python -m brickcad all
+python -m brickcad build
 
 # 小さい2×2
-python -m brickcad build --profile profiles/duplo-2x2.json --out build/duplo-2x2
+python -m brickcad build --profile experiments/nominal_duplo_2x2/profile.json --out build/duplo-2x2
 
 # 通常レゴの既存モデルを明示的に作る場合
-python -m brickcad all --profile profiles/first-print.json --out build/first-print
+python -m brickcad build --profile experiments/lego_first_print/profile.json --out build/first-print
 ```
 
 常駐ブラウザ:

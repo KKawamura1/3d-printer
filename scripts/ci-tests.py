@@ -28,7 +28,7 @@ def dependencies(path, seen=None):
                                   + ([prefix] if prefix else []))
             names = [prefix] + [prefix + '.' + alias.name for alias in node.names]
         for name in names:
-            if name == 'brickcad' or name.startswith('brickcad.'):
+            if name.split('.')[0] in ('brickcad', 'parts', 'experiments'):
                 candidate = name.replace('.', '/') + '.py'
                 if (ROOT / candidate).is_file():
                     dependencies(candidate, seen)
@@ -36,15 +36,23 @@ def dependencies(path, seen=None):
 
 
 def select(changed):
-    tests = sorted(p.as_posix() for p in Path('tests').glob('test_*.py'))
+    tests = sorted(p.relative_to(ROOT).as_posix()
+                   for folder in ('tests', 'parts', 'experiments')
+                   for p in (ROOT / folder).rglob('test*.py'))
     if changed is None:
         return tests
     graph = {test: dependencies(test) for test in tests}
     known = set().union(*graph.values())
+    # Config changes affect the owning design and its transitive dependents.
+    changed = set(changed)
+    for path in list(changed):
+        if path.startswith(('parts/', 'experiments/')) and path.endswith('.json') and len(path.split('/')) == 3:
+            owner = '/'.join(path.split('/')[:2]) + '/design.py'
+            changed.add(owner)
     # Unknown/new CAD code and shared config fail open to the full suite.
     if any(p.startswith('profiles/') or p in ('requirements.txt', 'brickcad/__init__.py',
            'scripts/ci-tests.py', '.github/workflows/cad.yml') or
-           (p.startswith('brickcad/') and p.endswith('.py') and p not in known) or
+           (p.startswith(('brickcad/', 'parts/', 'experiments/')) and p.endswith('.py') and p not in known and not p.endswith('/__init__.py')) or
            (p.startswith('tests/') and p not in tests) for p in changed):
         return tests
     return [test for test in tests if graph[test].intersection(changed)]
@@ -67,8 +75,8 @@ def main():
                 output.write(f'has_tests={str(bool(selected)).lower()}\n')
         return
     sys.path.insert(0, str(ROOT))
-    suite = unittest.TestSuite(unittest.defaultTestLoader.discover('tests', pattern=Path(p).name)
-                               for p in selected)
+    suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromName(
+        p[:-3].replace('/', '.')) for p in selected)
     if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():
         raise SystemExit(1)
 

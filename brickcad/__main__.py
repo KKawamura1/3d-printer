@@ -71,7 +71,7 @@ def sweep(p,out):
 def main():
     parser=argparse.ArgumentParser(description='Build, verify, render and calibrate brick CAD (mm).')
     parser.add_argument('command',choices=['build','sweep','all'])
-    parser.add_argument('--profile',type=Path,default=Path('profiles/duplo-first-print.json'))
+    parser.add_argument('--profile',type=Path,default=Path('parts/basic_brick/profile.json'))
     parser.add_argument('--out',type=Path,default=Path('build/duplo-2x4'))
     args=parser.parse_args()
     p=from_profile(json.loads(args.profile.read_text()))

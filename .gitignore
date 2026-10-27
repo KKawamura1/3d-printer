@@ -4,3 +4,10 @@ __pycache__/
 build/
 .DS_Store
 node_modules/
+
+# Intermediate output formats; keep print-ready STL only.
+*.step
+*.stp
+*.3mf
+*.gcode
+*.zip

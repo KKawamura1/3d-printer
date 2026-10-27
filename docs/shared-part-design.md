@@ -9,7 +9,7 @@
 | `brickcad/standards.py` | 版付きの寸法定義。CADやプリンターに依存しない |
 | `brickcad/model.py` | 寸法の解決、スタッド/チューブ配置、通常ブロック、旧APIの互換 |
 | `brickcad/connections.py` | 突起と下面の共通CAD生成。寸法の既定値を持たない |
-| `brickcad/rail.py`, `tunnel.py` 等 | 固有の通路・天井・切断・曲線形状 |
+| `parts/*/design.py` | 固有の通路・天井・切断・曲線形状 |
 | `brickcad/provenance.py` | 解決済み寸法、選んだ規格、ソースのハッシュ |
 | `measurements/` | 印刷条件、実測、相手、嵌合結果。設計の既定値へ自動適用しない |
 
