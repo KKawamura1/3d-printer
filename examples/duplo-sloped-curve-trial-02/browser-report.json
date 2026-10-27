@@ -1,0 +1,145 @@
+{
+  "input_files": {
+    "viewer.html": "211802a1a785e635f22122697a58de8e0caa667db33b2a98d5336f0fc120ea7f",
+    "report.json": "b023322ae73b1abafbf4f937aef9d073cca4c9a8f6ff85c61f7a8ca9c0baf18c",
+    "brick.stl": "39f2f837fd8201fda9e47b37de4c7bf660933ac9696e2c82bffe260e1db69be2",
+    "brick.step": "e991dfdae96f08864021d8d605c0ddb77ebe8af1fac613d0f197d39fc1b6d2c7",
+    "assembly.step": "e790247bcea6c9480e1fe65d3bfbc8cd5582953ac08705bf4b2e603503e1ba4a"
+  },
+  "captures": [
+    {
+      "name": "01-tunnel",
+      "file": "01-tunnel.png",
+      "sha256": "9151da0f1bc7adbcf71511292c533348cfeb4728ce882423a4aa97a4e1cac1c6",
+      "pixels": {
+        "red": 322179,
+        "blue": 0
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "02-top",
+      "file": "02-top.png",
+      "sha256": "f2b062738faf7617695979b28d1bb0195521293aaaf42287b669eb6aa590d457",
+      "pixels": {
+        "red": 171994,
+        "blue": 0
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "03-underside",
+      "file": "03-underside.png",
+      "sha256": "9430914bf2f406a8c48be0899ea850388fa504d33837320d5fc6e94281887d48",
+      "pixels": {
+        "red": 297074,
+        "blue": 0
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "04-section",
+      "file": "04-section.png",
+      "sha256": "fdcad8444694508091e442f6e1469bc8dbc96478241a364676ab2d4662371a13",
+      "pixels": {
+        "red": 311059,
+        "blue": 0
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "05-balls",
+      "file": "05-balls.png",
+      "sha256": "bfa781f25889371d7c09c78065f39f3f2061bc0c0a2ef9ae640aad7bcb5f80bf",
+      "pixels": {
+        "red": 141706,
+        "blue": 172672
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "06-balls-top",
+      "file": "06-balls-top.png",
+      "sha256": "5797288ff069341ba4cc358aa4025faa5a7420d6fa6e776bca177f536303857d",
+      "pixels": {
+        "red": 40073,
+        "blue": 104290
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "08-course",
+      "file": "08-course.png",
+      "sha256": "42612d3e313c6173eaa1188fbf910ca82319df7ce43025245f3d84b3348ddb01",
+      "pixels": {
+        "red": 225029,
+        "blue": 0
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "09-exploded",
+      "file": "09-exploded.png",
+      "sha256": "e110008694462962d82cdd1eb9837083f9b013a41af4e35e01c2b0c989162e7c",
+      "pixels": {
+        "red": 127417,
+        "blue": 0
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "10-course-top",
+      "file": "10-course-top.png",
+      "sha256": "3862709cf8b237d362d73e50bca1edb1b1e770378f269571a4b403f0b00d06eb",
+      "pixels": {
+        "red": 145520,
+        "blue": 0
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "12-receiver",
+      "file": "12-receiver.png",
+      "sha256": "102787fea680b6d535b407404961e80a89ca833c17f5be9ba7ad715059a9f459",
+      "pixels": {
+        "red": 241030,
+        "blue": 0
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "13-receiver-exploded",
+      "file": "13-receiver-exploded.png",
+      "sha256": "33ddd73196bb2142cf9bcdad14784c7729cbc3a4d5821cf7e9631a91befe3635",
+      "pixels": {
+        "red": 227682,
+        "blue": 0
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "14-receiver-top",
+      "file": "14-receiver-top.png",
+      "sha256": "afe47ba8702e3afeaa73b5a2c5516af76b18a445a9964d008d198ca9309f6714",
+      "pixels": {
+        "red": 291600,
+        "blue": 0
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    },
+    {
+      "name": "11-mobile",
+      "file": "11-mobile.png",
+      "sha256": "7572cdf3655eca6fbde605582ab3389cac3740d7053d1be1296a14847dfb502b",
+      "pixels": {
+        "red": 54839,
+        "blue": 0
+      },
+      "status": "CAD\u30fbSTL\u691c\u8a3c: PASS"
+    }
+  ],
+  "errors": [],
+  "automated_passed": true,
+  "visual_review_performed": true,
+  "browser": "153.0.8010.0"
+}

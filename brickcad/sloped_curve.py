@@ -19,10 +19,12 @@ RADIUS = 48.0
 DROP = 19.2
 BALL = 24.26
 RAIL = Rail()
-# Issue #1, measured coupon 04/T30: seven measured receivers were adequate;
-# T30 isolates the same 13.30 mm tube used here, with a 3.20 mm wall.
+# PR14 ID03 C-tube: user reports perfect fit. Transfer preserves the 3.20 mm
+# wall and 16 mm pitch; the curved, rounded receiver still requires a print.
 RECEIVER_WALL = 3.20
-RECEIVER_TUBE_DIAMETER = 13.30
+RECEIVER_TUBE_DIAMETER = 13.50
+CUT_EDGE_RADIUS = 0.0  # F candidate: R0.70 on cut vertical tips triggers slicer cantilever warning.
+BOTTOM_EDGE_RADIUS = .5
 
 
 def curve_profile():
@@ -101,12 +103,12 @@ def receiver_audit(shape,p):
     shifted = intersection(shape,reference.translate((8,0,-refp.height)))
     overinsert = intersection(non_tube,reference.translate((0,0,-refp.height+.5)))
     return dict(reference='Synthetic DUPLO 4x4, 16 hollow studs, OD 9.40 mm',
-        calibration=dict(source_issue='https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6391525189',
-            source_coupon='04 T30',wall_mm=p.wall,tube_diameter_mm=2*p.tube_radius,
+        calibration=dict(source_issue='https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6396705976',
+            source_coupon='PR14 ID03 C-tube',wall_mm=p.wall,tube_diameter_mm=2*p.tube_radius,
             full_4x4_cavity_mm=[p.width-2*p.wall,p.depth-2*p.wall],
             equivalent_2x2_cavity_mm=31.8-2*p.wall,
             transfer_validated=False,
-            limitation='Curved footprint removes opposing side walls: T30 receiver result does not validate this curve or partial supports.'),
+            limitation='Curved footprint removes opposing side walls: ID03 receiver result does not validate this curve or partial supports.'),
         insertion=insertion,studs=studs,
         measured_9p32_stud_intersection_mm3=intersection(shape,measured),
         seating_roof_clearance_mm=RAIL.floor-RAIL.roof-refp.stud_height,
@@ -116,18 +118,71 @@ def receiver_audit(shape,p):
         no_blocking_collision=all(v['non_tube_intersection_mm3']<VOLUME_TOL for v in insertion))
 
 
-def build_curve():
-    p = curve_profile()
+def cut_receiver_edges(shape):
+    """Vertical corners created by clipping the receiver, excluding tube seams."""
+    edges = []
+    for edge in shape.Edges():
+        b = edge.BoundingBox()
+        c = edge.Center()
+        radius = math.hypot(c.x+32, c.y-32)
+        if (edge.geomType() == 'LINE' and b.zlen > 4.4
+                and b.zmax < RAIL.floor-RAIL.roof+1e-5
+                and b.xlen < 1e-5 and b.ylen < 1e-5
+                and min(abs(radius-(RADIUS-RAIL.width/2)), abs(radius-63.9)) < 1e-4):
+            edges.append(edge)
+    return edges
+
+
+def build_curve(*, softened=True, tube_diameter=RECEIVER_TUBE_DIAMETER):
+    p = replace(curve_profile(),tube_radius=tube_diameter/2)
     base = cq.Workplane('XY').box(p.width,p.depth,RAIL.floor,centered=(True,True,False))
     base = base.edges('|Z').fillet(.8).edges('>Z').fillet(.5)
-    base = receiver(p,base,RAIL.floor-RAIL.roof,RAIL.entry)
+    # F trial: round only the finished bottom after clipping. R0.70 fillets on
+    # 20 cut vertical edges caused Bambu Studio's floating-cantilever warning.
+    # Their touch safety is unvalidated. Keep the old B candidate reproducible.
+    base = receiver(p,base,RAIL.floor-RAIL.roof,0 if softened else RAIL.entry)
     loft = cq.Solid.makeLoft([section(i/24) for i in range(25)], ruled=False)
     # Trim at physical body faces, preserving the 0.1 mm cell-boundary inset.
     footprint = cq.Workplane('XY').box(p.width,p.depth,60,centered=(True,True,False)).val()
     shape = base.union(loft.intersect(footprint)).val().intersect(curved_footprint()).clean()
+    if softened:
+        # Assert the cut corners have not silently changed, but do NOT fillet them.
+        # A controlled E/F/G slicer test isolated this fillet as the warning source.
+        if len(cut_receiver_edges(shape)) != 20:
+            raise ValueError('Reassess clipped receiver corners after footprint changes')
+        bottom_edges = [e for e in shape.Edges()
+                        if abs(e.BoundingBox().zmin) < 1e-5
+                        and abs(e.BoundingBox().zmax) < 1e-5]
+        shape = shape.fillet(BOTTOM_EDGE_RADIUS, bottom_edges).clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError('Sloped curve must be one valid solid')
     return shape,p
+
+
+def finish_audit(shape):
+    """Compare rounding against the same receiver diameter before rounding.
+
+    The 9.40 mm synthetic studs provide a conservative contact envelope. This
+    proves material preservation in that envelope, not real clutch force.
+    """
+    old,p = build_curve(softened=False)
+    removed = old.cut(shape)
+    added = shape.cut(old)
+    above_entry = cq.Solid.makeBox(100,100,50,cq.Vector(-50,-50,BOTTOM_EDGE_RADIUS))
+    track = cq.Solid.makeBox(100,100,50,cq.Vector(-50,-50,RAIL.floor-RAIL.roof))
+    reference = build(nominal_brick('duplo',4,4)).translate((0,0,-19.2))
+    def contact_delta(delta):
+        clipped = delta.intersect(above_entry)
+        return intersection(clipped,reference) if clipped.Solids() else 0.0
+    return dict(cut_edge_radius_mm=CUT_EDGE_RADIUS,bottom_edge_radius_mm=BOTTOM_EDGE_RADIUS,
+        clipped_vertical_corners=len(cut_receiver_edges(old)),
+        removed_volume_mm3=removed.Volume(),added_volume_mm3=added.Volume(),
+        removed_contact_above_entry_mm3=contact_delta(removed),
+        added_contact_above_entry_mm3=contact_delta(added),
+        changed_track_mm3=intersection(removed,track)+intersection(added,track),
+        comparison_tube_diameter_mm=2*p.tube_radius,
+        physical_touch_validated=False,
+        limitation='Bottom R0.50 applied only; cut vertical edges remain sharp because R0.70 triggered slicer warning. Contact preserved above z=0.50 mm; physical touch and retention untested.')
 
 
 def ports():
@@ -174,6 +229,7 @@ def verify(shape,p):
     footprint = cq.Workplane('XY').box(63.8,63.8,60,centered=(True,True,False)).val()
     outside = shape.cut(footprint).Volume()
     audit = receiver_audit(shape,p)
+    finish = finish_audit(shape)
     corner_floor = [shape.isInside(cq.Vector(x,y,6.1)) for x,y in [(-16,16),(24,-24),(-24,24)]]
     checks = dict(valid_brep=shape.isValid(),one_solid=len(shape.Solids())==1,
         footprint=outside<VOLUME_TOL,
@@ -188,12 +244,17 @@ def verify(shape,p):
         unused_corner_floors_removed=not any(corner_floor),
         receiver_no_blocking_collision=audit['no_blocking_collision'],
         all_16_studs_checked=len(audit['studs'])==16,
-        receiver_trial_interference_only=audit['intentional_tube_radial_interference_mm']<.05,
+        cut_vertical_edges_not_filleted=finish['clipped_vertical_corners']==20
+            and finish['cut_edge_radius_mm']==0 and finish['removed_volume_mm3']>1,
+        contact_material_preserved=max(finish['removed_contact_above_entry_mm3'],finish['added_contact_above_entry_mm3'])<VOLUME_TOL,
+        track_geometry_preserved=finish['changed_track_mm3']<VOLUME_TOL,
+        receiver_trial_interference_only=0<audit['intentional_tube_radial_interference_mm']<=13.5/2+4.7-math.sqrt(2)*8+1e-6,
         receiver_half_pitch_detected=audit['half_pitch_negative_mm3']>VOLUME_TOL,
         receiver_overinsert_detected=audit['overinsert_non_tube_negative_mm3']>VOLUME_TOL)
     return dict(checks=checks,joints=joints,body_intersections_mm3=pairs,
                 ball_samples=samples,low_ball_negative_control_mm3=blocked,
-                support_fit_intersection_mm3=support_fit,outside_footprint_mm3=outside,receiver_audit=audit)
+                support_fit_intersection_mm3=support_fit,outside_footprint_mm3=outside,receiver_audit=audit,
+                receiver_finish=finish)
 
 
 def render(shape,p,report,out):
@@ -230,7 +291,7 @@ def render(shape,p,report,out):
     (out/'viewer.html').write_text(html)
 
 
-def export(out=Path('build/duplo-sloped-curve-trial-01')):
+def export(out=Path('build/duplo-sloped-curve-trial-02')):
     out = Path(out); out.mkdir(parents=True,exist_ok=True)
     shape,p = build_curve()
     report = verify(shape,p)
@@ -242,7 +303,7 @@ def export(out=Path('build/duplo-sloped-curve-trial-01')):
     report['checks'].update(mesh=m['passed'],mesh_volume=abs(m['signed_volume_mm3']-shape.Volume())/shape.Volume()<.001,
         step_roundtrip=restored.isValid() and len(restored.Solids())==1
         and abs(restored.Volume()-shape.Volume())/shape.Volume()<1e-7)
-    report.update(kind='duplo-sloped-curve-trial-01',passed=all(report['checks'].values()),
+    report.update(kind='duplo-sloped-curve-trial-02',passed=all(report['checks'].values()),
         geometry=dict(bounds_mm=[m['bounds_mm'][1][i]-m['bounds_mm'][0][i] for i in range(3)],
                       brep_conservative_bounds_mm=exact_bounds(shape),volume_mm3=shape.Volume(),parameters=asdict(p)),
         drop_mm=DROP,turn_radius_mm=RADIUS,rail=asdict(RAIL),ports=[asdict(v) for v in ports()],
@@ -251,12 +312,14 @@ def export(out=Path('build/duplo-sloped-curve-trial-01')):
         stl_tessellation=dict(linear_tolerance_mm=.01,angular_tolerance_radians=.1),
         limitations=['49 static sphere samples, not continuous clearance or rolling dynamics.',
             '4x4 envelope and port grid inferred from user; middle curvature is our design.',
-            'Corner floors and unsupported tube portions removed; receiver wall 3.20 mm, tube OD 13.30 mm follow measured T30 candidate.',
-            'T30 full-height 2x2 receiver was adequate; this curved, partly open receiver and partial supports remain untested.',
+            'Corner floors and unsupported tube portions removed; receiver wall 3.20 mm, tube OD 13.50 mm follows PR14 ID03 fit feedback.',
+            'Trial-02 F only rounds bottom edges R0.50; clipped vertical corners R0.70 removed after user slicer A-G tests showed cantilever warning; tactile safety and retention still require a print.',
+            'PR14 ID03 full-height 2x2 receiver was reported perfect; this curved, partly open receiver and partial supports remain untested.',
             'No upper studs: Gap infill / Inner wall stud calibration is not applicable to this part.',
-            'Synthetic 9.40 mm studs retain known 0.036 mm radial tube trial interference; no other blocking collision.',
+            'Synthetic 9.40 mm studs retain known 0.136 mm radial tube trial interference; no other blocking collision.',
             'Raised approach on nominal support retains known 0.036 mm radial trial interference.',
             'Spline BRep bounding box is conservative; footprint also checked by solid subtraction.',
+            'User F diagnostic: warning absent with support disabled in Bambu Studio 2.8.02.61 / A1 mini / 0.20mm; regenerate and reslice final STL to reconfirm.',
             'Slicer inspection and a real print are required; internal ceiling is a bridge.'],
         source_files={n:hashlib.sha256((Path(__file__).parent/n).read_bytes()).hexdigest()
                       for n in ('sloped_curve.py','rail.py','model.py','ports.py','render.py','viewer.html')},
@@ -270,6 +333,8 @@ def export(out=Path('build/duplo-sloped-curve-trial-01')):
 
 if __name__ == '__main__':
     import argparse
-    ap = argparse.ArgumentParser(); ap.add_argument('--out',type=Path,default=Path('build/duplo-sloped-curve-trial-01'))
+    ap = argparse.ArgumentParser(); ap.add_argument('--out',type=Path,default=Path('build/duplo-sloped-curve-trial-02'))
     export(ap.parse_args().out)
+
+
 

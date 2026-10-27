@@ -1,0 +1,542 @@
+{
+  "checks": {
+    "valid_brep": true,
+    "one_solid": true,
+    "footprint": true,
+    "ports_match": true,
+    "wrong_height_rejected": true,
+    "wrong_grid_rejected": true,
+    "bodies_clear": true,
+    "existing_support_fit_envelope": true,
+    "sampled_ball_clear": true,
+    "continuous_floor_samples": true,
+    "low_ball_detected": true,
+    "receiver_holes": true,
+    "unused_corner_floors_removed": true,
+    "receiver_no_blocking_collision": true,
+    "all_16_studs_checked": true,
+    "cut_vertical_edges_not_filleted": true,
+    "contact_material_preserved": true,
+    "track_geometry_preserved": true,
+    "receiver_trial_interference_only": true,
+    "receiver_half_pitch_detected": true,
+    "receiver_overinsert_detected": true,
+    "mesh": true,
+    "mesh_volume": true,
+    "step_roundtrip": true
+  },
+  "joints": [
+    {
+      "compatible": true,
+      "datum_distance_mm": 0.0,
+      "normals_opposed": true,
+      "same_section": true,
+      "mouth_gap_mm": 0.2
+    },
+    {
+      "compatible": true,
+      "datum_distance_mm": 1.7763568394002505e-15,
+      "normals_opposed": true,
+      "same_section": true,
+      "mouth_gap_mm": 0.2
+    }
+  ],
+  "body_intersections_mm3": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "ball_samples": [
+    {
+      "t": 0.0,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.020833333333333332,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.041666666666666664,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.0625,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.08333333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.10416666666666667,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.125,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.14583333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.16666666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.1875,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.20833333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.22916666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.25,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.2708333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.2916666666666667,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.3125,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.3333333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.3541666666666667,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.375,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.3958333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.4166666666666667,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.4375,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.4583333333333333,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.4791666666666667,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.5,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.5208333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.5416666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.5625,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.5833333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.6041666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.625,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.6458333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.6666666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.6875,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.7083333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.7291666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.75,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.7708333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.7916666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.8125,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.8333333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.8541666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.875,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.8958333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.9166666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.9375,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.9583333333333334,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 0.9791666666666666,
+      "intersection_mm3": 0.0
+    },
+    {
+      "t": 1.0,
+      "intersection_mm3": 0.0
+    }
+  ],
+  "low_ball_negative_control_mm3": 243.77220066215105,
+  "support_fit_intersection_mm3": 1.0934977406688873,
+  "outside_footprint_mm3": 0.0,
+  "receiver_audit": {
+    "reference": "Synthetic DUPLO 4x4, 16 hollow studs, OD 9.40 mm",
+    "calibration": {
+      "source_issue": "https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6396705976",
+      "source_coupon": "PR14 ID03 C-tube",
+      "wall_mm": 3.2,
+      "tube_diameter_mm": 13.5,
+      "full_4x4_cavity_mm": [
+        57.4,
+        57.4
+      ],
+      "equivalent_2x2_cavity_mm": 25.4,
+      "transfer_validated": false,
+      "limitation": "Curved footprint removes opposing side walls: ID03 receiver result does not validate this curve or partial supports."
+    },
+    "insertion": [
+      {
+        "lift_mm": 5.7,
+        "total_intersection_mm3": 0.0,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "lift_mm": 4.5,
+        "total_intersection_mm3": 0.0,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "lift_mm": 3.0,
+        "total_intersection_mm3": 4.766872712546151,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "lift_mm": 1.5,
+        "total_intersection_mm3": 10.677114746996493,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "lift_mm": 0.0,
+        "total_intersection_mm3": 16.587356781446832,
+        "non_tube_intersection_mm3": 0.0
+      }
+    ],
+    "studs": [
+      {
+        "x_mm": -24.0,
+        "y_mm": -24.0,
+        "intersection_mm3": 0.6634942443626628,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": -24.0,
+        "y_mm": -8.0,
+        "intersection_mm3": 1.3269884471322972,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": -24.0,
+        "y_mm": 8.0,
+        "intersection_mm3": 0.0,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": -24.0,
+        "y_mm": 24.0,
+        "intersection_mm3": 0.0,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": -8.0,
+        "y_mm": -24.0,
+        "intersection_mm3": 1.3269884556663196,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": -8.0,
+        "y_mm": -8.0,
+        "intersection_mm3": 2.6539768351384847,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": -8.0,
+        "y_mm": 8.0,
+        "intersection_mm3": 1.990482622372665,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": -8.0,
+        "y_mm": 24.0,
+        "intersection_mm3": 0.0,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": 8.0,
+        "y_mm": -24.0,
+        "intersection_mm3": 0.0,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": 8.0,
+        "y_mm": -8.0,
+        "intersection_mm3": 2.6539768459843103,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": 8.0,
+        "y_mm": 8.0,
+        "intersection_mm3": 2.653976835138473,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": 8.0,
+        "y_mm": 24.0,
+        "intersection_mm3": 1.3269884465440314,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": 24.0,
+        "y_mm": -24.0,
+        "intersection_mm3": 0.0,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": 24.0,
+        "y_mm": -8.0,
+        "intersection_mm3": 0.0,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": 24.0,
+        "y_mm": 8.0,
+        "intersection_mm3": 1.3269884552435165,
+        "non_tube_intersection_mm3": 0.0
+      },
+      {
+        "x_mm": 24.0,
+        "y_mm": 24.0,
+        "intersection_mm3": 0.663494244362661,
+        "non_tube_intersection_mm3": 0.0
+      }
+    ],
+    "measured_9p32_stud_intersection_mm3": 9.75769388436109,
+    "seating_roof_clearance_mm": 0.25,
+    "intentional_tube_radial_interference_mm": 0.13629150101523813,
+    "half_pitch_negative_mm3": 448.9634642802746,
+    "overinsert_non_tube_negative_mm3": 206.5245247911027,
+    "rigid_fit_clear": false,
+    "no_blocking_collision": true
+  },
+  "receiver_finish": {
+    "cut_edge_radius_mm": 0.0,
+    "bottom_edge_radius_mm": 0.5,
+    "clipped_vertical_corners": 20,
+    "removed_volume_mm3": 8.93449772513113,
+    "added_volume_mm3": 0.28293790807004804,
+    "removed_contact_above_entry_mm3": 0.0,
+    "added_contact_above_entry_mm3": 0.0,
+    "changed_track_mm3": 0.0,
+    "comparison_tube_diameter_mm": 13.5,
+    "physical_touch_validated": false,
+    "limitation": "Bottom R0.50 applied only; cut vertical edges remain sharp because R0.70 triggered slicer warning. Contact preserved above z=0.50 mm; physical touch and retention untested."
+  },
+  "kind": "duplo-sloped-curve-trial-02",
+  "passed": true,
+  "geometry": {
+    "bounds_mm": [
+      63.794870376586914,
+      63.794870376586914,
+      38.32994079589844
+    ],
+    "brep_conservative_bounds_mm": [
+      63.79921414719415,
+      63.83712694889283,
+      38.32994191322155
+    ],
+    "volume_mm3": 41244.72792633803,
+    "parameters": {
+      "family": "duplo",
+      "nx": 4,
+      "ny": 4,
+      "pitch": 16.0,
+      "body_gap": 0.2,
+      "height": 38.33,
+      "stud_radius": 4.6,
+      "stud_height": 4.5,
+      "stud_inner_radius": 3.25,
+      "wall": 3.2,
+      "roof": 1.6,
+      "tube_radius": 6.75,
+      "tube_inner_radius": 4.7,
+      "clearance": 0.0
+    }
+  },
+  "drop_mm": 19.2,
+  "turn_radius_mm": 48.0,
+  "rail": {
+    "length": 63.8,
+    "width": 31.65,
+    "height": 19.13,
+    "opening": 25.74,
+    "floor": 6.35,
+    "outer_radius": 0.8,
+    "lip_radius": 0.5,
+    "end_chamfer": 0.15,
+    "entry": 0.3,
+    "roof": 1.6
+  },
+  "ports": [
+    {
+      "name": "high-west",
+      "floor_xyz_mm": [
+        -32.0,
+        -16.0,
+        25.549999999999997
+      ],
+      "outward": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "section_radius_mm": 12.870316901408449,
+      "face_inset_mm": 0.1
+    },
+    {
+      "name": "low-north",
+      "floor_xyz_mm": [
+        16.0,
+        32.0,
+        6.35
+      ],
+      "outward": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "section_radius_mm": 12.870316901408449,
+      "face_inset_mm": 0.1
+    }
+  ],
+  "ball_diameter_mm": 24.26,
+  "max_slope_degrees": 20.905450060323783,
+  "physical_fit_validated": false,
+  "physical_rolling_validated": false,
+  "mesh": {
+    "triangles": 200946,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "degenerate_triangles": 0,
+    "signed_volume_mm3": 41228.44512692084,
+    "bounds_mm": [
+      [
+        -31.899999618530273,
+        -31.89487075805664,
+        -1.1102230246251565e-16
+      ],
+      [
+        31.89487075805664,
+        31.899999618530273,
+        38.32994079589844
+      ]
+    ],
+    "passed": true
+  },
+  "stl_tessellation": {
+    "linear_tolerance_mm": 0.01,
+    "angular_tolerance_radians": 0.1
+  },
+  "limitations": [
+    "49 static sphere samples, not continuous clearance or rolling dynamics.",
+    "4x4 envelope and port grid inferred from user; middle curvature is our design.",
+    "Corner floors and unsupported tube portions removed; receiver wall 3.20 mm, tube OD 13.50 mm follows PR14 ID03 fit feedback.",
+    "Trial-02 F only rounds bottom edges R0.50; clipped vertical corners R0.70 removed after user slicer A-G tests showed cantilever warning; tactile safety and retention still require a print.",
+    "PR14 ID03 full-height 2x2 receiver was reported perfect; this curved, partly open receiver and partial supports remain untested.",
+    "No upper studs: Gap infill / Inner wall stud calibration is not applicable to this part.",
+    "Synthetic 9.40 mm studs retain known 0.136 mm radial tube trial interference; no other blocking collision.",
+    "Raised approach on nominal support retains known 0.036 mm radial trial interference.",
+    "Spline BRep bounding box is conservative; footprint also checked by solid subtraction.",
+    "User F diagnostic: warning absent with support disabled in Bambu Studio 2.8.02.61 / A1 mini / 0.20mm; regenerate and reslice final STL to reconfirm.",
+    "Slicer inspection and a real print are required; internal ceiling is a bridge."
+  ],
+  "source_files": {
+    "sloped_curve.py": "d1c41017cb4f9ba175970d98d2ffb1da216bc102717f817b74df4039f5d17335",
+    "rail.py": "c0665e59d3b4d0378ae3eb21bb05a8acb4b5b79f6c0f6eee38ba4203e7340abb",
+    "model.py": "b373c510b8aa347bead32bbc4f2af0e20ee37ad0b204f0174b2d878e08ec23f7",
+    "ports.py": "e62e912b0a0a11f8320a24c99662ca6c40f5c99fbbe46e56b876c9e286c825dd",
+    "render.py": "75f6037b0716dbd598b3dfb9ec6ad648cbe4a3ffcec5345bea6e50cc95ebeb51",
+    "viewer.html": "817d275c3537c2bc2b41ed075afa099bdedb4d0c84857390e39977faf4bd3ae7"
+  },
+  "files": {
+    "brick.stl": "bdb8c3c9f35a20f8502b640cc6cb08f0ca3bb32f2a0e77b360aa6ad98b7a24a4",
+    "brick.step": "a5b054f16fe6c8be4158210dd41aa3df67dac17c09d08e00ed6cfb859571d28c",
+    "assembly.step": "c3ad83e7b676236cbd1df22aa8e8032a36bd3c67a782ea2b696ad88d8ac6d390"
+  }
+}
