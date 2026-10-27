@@ -1,0 +1,119 @@
+# E27 CAD・STL・実ブラウザ確認（2026-10-27）
+
+対象は今回の4条件のみ。既存モデルの再生成・過去のテスト一括実行は行っていない。
+
+## 実施と結果
+
+- `python scripts/ci-tests.py --base eee04e7 --plan`：新規実験の test.py だけが選択された（eee04e7 はmain相当のローカルソース基準）。
+- 同コマンドの --plan なし：2テスト合格。4条件の共通上面、固定内法、穴、チューブ段階差、刻印の接触帯外配置を確認。
+- 4個を生成し、全BRepの妥当性・単一ソリッド、STEP再読込、STL閉鎖性・向き・体積一致を確認。まとめSTLは4ソリッド、互いに非接触。
+- Chromium 153.0.8010.0で4条件のviewerをそれぞれ撮影。各10画面の自動チェック合格後、実際のreview-sheet画像を開いて確認した。
+- 上面の4中空スタッド、下面開口と中央チューブ、断面の天井、組立・分解・90度交差の配置を確認。浮いた独立部品や塞がれた穴は見られない。
+- E27-02を反対側へ回した追加画像で刻印の凹みと位置を確認。既存viewerではこの向きの文字が左右反転して見えるため、刻印の文字配置はCADソースの座標とも照合した。
+- viewerレポートのgeometryキー不足を修正。最終viewerは生成済みSTEPの再読込形状と修正したレポートから作成し、その後に上記40画面を確認した。STL形状への変更はない。
+
+## 干渉と残る確認
+
+剛体CADの印刷品同士・整列時の干渉体積は次の通り。保持力の合否条件ではない。
+
+| 試料 | 干渉体積 mm³ |
+|---|---:|
+| E27-01 | 0.734524 |
+| E27-02 | 1.238832 |
+| E27-03 | 1.829911 |
+| E27-04 | 2.499101 |
+
+スライスのInner wall（4条件×4スタッド）、実際のプリンター・配置・印刷設定、3方向の実物嵌合、10回後の状態は未確認。physical_fit_validated=false、slicing_validated=false。各条件1個なので位置と個体差は分離できない。
+
+## 入力と確認画像のSHA-256
+
+画像・viewer・レポート本体はbuild/の中間生成物。この記録は実際に確認した入力と画像の指紋。
+
+### E27-01
+
+```text
+viewer.html: 31771778a57fd326564f57a4e76c76da2b99cf2c7f378bd6c641d47648e0c8b6
+report.json: dc4b5025ff05782838f4b905fe73158d46a8c0a7c41d9373b8a49417656a43de
+brick.stl: aad57257f8ee58cf5cd139ed8ba3165d64465c392b48fcdb69bf17fd8be34f3a
+01-perspective.png: 96f4cdd3f548fb0174ff9a5d71e9f19fb66876f53241c3c2a9c1bae3fa7fe59b
+02-top.png: 78a94b823f16d600c93215922220416e36570a5d5da3be36fb3fc56a5869e6c3
+03-underside.png: cd4512a32237c44823638bae41799150b8f76ab01d80132c698d95ce828fd96e
+04-section.png: 1c7666aa8acfe909c05776455561d89345c8cda167a2d8ce63811f8a58d60526
+05-assembled.png: c590040cf14c2ad310f550184b82fb0fd9c92643e2d7ad2136c7d5f88d04539e
+06-exploded.png: 8ef5afdc3299b5bb4acf8e0e0d45229cfc43725e531908e9496142a8bb4d9344
+07-cross-90.png: 9fe9bbddbb74ce5fd65a825fd93caa193f24d680d6145145f8059a2d65c8d5df
+08-collision-control.png: f7f4febf6d6b8217ddf39b3521f54bfa0dc5501b41f139a4e2181dfa350ddcc8
+09-orbit-zoom.png: 7e576add00e9ad1ff98e662ab195b4cb7048f5dd9187c0c1b236a160adfc4b5b
+10-mobile.png: 6e67c39b169ae78d3e3db5eff457c2eb1489a192b3477ebd59198abd24b1054a
+```
+
+### E27-02
+
+```text
+viewer.html: ece9434e5b9186b637a40a031afd94857063c3895403c8b4cebaf25d47f5d63c
+report.json: f824f8820b48ffba51ff3ecf8640f16386b45a28442202e62c00142e7c85cc7c
+brick.stl: 58e325bf1b6a45cdd91b20c21ace0a94bb2032d2aef3b45aec63d6c1a93f28e2
+01-perspective.png: 96f4cdd3f548fb0174ff9a5d71e9f19fb66876f53241c3c2a9c1bae3fa7fe59b
+02-top.png: 78a94b823f16d600c93215922220416e36570a5d5da3be36fb3fc56a5869e6c3
+03-underside.png: 72eeab0eca88f420215eec68e29219d4a6e38b27746e7c44bb74f3bc3878c6ad
+04-section.png: d14d8a2d6e3a6274a689a3cd2f51ed86a5c1168308a554a596f1ed27615780e3
+05-assembled.png: 5b52a779bd89ae51569aefe3cee66551448264aa61c4f3d132ae22f34829a70b
+06-exploded.png: 8ef5afdc3299b5bb4acf8e0e0d45229cfc43725e531908e9496142a8bb4d9344
+07-cross-90.png: 70153e3292e6367eb76001e8e913f3a8edcdda4bd21804ff7784409446e3e34b
+08-collision-control.png: 36f4e3829a1894125649d5492c3321de3b3c412028e30fcef3c15c94ae47eb6e
+09-orbit-zoom.png: 084ab40c9e6b5fbeb3fa0415277b3f8053f5fa3fc69080bbcbed166366ac82c4
+10-mobile.png: 2fe3ac3d6034d39f3d0a0618d1c5a9f48531d581ced7716ac81444df8f872e7f
+```
+
+### E27-03
+
+```text
+viewer.html: d24ef4e07b2317c37e97632e2091af7f7f3b462ba9db05b7ca8eb77a88a8d57c
+report.json: a0ab6831acc49e47843ebc1d37ad4fd3eca2375b05babec86b52330cde76a154
+brick.stl: 499a83404354f235237194514786d5ebf7eb15136b85d07fda3e7978b70bac0a
+01-perspective.png: 96f4cdd3f548fb0174ff9a5d71e9f19fb66876f53241c3c2a9c1bae3fa7fe59b
+02-top.png: 78a94b823f16d600c93215922220416e36570a5d5da3be36fb3fc56a5869e6c3
+03-underside.png: ab2b65b1d293923f88fd42521a4b047ac57529258891acb6385395f7028afacc
+04-section.png: 516583543d09421d402dbbb97d45736d87ec14cac9bfa82e2918f08327987a4a
+05-assembled.png: 498acef87a358caeb6b8d992838dd17de1e07063c95ce0e427050a921debbe08
+06-exploded.png: 8ef5afdc3299b5bb4acf8e0e0d45229cfc43725e531908e9496142a8bb4d9344
+07-cross-90.png: a00e00878c1e7d5b78eb998ddaee7fc66202bfe2b41bf49b0217cb55acd1e8d9
+08-collision-control.png: c6bd307b94a1fda4a09a5fad460b4172149f175e7898133fcce066388342b7c1
+09-orbit-zoom.png: 356936d7ea754275648e2b13f0d269e5d704d6285c39fcf8a35afad05d0bf5ab
+10-mobile.png: c7f285acb2b741cd6e3d2db270b7124b708e446a64ae63c2511ceebbd3fcd8a6
+```
+
+### E27-04
+
+```text
+viewer.html: 65a3a387e59d0e18ffd32950ab4e3159beafa7a0106c0c60dddd56edfd944102
+report.json: b383880dc00a079a691f2364cc6e4cfdc4472461c788b3f89c2eb5f3e1dd5ef0
+brick.stl: e19d270e8c67ca482c901d2747bd6a8d287a488d4cbb866661daae71ac7ebfe4
+01-perspective.png: 96f4cdd3f548fb0174ff9a5d71e9f19fb66876f53241c3c2a9c1bae3fa7fe59b
+02-top.png: 78a94b823f16d600c93215922220416e36570a5d5da3be36fb3fc56a5869e6c3
+03-underside.png: 430265d5e5dd6e6a846fbd7220e4b4409ff656f39e22c0dc55dd632e796f8d4e
+04-section.png: 958e18b1e6568f31c67a9f544b0d6098f365bcb7cb44aa4cd7001c5ebf7b029c
+05-assembled.png: 223770b187f0a942960aa8183e967687af73d429ab818f1dc3aff3771ce32dff
+06-exploded.png: 8ef5afdc3299b5bb4acf8e0e0d45229cfc43725e531908e9496142a8bb4d9344
+07-cross-90.png: 8d8ef4364fff77304a5b99c31baeaf20461945b6a1d95a6ee9fdce4e38fe77a0
+08-collision-control.png: 2604e8a9b078ba66f013fb5b1df74980977668c3c1b5cd4768aa80ec439efc57
+09-orbit-zoom.png: 777380739671f96d452dffbfab340c1083e941f5bbc704bfbfcf1eb063667b15
+10-mobile.png: 93d3eb2aa5af49617a6f62daf542fd72a34827a45ca72455c27280143e5e52df
+```
+
+### 追加の刻印確認
+
+```text
+001-orbit.png: ff7dbb151053dbeacd97300f8c4315cb57f6f08fee63058f801a210676ff2d26
+```
+
+### 保存STLと設計コード
+
+```text
+experiments/tube_fit_e27/design.py: 128c645bc42c53346bd88cf4d76b2f20532a3ecf2072eec6ab85c58c7f6ced3a
+experiments/tube_fit_e27/E27-plate.stl: fb23ceb061cbf2ae1a08e839dc5a9e9320a87ec332f1456086a30e6b4cec95e2
+experiments/tube_fit_e27/specimens/E27-01.stl: aad57257f8ee58cf5cd139ed8ba3165d64465c392b48fcdb69bf17fd8be34f3a
+experiments/tube_fit_e27/specimens/E27-02.stl: 58e325bf1b6a45cdd91b20c21ace0a94bb2032d2aef3b45aec63d6c1a93f28e2
+experiments/tube_fit_e27/specimens/E27-03.stl: 499a83404354f235237194514786d5ebf7eb15136b85d07fda3e7978b70bac0a
+experiments/tube_fit_e27/specimens/E27-04.stl: e19d270e8c67ca482c901d2747bd6a8d287a488d4cbb866661daae71ac7ebfe4
+```

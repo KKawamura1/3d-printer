@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-27",
+  "source": "User report supplied with PR request",
+  "specimen_identity_confirmed": false,
+  "inferred_identity": {
+    "left": "full_height_fit, tube CAD OD 13.10 mm",
+    "middle": "receiver_fit/03, tube CAD OD 13.50 mm",
+    "right": "Successful top; exact historical ID unknown"
+  },
+  "observations": [
+    {
+      "male": "right",
+      "female": "left",
+      "result": "緩すぎる。一応保持するが突くと取れる"
+    },
+    {
+      "male": "right",
+      "female": "middle",
+      "result": "ややきつめ。許容できるがもう少し緩い方がよい"
+    },
+    {
+      "male": "right",
+      "female": "genuine",
+      "result": "ぴったり"
+    },
+    {
+      "male": "genuine",
+      "female": "middle",
+      "result": "ぴったり（以前の結果）"
+    }
+  ],
+  "limitations": [
+    "Historical IDs repeat; identities are inferred from features, not confirmed.",
+    "Different print jobs confound diameter with process and placement.",
+    "Actual printer/slicer settings and measured diameters are not supplied for this observation."
+  ]
+}

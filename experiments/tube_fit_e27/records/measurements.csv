@@ -1,0 +1,5 @@
+id,condition,tube_cad_od_mm,inner_x_mm,inner_y_mm,tube_actual_od_mm,stud_actual_od_x_mm,stud_actual_od_y_mm,stud_inner_wall_4of4,genuine_male_id,genuine_into_printed,genuine_bend_x,genuine_bend_y,printed_into_genuine,common_printed_male_id,printed_into_printed,printed_bend_x,printed_bend_y,after_10_cycles,notes
+E27-01,A,13.35,,,,,,,,,,,,,,,,,
+E27-02,B,13.4,,,,,,,,,,,,,,,,,
+E27-03,C,13.45,,,,,,,,,,,,,,,,,
+E27-04,D,13.5,,,,,,,,,,,,,,,,,
