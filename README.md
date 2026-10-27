@@ -2,6 +2,8 @@
 
 変則デュプロを作るための、パラメトリックCADと幾何検証の作業環境です。**現在の主対象とCLI既定値はDUPLO 2×4**です。短い試し刷り用2×2もあります。旧試作2×2は実物で接続・遊べたものの、突起がきつい・裏面が緩い・角が痛いという評価。新しい丸角版・レールは実物未検証です。
 
+- [XY補正2×2・PR14 ID3の下面採用](docs/duplo-xy-fit-trial-01.md) — [STL・STEP一式ZIP](prints/duplo_xy_fit_trial_01.zip)。チューブ外径13.50 mm、更新した形状の実物嵌合は未検証。
+
 - [NEW：下面保持力の3条件比較](docs/duplo-receiver-trial-01.md) — [3個まとめたSTL](examples/duplo-receiver-trial-01/plate.stl) / [印刷・測定一式ZIP](prints/duplo_receiver_trial_01.zip)。上面OD9.40/ID6.40を固定し、Y壁とチューブを独立比較。
 
 - [NEW：上面Inner wall校正](docs/duplo-stud-inner-wall.md) — **[14個まとめて印刷するZIP](prints/duplo_stud_combined_14.zip)**、[穴径4条件ZIP](prints/duplo_stud_holes.zip)、[外径3条件×2個の仮候補ZIP](prints/duplo_stud_diameters_ID6p40_provisional.zip)。まず印刷せず線種を確認。
@@ -176,3 +178,4 @@ Pythonのimport依存をたどり、変更したモジュールを使うテス�
 全テストを明示的に回したい時は Actions → `CAD tests` → Run workflow。ローカルでは `python scripts/ci-tests.py`、PR相当の選択は `python scripts/ci-tests.py --base <base SHA>`、対象確認だけなら `--plan` を付けます。
 
 生成物やローカルブラウザが使えない時の撮影は Actions → `CAD preview (manual)` → Run workflow で対象モデルを1つ選びます。撮影が必要なら `screenshots` をオンにします。選んだモデルの生成・検証を1回行い、スクリーンショットが不要ならNode.js・Chromiumをインストールしません。`brick-cad-and-verification` artifact（7日保存）から取得してください。撮影成功と画像の目視確認は別です。旧レゴと校正プレートも、この手動実行で必要時のみ生成できます。
+

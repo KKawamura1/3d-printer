@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-25",
+  "source_pr": 14,
+  "source_commit": "962ecac97660a4a12a2cb0289b9cfd3f8503cea8",
+  "source_coupon": "03 C-tube",
+  "user_report": "PR14を印刷した結果、ID3がぴったりでした。",
+  "cad_mm": {
+    "cavity_xy": [
+      25.4,
+      25.4
+    ],
+    "tube_outer": 13.5,
+    "tube_inner": 9.4,
+    "stud_outer": 9.4,
+    "stud_inner": 6.4
+  },
+  "actual_dimensions": null,
+  "actual_print_settings": null,
+  "other_coupon_results": null,
+  "transfer_to_prs": [
+    12,
+    13
+  ],
+  "transferred_geometry_physical_fit_validated": false
+}
