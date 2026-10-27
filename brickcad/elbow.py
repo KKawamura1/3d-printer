@@ -162,7 +162,7 @@ def export(out=Path('build/duplo-elbow-trial-01')):
                      'Internal roof bridge and overhangs need slicer/physical inspection.',
                      '0.05 mm lift is numerical, not a measured trajectory; CAD PASS is not physical PASS.'],
         source_files={n:hashlib.sha256((Path(__file__).parent/n).read_bytes()).hexdigest()
-                      for n in ('elbow.py','rail.py','tunnel.py','ports.py','model.py','render.py','viewer.html')},
+                      for n in ('elbow.py','rail.py','tunnel.py','ports.py','model.py','standards.py','connections.py','render.py','viewer.html')},
         files={n:hashlib.sha256((out/n).read_bytes()).hexdigest() for n in ('brick.stl','brick.step','assembly.step')})
     (out/'report.json').write_text(json.dumps(report, indent=2)+'\n')
     render(shape, p, report, out)
@@ -208,3 +208,4 @@ if __name__ == '__main__':
     import argparse
     ap = argparse.ArgumentParser(); ap.add_argument('--out',type=Path,default=Path('build/duplo-elbow-trial-01'))
     export(ap.parse_args().out)
+

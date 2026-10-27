@@ -78,7 +78,7 @@ def export(out=Path('build/pitagora-m1')):
                   part_parameters=dict(rail=asdict(Rail()),tunnel=asdict(Tunnel()),
                                        fit_trial=asdict(fit_profile())),
                   source_files={name:hashlib.sha256((Path(__file__).parent/name).read_bytes()).hexdigest()
-                                for name in ('pitagora.py','ports.py','rail.py','tunnel.py','model.py','render.py','viewer.html')},
+                                for name in ('pitagora.py','ports.py','rail.py','tunnel.py','model.py','standards.py','connections.py','render.py','viewer.html')},
                   geometry=dict(bounds_mm=exact_bounds(compound),parameters=asdict(p)),
                   modules=[{k:([asdict(x) for x in v] if k=='ports' else v)
                             for k,v in m.items() if k!='shape'} for m in modules],
@@ -129,3 +129,4 @@ if __name__=='__main__':
     import argparse
     ap=argparse.ArgumentParser();ap.add_argument('--out',type=Path,default=Path('build/pitagora-m1'))
     export(ap.parse_args().out)
+

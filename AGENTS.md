@@ -25,3 +25,11 @@
 
 
 - CI policy: automatic verification belongs only to PRs and runs affected test files once via `scripts/ci-tests.py`. Do not append model exports, calibration sweeps or browser captures to automatic CI. Use the manual `CAD preview (manual)` workflow with one selected target for remote generation/screenshots; add new targets there when needed. Model/viewer changes still require local visual review as above. CI-only edits do not require rebuilding CAD or browser screenshots.
+
+
+## Shared part design
+
+- For new parts, read docs/shared-part-design.md and choose an explicit version from brickcad/standards.py with brick_from_fit(). Add a new profile ID rather than rewriting an existing profile's dimensions. Keep nominal references synthetic.
+- Use the shared make_studs()/receiver() primitives. Keep body_offset_xy separate from receiver_inset_xy; do not tune new receivers through the legacy wall or coupled clearance fields.
+- Preserve the existing calibration scripts/IDs as historical trials. Give new experiments a run-qualified specimen label such as E07-03 in the CAD, filenames and measurement records.
+- Save resolved dimensions and source fingerprints with design_manifest(); record actual printer/slicer/placement settings and all three mating directions separately.

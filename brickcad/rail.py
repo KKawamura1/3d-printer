@@ -6,7 +6,9 @@ import math
 import struct
 from pathlib import Path
 import cadquery as cq
-from .model import from_profile, nominal_brick, receiver
+from .model import brick_from_fit, nominal_brick, receiver, build
+from .standards import BALL_TRACK, ROUNDED_EDGES
+from .provenance import design_manifest
 from .verify import exact_bounds, intersection, mesh_check, place, VOLUME_TOL
 from .render import mesh, outlines, viewer
 
@@ -14,10 +16,10 @@ from .render import mesh, outlines, viewer
 @dataclass(frozen=True)
 class Rail:
     length: float = 63.8
-    width: float = 31.65
-    height: float = 19.13
-    opening: float = 25.74
-    floor: float = 6.35
+    width: float = BALL_TRACK.width
+    height: float = BALL_TRACK.height
+    opening: float = BALL_TRACK.opening
+    floor: float = BALL_TRACK.floor
     outer_radius: float = 0.8
     lip_radius: float = 0.5
     end_chamfer: float = 0.15
@@ -43,23 +45,19 @@ class Rail:
 
 
 def fit_profile(nx=2):
-    return from_profile(dict(family='duplo', nx=nx, ny=2, stud_radius=4.6,
-                             wall=3.16, tube_radius=6.65))
+    # Compatibility entry point; new parts import the version from model directly.
+    return brick_from_fit('duplo-rail-trial-v1', nx=nx, ny=2)
 
 
 def rounded_brick(p):
-    outer = cq.Workplane('XY').box(p.width,p.depth,p.height,centered=(True,True,False))
-    # Leave the seating plane flat; soften vertical corners and the top perimeter.
-    outer = outer.edges('|Z').fillet(.8).edges('>Z').fillet(.8)
-    result = receiver(p, outer, p.height-p.roof, .3)
-    studs = cq.Workplane('XY',origin=(0,0,p.height)).pushPoints(p.studs()).circle(p.stud_radius).circle(p.stud_inner_radius).extrude(p.stud_height)
-    studs = studs.edges('>Z').fillet(.5)
-    return result.union(studs).val().clean()
+    return build(p, corner_radius=ROUNDED_EDGES.corner_radius,
+                 stud_lip_radius=ROUNDED_EDGES.stud_lip_radius,
+                 entry=ROUNDED_EDGES.receiver_entry)
 
 
 def build_rail(r=Rail()):
-    p = replace(fit_profile(4),
-                wall=3.16-(31.8-r.width)/2, height=r.height)
+    p = brick_from_fit('duplo-straight-rail-trial-v1', nx=4, ny=2,
+                       body_offset_xy=(0., r.width-31.8), height=r.height)
     # X uses a separate measured length: pitch positions remain exactly 16 mm.
     outer = cq.Workplane('XY').box(r.length,r.width,r.height,centered=(True,True,False))
     outer = outer.edges('|Z').fillet(r.outer_radius).edges('>Z').fillet(r.outer_radius)
@@ -134,7 +132,7 @@ def export(kind='rail', out=Path('build/duplo-rail-trial-01')):
         checks['tube_holes']=all(not shape.isInside(cq.Vector(x,y,1)) for x,y in p.tubes())
         checks['tube_walls']=all(shape.isInside(cq.Vector(x+5.5,y,1)) for x,y in p.tubes())
         for x in [-r.length/2+i*r.length/12 for i in range(13)]:
-            sphere=cq.Solid.makeSphere(24.26/2,cq.Vector(x,0,r.floor+24.26/2+.05),angleDegrees1=-90)
+            sphere=cq.Solid.makeSphere(BALL_TRACK.ball_diameter/2,cq.Vector(x,0,r.floor+BALL_TRACK.ball_diameter/2+.05),angleDegrees1=-90)
             v=intersection(shape,sphere);ball.append(dict(x_mm=x,intersection_mm3=v))
         checks['sampled_ball_path_clear']=all(x['intersection_mm3']<VOLUME_TOL for x in ball)
     # Tube 13.30 intentionally grips nominal 9.40 studs by ~0.036 mm radially.
@@ -142,6 +140,9 @@ def export(kind='rail', out=Path('build/duplo-rail-trial-01')):
     gap=math.sqrt(2)*8-p.tube_radius-4.7
     checks['fit_within_trial_envelope']=gap>=-.05 and insertion[0]['intersection_mm3']<VOLUME_TOL
     report=dict(schema_version=1,kind=kind,passed=all(checks.values()),
+        design=design_manifest(p, channel=r if kind=='rail' else None,
+                               channel_standard=BALL_TRACK if kind=='rail' else None,
+                               finish=ROUNDED_EDGES if kind=='brick' else None),
         geometry=dict(bounds_mm=bounds,volume_mm3=shape.Volume(),parameters=asdict(p),checks=checks),
         rail=asdict(r) if kind=='rail' else None,groove_radius_mm=r.radius if kind=='rail' else None,
         mesh=m,collapsed_stl_triangles_removed=collapsed,step_roundtrip_passed=step,physical_fit_validated=False,
@@ -195,3 +196,4 @@ if __name__=='__main__':
     import argparse
     ap=argparse.ArgumentParser();ap.add_argument('--kind',choices=['rail','brick'],default='rail');ap.add_argument('--out',type=Path,default=Path('build/duplo-rail-trial-01'))
     args=ap.parse_args();export(args.kind,args.out)
+

@@ -9,27 +9,28 @@ import hashlib
 import json
 import math
 import cadquery as cq
-from .rail import Rail, fit_profile, build_rail
-from .model import receiver, build, nominal_brick
+from .rail import Rail, build_rail
+from .standards import DUPLO, BALL_TRACK, fit_profile
+from .model import receiver, build, nominal_brick, brick_from_fit
 from .ports import Port, straight_ports, mate
 from .verify import intersection, exact_bounds, mesh_check, VOLUME_TOL
 from .render import viewer, mesh, outlines
 
 RADIUS = 48.0
-DROP = 19.2
-BALL = 24.26
+DROP = DUPLO.height
+BALL = BALL_TRACK.ball_diameter
 RAIL = Rail()
 # PR14 ID03 C-tube: user reports perfect fit. Transfer preserves the 3.20 mm
 # wall and 16 mm pitch; the curved, rounded receiver still requires a print.
-RECEIVER_WALL = 3.20
-RECEIVER_TUBE_DIAMETER = 13.50
+CURVE_FIT_PROFILE_ID = 'duplo-curve-trial-v1'
+RECEIVER_TUBE_DIAMETER = 2*fit_profile(CURVE_FIT_PROFILE_ID).tube_radius
 CUT_EDGE_RADIUS = 0.0  # F candidate: R0.70 on cut vertical tips triggers slicer cantilever warning.
 BOTTOM_EDGE_RADIUS = .5
 
 
 def curve_profile():
-    return replace(fit_profile(4), ny=4, height=RAIL.height+DROP,
-                   wall=RECEIVER_WALL, tube_radius=RECEIVER_TUBE_DIAMETER/2)
+    return brick_from_fit(CURVE_FIT_PROFILE_ID, nx=4, ny=4,
+                          height=RAIL.height+DROP)
 
 
 
@@ -322,7 +323,7 @@ def export(out=Path('build/duplo-sloped-curve-trial-02')):
             'User F diagnostic: warning absent with support disabled in Bambu Studio 2.8.02.61 / A1 mini / 0.20mm; regenerate and reslice final STL to reconfirm.',
             'Slicer inspection and a real print are required; internal ceiling is a bridge.'],
         source_files={n:hashlib.sha256((Path(__file__).parent/n).read_bytes()).hexdigest()
-                      for n in ('sloped_curve.py','rail.py','model.py','ports.py','render.py','viewer.html')},
+                      for n in ('sloped_curve.py','rail.py','model.py','standards.py','connections.py','ports.py','render.py','viewer.html')},
         files={n:hashlib.sha256((out/n).read_bytes()).hexdigest() for n in ('brick.stl','brick.step','assembly.step')})
     (out/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     render(shape,p,report,out)
@@ -335,6 +336,7 @@ if __name__ == '__main__':
     import argparse
     ap = argparse.ArgumentParser(); ap.add_argument('--out',type=Path,default=Path('build/duplo-sloped-curve-trial-02'))
     export(ap.parse_args().out)
+
 
 
 
