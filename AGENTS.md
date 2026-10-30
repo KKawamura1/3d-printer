@@ -40,3 +40,5 @@
 - parts/ and brickcad/ must never import experiments/. Adopt findings by adding explicit shared profile versions.
 - Do not overwrite completed experiment inputs, specimen labels or saved STLs; create a new experiment. Exact historical reproduction uses the original Git commit.
 - A layout/import/docs-only change does not require new browser screenshots or CAD regeneration when geometry, dimensions and viewer behavior are unchanged. Validate imports, path resolution, affected tests and original STL blob identity instead.
+
+- Maintained printable parts also need an engraved design ID and revision (e.g. T01-V2). Keep the label on non-mating, non-running surfaces; use the same ID for identical copies and increment the revision when the released geometry changes. Match engraved IDs to STL names or a documented manifest.

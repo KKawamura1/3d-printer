@@ -11,6 +11,9 @@ from parts.straight_rail.design import Rail
 from brickcad.standards import BALL_TRACK, ROUNDED_EDGES
 from brickcad.connections import make_studs
 from brickcad.provenance import design_manifest
+from brickcad.marking import engrave
+
+PART_ID = "T01-V2"
 from brickcad.render import viewer, mesh, outlines, preview
 from brickcad.verify import intersection, exact_bounds, mesh_check, place, VOLUME_TOL
 
@@ -40,7 +43,23 @@ class Tunnel:
         return 2*(self.floor+self.radius+math.sqrt(2)*self.radius-self.ceiling)
 
 
-def build_tunnel(t=Tunnel()):
+def passage_wire(x, blend, t):
+    """Same circular floor; blend=0 circular roof, blend=1 original roof."""
+    cy=t.floor+t.radius; a=t.radius/math.sqrt(2); b=t.bridge_width/2
+    def mix(cx,cz,tx,tz):
+        return (cx*(1-blend)+tx*blend,cz*(1-blend)+tz*blend)
+    end=mix(t.radius*math.cos(math.radians(75)),cy+t.radius*math.sin(math.radians(75)),b,t.ceiling)
+    mid=mix(t.radius*.5,cy+t.radius*math.sqrt(3)/2,(a+b)/2,(cy+a+t.ceiling)/2)
+    apex=(0,(cy+t.radius)*(1-blend)+t.ceiling*blend)
+    w=cq.Workplane('YZ',origin=(x,0,0)).moveTo(-a,cy+a).threePointArc((0,t.floor),(a,cy+a))
+    if blend==1:
+        w=w.lineTo(b,t.ceiling).lineTo(-b,t.ceiling).lineTo(-a,cy+a)
+    else:
+        w=w.threePointArc(mid,end).threePointArc(apex,(-end[0],end[1])).threePointArc((-mid[0],mid[1]),(-a,cy+a))
+    return w.close().val()
+
+
+def build_tunnel(t=Tunnel(), *, roof='teardrop', transition=2., label=None):
     p=brick_from_fit('duplo-e27-play-v1', nx=2, ny=2, height_units=2)
     outer=cq.Workplane('XY').box(p.width,p.depth,p.height,centered=(True,True,False))
     outer=outer.edges('|Z').fillet(ROUNDED_EDGES.corner_radius).edges('>Z').fillet(ROUNDED_EDGES.corner_radius)
@@ -54,6 +73,19 @@ def build_tunnel(t=Tunnel()):
     cut=(cq.Workplane('YZ',origin=(-p.width/2-1,0,0))
          .moveTo(-a,cy+a).threePointArc((0,t.floor),(a,cy+a))
          .lineTo(b,t.ceiling).lineTo(-b,t.ceiling).close().extrude(p.width+2))
+    if roof not in ('teardrop','circle','transition'):
+        raise ValueError('Unknown roof')
+    if roof=='circle':
+        cut=cq.Workplane('YZ',origin=(-p.width/2-1,0,cy)).circle(t.radius).extrude(p.width+2)
+    elif roof=='transition':
+        if not 1<=transition<=6:
+            raise ValueError('Transition must be 1 to 6 mm')
+        # 1 mm circular lip, smoothstep roof rise over a defined axial length.
+        stations=[(-p.width/2-1,0),(-p.width/2+1,0)]
+        for i in range(1,9):
+            u=i/8;stations.append((-p.width/2+1+transition*u,3*u*u-2*u*u*u))
+        stations += [(-x,b) for x,b in reversed(stations)]
+        cut=cq.Solid.makeLoft([passage_wire(x,b,t) for x,b in stations],ruled=True)
     result=result.cut(cut)
     # Rounded lead-in on both passage mouths, including the lower circular arc.
     mouths=[e for e in result.val().Edges()
@@ -62,14 +94,16 @@ def build_tunnel(t=Tunnel()):
             and e.BoundingBox().zmax<t.ceiling+.01
             and e.BoundingBox().ymin>-t.radius-.01
             and e.BoundingBox().ymax<t.radius+.01]
-    if len(mouths)!=8:
+    if roof=='teardrop' and len(mouths)!=8:
         raise ValueError(f'Expected four section edges at each mouth, got {len(mouths)}')
-    result=result.newObject(mouths).fillet(t.entry)
+    if mouths:
+        result=result.newObject(mouths).fillet(t.entry)
     studs=make_studs(p.studs(), p.height, p.stud_radius-p.clearance,
                      p.stud_inner_radius, p.stud_height, lip_radius=ROUNDED_EDGES.stud_lip_radius)
     shape=result.union(studs).val().clean()
     if not shape.isValid() or len(shape.Solids())!=1:
         raise ValueError('Tunnel must be one valid solid')
+    shape=engrave(shape,label or PART_ID,x=0,y=-p.depth/2,z=10.)
     return shape,p
 
 

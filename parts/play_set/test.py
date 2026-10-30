@@ -4,12 +4,12 @@ from brickcad.model import brick_from_fit
 
 
 class PlaySetPlanTests(unittest.TestCase):
-    def test_only_requested_parts_two_each_with_bed_clearance(self):
+    def test_only_requested_parts_with_bed_clearance(self):
         records=plan()
-        self.assertEqual(len({r['id'] for r in records}),6)
+        self.assertEqual(len({r['id'] for r in records}),8)
         for kind,size in (('sloped_curve',63.8),('elbow',63.8),('tunnel',31.8)):
             group=[r for r in records if r['kind']==kind]
-            self.assertEqual(len(group),2)
+            self.assertEqual(len(group),4 if kind=="tunnel" else 2)
             for r in group:
                 self.assertEqual(r['rotation_deg'],0)
                 for coord in r['centre_xy_mm']:

@@ -15,6 +15,9 @@ from brickcad.standards import DUPLO, BALL_TRACK, fit_profile
 from brickcad.model import receiver, build, nominal_brick, brick_from_fit
 from brickcad.connections import make_receiver
 from brickcad.provenance import design_manifest
+from brickcad.marking import engrave_west
+
+PART_ID = "S01-V2"
 from brickcad.ports import Port, straight_ports, mate
 from brickcad.verify import intersection, exact_bounds, mesh_check, VOLUME_TOL
 from brickcad.render import viewer, mesh, outlines
@@ -138,7 +141,7 @@ def cut_receiver_edges(shape):
     return edges
 
 
-def build_curve(*, softened=True, tube_diameter=RECEIVER_TUBE_DIAMETER):
+def build_curve(*, softened=True, tube_diameter=RECEIVER_TUBE_DIAMETER, label=PART_ID):
     p = replace(curve_profile(),tube_radius=tube_diameter/2)
     base = cq.Workplane('XY').box(p.width,p.depth,RAIL.floor,centered=(True,True,False))
     base = base.edges('|Z').fillet(.8).edges('>Z').fillet(.5)
@@ -161,7 +164,7 @@ def build_curve(*, softened=True, tube_diameter=RECEIVER_TUBE_DIAMETER):
         shape = shape.fillet(BOTTOM_EDGE_RADIUS, bottom_edges).clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError('Sloped curve must be one valid solid')
-    return shape,p
+    return engrave_west(shape,label,x=-p.width/2,y=-16,z=12.),p
 
 
 def finish_audit(shape):
@@ -310,7 +313,7 @@ def export(out=Path('build/duplo-sloped-curve-trial-02')):
     raw=(out/'brick.stl').read_bytes(); triangles=[]
     for i in range(struct.unpack_from('<I',raw,80)[0]):
         tri=raw[84+50*i:134+50*i];v=struct.unpack('<12fH',tri)[3:12]
-        if len({tuple(v[j:j+3]) for j in (0,3,6)})==3:
+        if len({tuple(round(x,5) for x in v[j:j+3]) for j in (0,3,6)})==3:
             triangles.append(tri)
     (out/'brick.stl').write_bytes(raw[:80]+struct.pack('<I',len(triangles))+b''.join(triangles))
     cq.exporters.export(shape,str(out/'brick.step'))

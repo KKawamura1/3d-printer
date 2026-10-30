@@ -9,6 +9,9 @@ import cadquery as cq
 from brickcad.model import receiver, brick_from_fit
 from brickcad.connections import make_studs
 from brickcad.provenance import design_manifest
+from brickcad.marking import engrave
+
+PART_ID = "E01-V2"
 from parts.straight_rail.design import fit_profile, build_rail
 from parts.tunnel.design import Tunnel
 from brickcad.ports import Port, straight_ports, mate
@@ -76,7 +79,7 @@ def build_elbow(t=Tunnel()):
     shape = result.union(studs).val().clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError('Elbow must be one valid solid')
-    return shape, p
+    return engrave(shape,PART_ID,x=0,y=-p.depth/2,z=10.), p
 
 
 def assembly(shape):

@@ -1,42 +1,31 @@
-# 週末用コースセット v1（実用候補）
+# 版付きコース8個セット
 
-通常ブロックと通常レールは既存品を使い、拡張パーツだけを各2個、計6個用意する。
+**[8個まとめた印刷用STL](play-set-8.stl)**。A1 miniの180mm角ベッドへmm・100%・中央配置で読み込む。約140×170mm、独立8個、ブリムは最大2mm。スライスは手元で行う。
 
-| パーツ | 個数 | 個別STL |
-|---|---:|---|
-| 直線トンネル・2×2・高さ2段 | 2 | [tunnel](../tunnel/model.stl) |
-| 水平90度トンネル・4×4・高さ2段 | 2 | [elbow](../elbow/model.stl) |
-| 坂カーブ・4×4・1段の落差 | 2 | [sloped_curve](../sloped_curve/model.stl) |
+| 側面の刻印 | 個数 | 内容 | 個別STL |
+|---|---:|---|---|
+| S01-V2 | 1 | 坂カーブ・完全な円筒3本、開放下面 | [model.stl](../sloped_curve/model.stl) |
+| S02-V2 | 1 | 坂カーブ・円筒3本＋閉じたD形4本＋中実支柱1本 | [S02-V2.stl](../../experiments/pr20_comparison/S02-V2.stl) |
+| E01-V2 | 2 | 90度トンネル・現行涙滴天井 | [model.stl](../elbow/model.stl) |
+| T01-V2 | 1 | 直線トンネル・現行涙滴天井（比較基準） | [model.stl](../tunnel/model.stl) |
+| T02-V1 | 1 | 直線トンネル・全長真円 | [T02-V1.stl](../../experiments/pr20_comparison/T02-V1.stl) |
+| T03-V1 | 1 | 丸入口1mm＋遷移2mm | [T03-V1.stl](../../experiments/pr20_comparison/T03-V1.stl) |
+| T04-V1 | 1 | 丸入口1mm＋遷移4mm | [T04-V1.stl](../../experiments/pr20_comparison/T04-V1.stl) |
 
-**[6個まとめたSTL](play-set-6.stl)** を1つ読み込み、mm・100%、ベッド中央で使用する。個別STLも同時に読み込まない。数量や配置を変える場合は個別STLを使って複製する。まとめSTLには独立した6ソリッドがあり、物理的な台座では連結していない。
+IDは形状番号＋版。複製同士は同じ刻印で、設計を変更すると版を上げる。深さ0.4mm、文字高3mmの凹刻印で、上下の嵌合面・球の走路を避けた側面に置く。配置記録のE01-V2-A/Bは左右の複製を示し、刻印は共にE01-V2。
 
-配置範囲131.8×169.8mm、A1 miniの180mm角内。ブリムを使う場合は最大2mm（5mmブリムは収まらない）。全個体は同じ向き・スタッド／走路上向きで配置。P30-T1等のIDは配置記録用で、遊ぶ面への刻印は追加していない。同じ種類の2個は同じ設計。
+共通嵌合は `duplo-e27-play-v1`：上面OD9.40/穴6.40mm、下面チューブOD13.50/穴9.40mm、内法25.40mm相当、16mm格子。E27の結果を新形状へ移した候補で、保持力・印刷再現性は未確認。通常ブロックと通常レールは含めない。
 
-## 今回揃えた点
+S02-V2は隅の床を増やさず、切れた円筒を切断面の壁で閉じる。小さい1か所は中実にし、縦角・下端をR0.5で丸める。S01-V2より下面天井の支えを増やした比較案。丸入口案も#19の仮説を実物比較する候補であり、短い真円区間がサポート不要を保証するものではない。
 
-- 共通嵌合profile `duplo-e27-play-v1`：上面外径9.40／穴径6.40、下面チューブ外径13.50／穴径9.40、16mm格子、2×2相当の内法25.40mm。4×4の内法は57.40mm。
-- 上下の格子は同じ原点。今回、未検証の外形XY補正は加えない。外形は2×2で31.80角、4×4で63.80角。高さ・ポート位置・走路は既存品との接続条件を維持。
-- トンネルは上面スタッド上端R0.5・外角R0.8、底面の縁R0.5、通路入口R0.3。
-- 坂カーブは部分的に切れた6本のチューブを省き、完全な3本だけを保持。残る4か所の下面壁の縦角と底面縁をR0.5にした。走路・1段落差・不要な隅の床を削った形は維持。
-- 個別STLはE27と同じ細分化条件（0.03mm／0.2rad）。まとめSTLは同じCADを0.03mm／0.4radで書き出し、ファイルを軽量化。CAD寸法は共通で、実スライスの線種は確認が必要。
-
-## スライスして印刷する前
-
-まずサポートOFFで確認する。浮いた部品・片持ち梁の警告が出る場合は、そのまま大量のサポートを付けず、警告箇所の画像で確認する。以前のF診断の警告なしという結果は今回のモデルには転用しない。トンネルの天井・下面天井にはブリッジがある。
-
-上面のある2種類について、スタッドがInner wallになっているか確認する。実際の時間・重量はスライサー表示を使う。実物の保持力は形状・位置・印刷条件で変わるため、CADが同じでもE27-02と04の差を再現しない保証はない。今回の新形状のスライス・印刷・触感は未検証で、完成済みとは扱わない。
-
-印刷後、大人が底面の縁・切断跡・ブリッジの垂れを触って確認し、純正への接続と球通過を短く確認してから遊ぶ。坂カーブは完全な3本のチューブへ変更したので、保持力は別途確認が必要。
-
-長すぎる場合は各種類1個ずつに減らして先に出すか、種類別に分けて印刷できる。普通の直線レールや支持ブロックのSTLはこのセットに含めない。
-
-## 再生成
+印刷前：サポートOFFで、浮き警告・天井の積層・上面スタッドのInner wall・所要時間を確認。印刷後：大人が縁を触り、上下接続と球通過を両方向に確認。結果は刻印IDで報告すればよい。
 
 ```sh
-python -m parts.tunnel.design --out build/play-set-v1/tunnel
-python -m parts.elbow.design --out build/play-set-v1/elbow
-python -m parts.sloped_curve.design --out build/play-set-v1/sloped_curve
-python -m parts.play_set.design --parts-root build/play-set-v1 --out build/play-set-v1/batch
+python -m parts.tunnel.design --out build/play-set-v2/tunnel
+python -m parts.elbow.design --out build/play-set-v2/elbow
+python -m parts.sloped_curve.design --out build/play-set-v2/sloped_curve
+python -m experiments.pr20_comparison.design
+python -m parts.play_set.design
 ```
 
-個別STLは各所有フォルダのmodel.stl、まとめSTLはこのフォルダへ保存する。STEP・viewer・画像・自動レポートはbuild/。今回の確認結果はrecords/verification.md。
+STEP、viewer、画像、自動レポートは `build/`。比較候補の詳細は [比較記録](../../experiments/pr20_comparison/README.md)、今回の検証範囲は [確認記録](records/revision-v2.md) に記載。
