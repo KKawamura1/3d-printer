@@ -1,0 +1,54 @@
+{
+  "actual_print_performed": false,
+  "physical_fit_validated": false,
+  "slicing_validated": false,
+  "planned": {
+    "printer": "Bambu Lab A1 mini",
+    "nozzle_mm": 0.4,
+    "material": "Bambu PLA Basic",
+    "layer_height_mm": 0.2,
+    "wall_loops": 2,
+    "wall_generator": "Classic",
+    "outer_wall_line_width_mm": 0.42,
+    "inner_wall_line_width_mm": 0.45,
+    "sparse_infill_percent": 15,
+    "sparse_infill_pattern": "Grid",
+    "filament_flow_ratio": 0.98,
+    "xy_contour_compensation_mm": 0,
+    "xy_hole_compensation_mm": 0,
+    "print_sequence": "by layer",
+    "scale_percent": 100,
+    "rotation_deg": 0
+  },
+  "actual": {
+    "printer": null,
+    "material": null,
+    "slicer_version": null,
+    "settings": null,
+    "placement": null
+  },
+  "project_3mf_sha256": null,
+  "gcode_sha256": null,
+  "specimens": [
+    {
+      "id": "E27-01",
+      "stud_inner_wall_4of4": null,
+      "actual_bed_center_xy_mm": null
+    },
+    {
+      "id": "E27-02",
+      "stud_inner_wall_4of4": null,
+      "actual_bed_center_xy_mm": null
+    },
+    {
+      "id": "E27-03",
+      "stud_inner_wall_4of4": null,
+      "actual_bed_center_xy_mm": null
+    },
+    {
+      "id": "E27-04",
+      "stud_inner_wall_4of4": null,
+      "actual_bed_center_xy_mm": null
+    }
+  ]
+}
