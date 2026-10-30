@@ -14,6 +14,10 @@ docs/          共通の設計ルール・開発手順
 build/         中間生成物（Git管理外）
 ```
 
+## 今回印刷する
+
+[週末用コースセット](parts/play_set/)：嵌合寸法と縁の処理を揃えた直線トンネル・90度トンネル・坂カーブを各2個。通常ブロック／通常レールは含めない。新形状の実物検証は印刷後に行う。
+
 ## パーツを変更する
 
 各フォルダの `design.py` と `test.py` を入口にする。共通のピッチ・高さ・突起・下面・通路の規格は [brickcad/standards.py](brickcad/standards.py)、使用方法は [共通設計](docs/shared-part-design.md) を参照。

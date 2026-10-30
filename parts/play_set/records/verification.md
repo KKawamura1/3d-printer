@@ -1,0 +1,109 @@
+# 週末用コースセット v1：確認記録（2026-10-30）
+
+対象は直線トンネル・90度トンネル・坂カーブと各2個の配置。通常ブロック・通常レールの印刷STLは生成し直していない。コース接続試験では既存レールのCAD形状を参照した。
+
+## 寸法と形状
+
+- duplo-e27-play-v1 を新設。既存の名目・過去profileは変更していない。E27-04の下面（OD13.50、2×2内法25.40）と共通上面（OD9.40、穴6.40）を選択。上面の再現性は未解決。
+- トンネル2種は上下同原点・16mm格子。外角R0.8、上面突起上端R0.5、下面底縁R0.5、通路入口R0.3。
+- 坂カーブは半端な6本のチューブを削除し完全な3本を残した。20か所あった縦角は4か所の壁端となりR0.5、底縁もR0.5。丸め前後の走路差分は0mm³、完全チューブのz>=0.5の接触材料差分は0mm³。壁端の接触が減る可能性は残る。
+- 球通過、接続ポート、上下・ずらしの干渉と負例、STEP再読込、STL閉鎖性・向き・体積一致を確認。坂の球確認は49静的サンプルで連続力学解析ではない。
+- まとめSTLは独立6ソリッド、相互非接触、180mmベッドと各2mmブリム範囲内。個別は線形0.03mm／角度0.2rad、まとめは同じCADを線形0.03mm／角度0.4radで細分化。
+
+## テスト
+
+次の32件の対象テストが最終的に合格した。最初の試行で見つかった坂のSTL検査不合格は細分化条件の修正で解消し、名目受けと採用受けを混同していたelbowの期待値も修正後に該当ケースを再実行した。
+
+- parts.tunnel.test：5件
+- parts.elbow.test：5件
+- parts.sloped_curve.test：8件
+- parts.play_set.test：2件
+- tests.test_shared_standards：7件
+- experiments.pitagora_m1.test：5件（実際に変更したトンネルへ依存する接続コース）
+
+ci-tests.py --base 83cb278 --plan も確認。profile定義ファイルの追加変更を保守的に全import先へ伝播するため過去校正群まで選択されたが、既存profile・接続カーネルは不変であり、ローカルでは上記の実際に影響する対象に絞った。83cb278はmain相当のローカルソース＋E27実験の作業基準で、GitHubのmain SHAではない。自動CIの結果をこの記録で先取りしていない。
+
+## 実ブラウザ目視確認
+
+Chromium 153で直線トンネル11画面、90度トンネル10画面、坂カーブ13画面を撮影し、各review-sheetを実際に開いて確認した。上面・下面・断面・組立・分解・回転／交差またはレール接続、球の表示、支持への接続を確認。CADで穴が塞がれたり別ソリッドが浮いたりする欠陥は見られない。坂の下面には3本の完全な円筒だけがあり、以前の半円チューブの先端はない。
+
+最終まとめviewerも撮影し、上面配置と下面を画像で確認。6個が互いに離れ、指定3種類が各2個である。viewerはBRep由来のメッシュを表示し、まとめSTLの三角形そのものの画面描画ではない。STL本体は別途mesh_checkで確認。
+
+## 残る確認
+
+実スライス、Inner wall、排他領域、サポートOFFでの警告、時間・重量、実印刷後の保持・触感・球通過は未確認。physical_fit_validated、physical_touch_validated、slicing_validatedは新形状についてfalse。過去F試作の警告なし結果をこの形状へ流用しない。子どもへ渡す前に大人が短く触感・接続・球通過を確認する。
+
+## 確認入力・画像のSHA-256
+
+### tunnel
+
+```text
+viewer.html: b09e7b47a3bf14395f2b803e62b692f0a9ca82143f4c271473f6aa1210ff488a
+report.json: 37477086a100aea817d30a512250bad40d63e5a34e13a99addc39d307e4f3699
+brick.stl: 97039cb79b56053a8cf9cb9d38edb0d3c385c4974ed6a59b5e900612c2b688d3
+01-perspective.png: ea3d083b168a765b7d60046b21e716de2e7aa657289208d0da5d4185943a4e2d
+02-top.png: 37a1b603fcb052a59d190dea1a005fef22aecff4d00a4b6b42f42f00a0290cc9
+03-underside.png: d166aac14a5e94ed8ce39bd50fcdefb876ea8825ccc688fc1bf5ddbcab959323
+04-section.png: 91ae497f177f00515954e180a22635d633b7c35fdaaeee7b9a609db38b23b7c2
+05-assembled.png: d8c0211d4eda6cff29305f032d251578fd77e5b0ac07dfb85bb285d6c51fee57
+06-exploded.png: ca517a5956effc992b9b9242ba1129cce9657d18cf9edb1ed87a08cd703b1410
+07-cross-90.png: 8e8035ed421f036b6c6e21ac01f77c54ce3fd7292790e57cb137394087dae4a4
+08-collision-control.png: df18f34140bb1e97700b2965561d2653771c6b3b07c5118a9437b8d5606c0140
+09-orbit-zoom.png: 360fee0a184a08d6686376a1ff26da295f65de0d753ffa5a662ecb5b7800759d
+10-mobile.png: d0056d91a6adc47265ec817a66e5bc3975952655d642ab021b5cc3294cba6801
+11-standard-bricks.png: ccca4529c6db75e741056bdb29d7bed9c096b3d1618d4461c8016d3960dfea00
+```
+
+### elbow
+
+```text
+viewer.html: c82829e6bbc5e9c87df3d8be69bba4b09f333d902b111123abb54474bdb7f94f
+report.json: 526db1b944d0941d692bc2ebb3a85f4d164aeb193a474cd462b564941f87d7c5
+brick.stl: f1c0642ec931a56a793780b9207a3b99d67b50776c70f1c87af1e49c467dacdc
+brick.step: c0a56fdb513eaa09cfa34d8be1d57398735a09781d2d0ef4cdffd42615c33716
+assembly.step: fa966abe0ec04de18361d652cf0617c2fff74dc92c0c8ae26d6786c39ada90c5
+01-tunnel.png: 31b2e85e85d19318b856ee0f05ca3f199bcc5231d781b59daa586cf83676d7e9
+02-top.png: 3b4a59ef3f49b2bba0fdc33ae57d932a4a7cf3abb57ce201442acf697a206765
+03-underside.png: 2502852178428180a05a5090ee9b6b4b74d7a6c7e6bde4191d2895a4e771c334
+04-section.png: d007c100927993c539193851e9465f2cc7c03a395ac8a78b91a1245e6c9603bd
+05-cutaway.png: cfd35229b6ffe5d8b826c1b2fc1e1c29541dae7fba1940622de031c181cff843
+06-balls.png: cf7f1096ea338d90c3548edf85635f440da41f8229915bf7cf3cee2a435ff69d
+07-sweep.png: c0e348a8dc6a093aece03300f7da17f8d82814b8cb2b036bf949ab80887fe23f
+08-course.png: 0ca9ccbf84e0d0198a5ff19c5c9506b2a1302a1977c5fa524820cbf44b300319
+09-exploded.png: 9689e7a3fa04c020c0bfb833e1d6c69bcbe88f06bdec0d8b41b448416aa47f1c
+10-mobile.png: 5a7f019ba89870815999615e5d89d3dbec33d1a37c53b2bd790ef8e487629685
+```
+
+### sloped_curve
+
+```text
+viewer.html: e66d0a59d8befdd17a88a912315eb4fa9066e48ba4e6ea4ad3ecea46a703feb9
+report.json: 3a2b7971c2223a2de13ba71a1edfe0c3d9710287468068ffe09ec9752f14d8ce
+brick.stl: f8da51f4058d84f8c57d2649493fea02ca1727baeb7480fdcba036b712115ced
+brick.step: 9a56c801f76db670a8113290daf3b468970ae6c926299165340303c6485f24ff
+assembly.step: de8c85b8482df2c7710ab5ebb69926a3e6ea956b429b3d1c9fe551d2b0f67173
+01-tunnel.png: 9a06a9e46fcd555cf3a4cf2a789ef2d68356e70ed6519137b089e453af6b0b29
+02-top.png: e17323674621c76adc6f8ab099fe0c49bb0625d8f9d1bfe298f164b0aec6cdce
+03-underside.png: f6c2fd5807ceac5aff66cd43247a66f0083f19effe9154a0df08540249a21b88
+04-section.png: 81281a8ae4369f1c4489120efdc2dd153465e5fde4b5d3a6d0ad360a695d925c
+05-balls.png: 1dc6c714211a66a685933b9d70988d0c6c513216712bcd153f0b48202facd70c
+06-balls-top.png: 3a42a7ca0264380cf36b30bc9707d66a3b8caee39261dbd7ee4a42d3a2e8742a
+08-course.png: a3afc0eddbcb8fefa370dfb5539fb8ad5fb97bc5f545486660c81745d5a2bdb3
+09-exploded.png: 866431764e46717ebcd172068283ed40401ac058f0ee7c221703309ac61d917b
+10-course-top.png: a1b4ef1d236e9eedd84915090cb4331a4e03a5fe769cecab59ef68af4a3d74de
+12-receiver.png: 556afae659e3e4e595f1577d12ee802d5c6ca552abbfd59760f17a18e55d1e46
+13-receiver-exploded.png: e60afd0837c1bd42c7cb078513ec2a614a8007376cc5f878eea84e3b0fffe0c8
+14-receiver-top.png: e049425172891e68458b44a0df8d4e74ca8645923b29b92fc811850cc7bbb86c
+11-mobile.png: 6bef85602fc182805d88b6c17408fb4e134ca13e3582162963424e29f455da47
+```
+
+### 最終まとめSTL・viewer・画像
+
+```text
+parts/play_set/play-set-6.stl: 34bbfd3e2a2589e6a845d1605368429c52117dd55d4f3e7032805853157b8fe7
+build/play-set-v1/batch/viewer.html: 37f1a9316ff834c26438be581fd0e29a48484852b68c0d210bd08d7914f9de57
+build/play-set-v1/batch/report.json: 7e36918aadc9e530f6741fdb59d22b8e234edbd25bdf9b2dcf88d003c1a061d8
+build/play-set-qa/batch-final/001-capture.png: 5c554b2b9e1351eecb802c53d1a4a0ab670d37c26689103dc92c1809697bdd2a
+build/play-set-qa/batch-final/002-view.png: c004103196773181910e275e723f4238a8fc255c8b0f627f1cd52e61ba47069b
+build/play-set-qa/batch-final/003-view.png: 23becfd6145c036cd57c1d79a193d025e08f8b8d455374934d87d51a1bd177f4
+```

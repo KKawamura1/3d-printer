@@ -40,9 +40,12 @@ class ElbowTests(unittest.TestCase):
         self.assertFalse(mate(west,right.placed((-64,-16,1)))['compatible'])
         from brickcad.model import nominal_brick, build
         upper = build(nominal_brick('duplo',4,4)).translate((0,0,38.4))
-        # Existing trial profile deliberately has 0.036 mm radial tube interference;
-        # upper nominal receiver on smaller trial studs remains geometrically clear.
+        # The synthetic reference receiver is OD13.10 (not the adopted OD13.50).
+        # It remains geometrically clear on this 9.40 mm top; this is not a
+        # claim of physical clutch force against an OEM receiver.
         self.assertLess(intersection(self.shape,upper), VOLUME_TOL)
+        self.assertEqual((self.p.stud_radius,self.p.stud_inner_radius,self.p.tube_radius),(4.7,3.2,6.75))
+        self.assertEqual(self.p.cavity_xy,(57.4,57.4))
         self.assertTrue(all(not self.shape.isInside(cq.Vector(x,y,41)) for x,y in self.p.studs()))
 
     def test_invalid_ball(self):

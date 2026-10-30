@@ -8,10 +8,13 @@ from pathlib import Path
 import hashlib
 import json
 import math
+import struct
 import cadquery as cq
 from parts.straight_rail.design import Rail, build_rail
 from brickcad.standards import DUPLO, BALL_TRACK, fit_profile
 from brickcad.model import receiver, build, nominal_brick, brick_from_fit
+from brickcad.connections import make_receiver
+from brickcad.provenance import design_manifest
 from brickcad.ports import Port, straight_ports, mate
 from brickcad.verify import intersection, exact_bounds, mesh_check, VOLUME_TOL
 from brickcad.render import viewer, mesh, outlines
@@ -20,11 +23,11 @@ RADIUS = 48.0
 DROP = DUPLO.height
 BALL = BALL_TRACK.ball_diameter
 RAIL = Rail()
-# PR14 ID03 C-tube: user reports perfect fit. Transfer preserves the 3.20 mm
-# wall and 16 mm pitch; the curved, rounded receiver still requires a print.
-CURVE_FIT_PROFILE_ID = 'duplo-curve-trial-v1'
+# E27-04 selected receiver; no inference of universal clutch force.
+CURVE_FIT_PROFILE_ID = 'duplo-e27-play-v1'
 RECEIVER_TUBE_DIAMETER = 2*fit_profile(CURVE_FIT_PROFILE_ID).tube_radius
-CUT_EDGE_RADIUS = 0.0  # F candidate: R0.70 on cut vertical tips triggers slicer cantilever warning.
+CUT_EDGE_RADIUS = .5  # Only four wall ends; no clipped tube tips remain.
+RETAINED_TUBES = ((-16.,-16.), (0.,0.), (16.,16.))
 BOTTOM_EDGE_RADIUS = .5
 
 
@@ -104,12 +107,13 @@ def receiver_audit(shape,p):
     shifted = intersection(shape,reference.translate((8,0,-refp.height)))
     overinsert = intersection(non_tube,reference.translate((0,0,-refp.height+.5)))
     return dict(reference='Synthetic DUPLO 4x4, 16 hollow studs, OD 9.40 mm',
-        calibration=dict(source_issue='https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6396705976',
-            source_coupon='PR14 ID03 C-tube',wall_mm=p.wall,tube_diameter_mm=2*p.tube_radius,
-            full_4x4_cavity_mm=[p.width-2*p.wall,p.depth-2*p.wall],
-            equivalent_2x2_cavity_mm=31.8-2*p.wall,
+        calibration=dict(source_issue='https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6525080864',
+            source_coupon='E27-04 receiver; 2026-10-30 feedback',wall_mm=p.wall,tube_diameter_mm=2*p.tube_radius,
+            full_4x4_cavity_mm=list(p.cavity_xy),
+            equivalent_2x2_cavity_mm=2*p.pitch-2*p.receiver_inset_xy[0],
             transfer_validated=False,
-            limitation='Curved footprint removes opposing side walls: ID03 receiver result does not validate this curve or partial supports.'),
+            retained_complete_tubes=list(RETAINED_TUBES),
+            limitation='Three complete tubes retained, six clipped tubes omitted. E27-04 does not physically validate this curve.'),
         insertion=insertion,studs=studs,
         measured_9p32_stud_intersection_mm3=intersection(shape,measured),
         seating_roof_clearance_mm=RAIL.floor-RAIL.roof-refp.stud_height,
@@ -138,19 +142,19 @@ def build_curve(*, softened=True, tube_diameter=RECEIVER_TUBE_DIAMETER):
     p = replace(curve_profile(),tube_radius=tube_diameter/2)
     base = cq.Workplane('XY').box(p.width,p.depth,RAIL.floor,centered=(True,True,False))
     base = base.edges('|Z').fillet(.8).edges('>Z').fillet(.5)
-    # F trial: round only the finished bottom after clipping. R0.70 fillets on
-    # 20 cut vertical edges caused Bambu Studio's floating-cantilever warning.
-    # Their touch safety is unvalidated. Keep the old B candidate reproducible.
-    base = receiver(p,base,RAIL.floor-RAIL.roof,0 if softened else RAIL.entry)
+    # Keep complete tubes only. Clipped tube fragments created sharp tips and
+    # previously required fillets that caused slicer warnings.
+    base = make_receiver(base,RETAINED_TUBES,p.cavity_xy,RAIL.floor-RAIL.roof,
+                         p.tube_radius,p.tube_inner_radius,0)
     loft = cq.Solid.makeLoft([section(i/24) for i in range(25)], ruled=False)
     # Trim at physical body faces, preserving the 0.1 mm cell-boundary inset.
     footprint = cq.Workplane('XY').box(p.width,p.depth,60,centered=(True,True,False)).val()
     shape = base.union(loft.intersect(footprint)).val().intersect(curved_footprint()).clean()
     if softened:
-        # Assert the cut corners have not silently changed, but do NOT fillet them.
-        # A controlled E/F/G slicer test isolated this fillet as the warning source.
-        if len(cut_receiver_edges(shape)) != 20:
-            raise ValueError('Reassess clipped receiver corners after footprint changes')
+        # Four wall ends remain; the sixteen clipped-tube corners no longer exist.
+        if len(cut_receiver_edges(shape)) != 4:
+            raise ValueError('Expected four receiver wall ends, no partial tube tips')
+        shape = shape.fillet(CUT_EDGE_RADIUS, cut_receiver_edges(shape)).clean()
         bottom_edges = [e for e in shape.Edges()
                         if abs(e.BoundingBox().zmin) < 1e-5
                         and abs(e.BoundingBox().zmax) < 1e-5]
@@ -164,7 +168,7 @@ def finish_audit(shape):
     """Compare rounding against the same receiver diameter before rounding.
 
     The 9.40 mm synthetic studs provide a conservative contact envelope. This
-    proves material preservation in that envelope, not real clutch force.
+    proves retained-tube material preservation in that envelope, not clutch force.
     """
     old,p = build_curve(softened=False)
     removed = old.cut(shape)
@@ -172,18 +176,24 @@ def finish_audit(shape):
     above_entry = cq.Solid.makeBox(100,100,50,cq.Vector(-50,-50,BOTTOM_EDGE_RADIUS))
     track = cq.Solid.makeBox(100,100,50,cq.Vector(-50,-50,RAIL.floor-RAIL.roof))
     reference = build(nominal_brick('duplo',4,4)).translate((0,0,-19.2))
+    tube_mask = cq.Compound.makeCompound([cq.Solid.makeCylinder(p.tube_radius,5,cq.Vector(x,y,.5)) for x,y in RETAINED_TUBES])
     def contact_delta(delta):
+        if not delta.Solids():
+            return 0.0
         clipped = delta.intersect(above_entry)
+        if not clipped.Solids():
+            return 0.0
+        clipped = clipped.intersect(tube_mask)
         return intersection(clipped,reference) if clipped.Solids() else 0.0
     return dict(cut_edge_radius_mm=CUT_EDGE_RADIUS,bottom_edge_radius_mm=BOTTOM_EDGE_RADIUS,
         clipped_vertical_corners=len(cut_receiver_edges(old)),
         removed_volume_mm3=removed.Volume(),added_volume_mm3=added.Volume(),
         removed_contact_above_entry_mm3=contact_delta(removed),
         added_contact_above_entry_mm3=contact_delta(added),
-        changed_track_mm3=intersection(removed,track)+intersection(added,track),
+        changed_track_mm3=sum(intersection(delta,track) for delta in (removed,added) if delta.Solids()),
         comparison_tube_diameter_mm=2*p.tube_radius,
         physical_touch_validated=False,
-        limitation='Bottom R0.50 applied only; cut vertical edges remain sharp because R0.70 triggered slicer warning. Contact preserved above z=0.50 mm; physical touch and retention untested.')
+        limitation='Three full tubes only; four wall ends R0.50 and bottom R0.50. Tube contact above z=0.50 preserved, remaining wall-end rounding may remove wall contact. Tactile, slicer and retention transfer untested.')
 
 
 def ports():
@@ -245,9 +255,9 @@ def verify(shape,p):
         unused_corner_floors_removed=not any(corner_floor),
         receiver_no_blocking_collision=audit['no_blocking_collision'],
         all_16_studs_checked=len(audit['studs'])==16,
-        cut_vertical_edges_not_filleted=finish['clipped_vertical_corners']==20
-            and finish['cut_edge_radius_mm']==0 and finish['removed_volume_mm3']>1,
-        contact_material_preserved=max(finish['removed_contact_above_entry_mm3'],finish['added_contact_above_entry_mm3'])<VOLUME_TOL,
+        wall_ends_rounded_without_partial_tube_tips=finish['clipped_vertical_corners']==4
+            and finish['cut_edge_radius_mm']==.5 and finish['removed_volume_mm3']>1,
+        complete_tube_contact_material_preserved=max(finish['removed_contact_above_entry_mm3'],finish['added_contact_above_entry_mm3'])<VOLUME_TOL,
         track_geometry_preserved=finish['changed_track_mm3']<VOLUME_TOL,
         receiver_trial_interference_only=0<audit['intentional_tube_radial_interference_mm']<=13.5/2+4.7-math.sqrt(2)*8+1e-6,
         receiver_half_pitch_detected=audit['half_pitch_negative_mm3']>VOLUME_TOL,
@@ -296,7 +306,13 @@ def export(out=Path('build/duplo-sloped-curve-trial-02')):
     out = Path(out); out.mkdir(parents=True,exist_ok=True)
     shape,p = build_curve()
     report = verify(shape,p)
-    cq.exporters.export(shape,str(out/'brick.stl'),tolerance=.01,angularTolerance=.1)
+    shape.copy(mesh=False).exportStl(str(out/'brick.stl'),tolerance=.03,angularTolerance=.2,relative=False)
+    raw=(out/'brick.stl').read_bytes(); triangles=[]
+    for i in range(struct.unpack_from('<I',raw,80)[0]):
+        tri=raw[84+50*i:134+50*i];v=struct.unpack('<12fH',tri)[3:12]
+        if len({tuple(v[j:j+3]) for j in (0,3,6)})==3:
+            triangles.append(tri)
+    (out/'brick.stl').write_bytes(raw[:80]+struct.pack('<I',len(triangles))+b''.join(triangles))
     cq.exporters.export(shape,str(out/'brick.step'))
     cq.exporters.export(cq.Compound.makeCompound(list(course(shape))),str(out/'assembly.step'))
     restored = cq.importers.importStep(str(out/'brick.step')).val()
@@ -309,18 +325,19 @@ def export(out=Path('build/duplo-sloped-curve-trial-02')):
                       brep_conservative_bounds_mm=exact_bounds(shape),volume_mm3=shape.Volume(),parameters=asdict(p)),
         drop_mm=DROP,turn_radius_mm=RADIUS,rail=asdict(RAIL),ports=[asdict(v) for v in ports()],
         ball_diameter_mm=BALL,max_slope_degrees=math.degrees(math.atan(abs(gradient(.5)))),
-        physical_fit_validated=False,physical_rolling_validated=False,mesh=m,
-        stl_tessellation=dict(linear_tolerance_mm=.01,angular_tolerance_radians=.1),
+        physical_fit_validated=False,physical_rolling_validated=False,physical_touch_validated=False,mesh=m,
+        design=design_manifest(p,channel=RAIL),retained_complete_tubes=list(RETAINED_TUBES),
+        stl_tessellation=dict(linear_tolerance_mm=.03,angular_tolerance_radians=.2),
         limitations=['49 static sphere samples, not continuous clearance or rolling dynamics.',
             '4x4 envelope and port grid inferred from user; middle curvature is our design.',
-            'Corner floors and unsupported tube portions removed; receiver wall 3.20 mm, tube OD 13.50 mm follows PR14 ID03 fit feedback.',
-            'Trial-02 F only rounds bottom edges R0.50; clipped vertical corners R0.70 removed after user slicer A-G tests showed cantilever warning; tactile safety and retention still require a print.',
-            'PR14 ID03 full-height 2x2 receiver was reported perfect; this curved, partly open receiver and partial supports remain untested.',
+            'E27-04 receiver dimensions transferred; only three complete tubes retained. All six clipped tube fragments omitted.',
+            'Four remaining wall ends and bottom rounded R0.50; previous 20-corner F/D geometry not reused. Final slicer and tactile checks still required.',
+            'E27-04 2x2 receiver was preferred; this 4x4 partial-footprint receiver remains untested.',
             'No upper studs: Gap infill / Inner wall stud calibration is not applicable to this part.',
             'Synthetic 9.40 mm studs retain known 0.136 mm radial tube trial interference; no other blocking collision.',
             'Raised approach on nominal support retains known 0.036 mm radial trial interference.',
             'Spline BRep bounding box is conservative; footprint also checked by solid subtraction.',
-            'User F diagnostic: warning absent with support disabled in Bambu Studio 2.8.02.61 / A1 mini / 0.20mm; regenerate and reslice final STL to reconfirm.',
+            'Prior F diagnostic does not validate this revised geometry. Inspect final slice without supports.',
             'Slicer inspection and a real print are required; internal ceiling is a bridge.'],
         source_files={n:hashlib.sha256((Path(__file__).resolve().parents[2]/n).read_bytes()).hexdigest()
                       for n in ('parts/sloped_curve/design.py','parts/straight_rail/design.py','brickcad/model.py','brickcad/standards.py','brickcad/connections.py','brickcad/ports.py','brickcad/render.py','brickcad/viewer.html')},
