@@ -1,5 +1,34 @@
 # 新規セッションからの起動
 
+## 中断を追跡できる実行ログ
+
+生成・テスト・ブラウザ確認・転送を別々の工程として実行する。
+`scripts/run-stage.py` は開始、子PID、15秒ごとの生存確認、完了／失敗／タイムアウト、
+所要秒数を `build/stages/events.jsonl` へ追記して各行をfsyncする。
+子の標準出力・標準エラーは実行ごとの `.log` に直接保存し、会話へ大量に返さない。
+同じ工程を再実行してもrun_idと出力ログを分け、前回の失敗を残す。
+
+```sh
+python scripts/run-stage.py --name curve-export --timeout 600 \
+  --artifact build/play-set-v2/sloped_curve/brick.stl -- \
+  python -m parts.sloped_curve.design --out build/play-set-v2/sloped_curve
+python scripts/run-stage.py --name curve-browser --timeout 120 -- \
+  node scripts/sloped-curve-browser-check.cjs build/play-set-v2/sloped_curve build/qa/sloped_curve
+```
+
+`--artifact` は繰り返し指定でき、成功時にサイズとSHA-256を記録する。
+指定ファイルがなければ工程を失敗扱いにする。既定上限は600秒。
+タイムアウト時は子プロセス群を停止する。ラッパー自体が強制終了した場合は
+終端イベントが書けないため、最後のheartbeatとPID・出力ログから状態を調べる。
+完了記録がない工程を成功とは扱わず、生成物のハッシュを照合してから再利用する。
+撮影成功と画像の目視確認は引き続き区別する。
+
+転送も同様に開始・完了、入力ハッシュ、バイト数、返されたblob／commit SHAを記録する。
+ログに認証情報を渡さない。大容量STLのBase64を会話へ出力・貼付しない。
+認証済みgit pushが利用可能ならそれを使い、コネクター経由では実行コード内で
+ファイルを読み出して転送し、会話へ返すのはサイズ・ハッシュ・結果だけとする。
+転送失敗時に生成をやり直さず、成功済みblobを再利用する。
+
 前セッションのプロセス・依存・Chromium・build/の存在を前提にしない。現在の構成は [repository-layout.md](repository-layout.md) を参照。
 
 ## CADの準備
