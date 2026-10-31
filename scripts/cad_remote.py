@@ -97,7 +97,8 @@ def select_jobs(jobs, changed):
     while True:
         new = selected | {
             job_id for job_id, spec in jobs.items()
-            if set(spec["depends_on"]) & selected
+            if spec.get("rebuild_on_dependency_change", False)
+            and set(spec["depends_on"]) & selected
         }
         if new == selected:
             break
