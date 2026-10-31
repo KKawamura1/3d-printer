@@ -1,1 +1,1 @@
-"""Maintained 2x2x2 steep drop-hole part (S01)."""
+"""Maintained 2x2x3 steep drop-hole part (S01)."""
