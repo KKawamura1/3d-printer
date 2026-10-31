@@ -1,4 +1,4 @@
-"""SC02-V1: 4x4 right R48 downhill tunnel, one DUPLO-course drop.
+"""SC02-V2: 4x4 right R48 downhill tunnel, one DUPLO-course drop.
 
 Reuse the S01 open track for its rolling floor, trimmed footprint and three
 complete underside tubes. A separately lofted cover leaves that floor intact.
@@ -22,7 +22,7 @@ from parts.sloped_curve.design import (
 )
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "SC02-V1"
+PART_ID = "SC02-V2"
 TUBE_RADIUS = 6.60  # E31-05 trial; retention unvalidated on this curved base
 INNER_ROOF_ABOVE_FLOOR = 30.30
 MOUTH_LIP_MM = 1.0
@@ -52,7 +52,7 @@ def _outer_wire(t):
     """Cover overlaps S01's two rounded rail lips by 0.7mm."""
     z = _zshift(t)
     half = RAIL.width/2
-    base = RAIL.height + z - .7
+    base = RAIL.floor - .75  # overlap the curved running-floor solid
     top = RAIL.height + z + DROP
     wire = cq.Workplane('XZ').polyline([
         (RADIUS-half,base),(RADIUS+half,base),
@@ -99,20 +99,19 @@ def make_cover():
     stations = _stations()
     envelope = cq.Solid.makeLoft([_outer_wire(t) for t in stations], ruled=True)
     passage = cq.Solid.makeLoft([_passage_wire(t) for t in stations], ruled=True)
-    # Cut ONLY the cover: the established S01-V2 rolling floor is never recut.
-    cover = envelope.cut(passage)
+    # Passage Boolean cuts the merged solid to the same S01 floor datum.
     clipping = cq.Workplane('XY').box(
         63.8,63.8,90,centered=(True,True,False)).val()
-    return cover.intersect(clipping).intersect(curved_footprint()).clean()
+    return envelope.intersect(clipping).intersect(curved_footprint()).clean(), passage
 
 
 def build_part():
     base, p = build_curve(label=PART_ID, tube_diameter=2*TUBE_RADIUS)
-    cover = make_cover()
-    shape = base.fuse(cover).clean()
+    enclosure, passage = make_cover()
+    shape = base.fuse(enclosure).cut(passage).clean()
     shape = add_e31_05_receiver_features(shape, RETAINED_TUBES, TUBE_RADIUS)
     if not shape.isValid() or len(shape.Solids()) != 1:
-        raise ValueError('SC02-V1 requires one connected valid BRep')
+        raise ValueError('SC02-V2 requires one connected valid BRep')
     return shape, p
 
 
