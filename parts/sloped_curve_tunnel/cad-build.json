@@ -1,0 +1,8 @@
+{
+  "version": "SC02-V1",
+  "auto": true,
+  "command": ["python", "-m", "parts.sloped_curve_tunnel.design", "--out", "{out}"],
+  "stl": ["brick.stl"],
+  "timeout": 1200,
+  "description": "4x4 R48 right sloped curve tunnel with 19.2mm drop and circular-to-teardrop roof; issue #37 M31-05"
+}
