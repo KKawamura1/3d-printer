@@ -1,0 +1,15 @@
+{
+  "version": "D02-V2",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.downhill_open.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 2400
+}
