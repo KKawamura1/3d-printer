@@ -1,4 +1,4 @@
-"""C01-V1: right-hand open 90-degree DUPLO curve, 2x2 by one course.
+"""C01-V2: right-hand open 90-degree DUPLO curve, 2x2 by one course.
 
 The rolling centreline is a R16 quarter-circle, west entry to south exit.
 Static sphere clearance does not establish reliable rolling at this tight radius.
@@ -20,7 +20,7 @@ from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "C01-V1"
+PART_ID = "C01-V2"
 FIT_PROFILE_ID = "duplo-e27-play-v1"
 
 
@@ -35,7 +35,7 @@ class SharpCurve:
 
     def __post_init__(self):
         if abs(self.turn_radius - DUPLO.pitch) > 1e-6:
-            raise ValueError("C01-V1 is a 2x2 R16 curve")
+            raise ValueError("C01-V2 is a 2x2 R16 curve")
         if self.section_radius >= self.turn_radius - 1.6:
             raise ValueError("No space remains for the inside corner")
         if self.floor - self.receiver_depth < 1.6 - 1e-6:
@@ -136,7 +136,7 @@ def export(out=Path("build/sharp-curve")):
     curve = SharpCurve()
     shape, p = build_curve(curve)
     stl = out / "brick.stl"
-    cq.exporters.export(shape, str(stl), tolerance=.03, angularTolerance=.2)
+    cq.exporters.export(shape, str(stl), tolerance=.01, angularTolerance=.1)
 
     # Remove only triangles that have exactly collapsed after float32 export.
     raw = stl.read_bytes()
@@ -164,7 +164,7 @@ def export(out=Path("build/sharp-curve")):
         ball_path_clear=max(intersections) < VOLUME_TOL,
         oversized_ball_blocked=max(too_large) > VOLUME_TOL,
         receiver_tube_hole=not shape.isInside(cq.Vector(0,0,1)),
-        receiver_tube_wall=shape.isInside(cq.Vector(5.5,0,1)),
+        receiver_tube_wall=shape.isInside(cq.Vector(4.,4.,1)),
         stud_hollow=not shape.isInside(cq.Vector(8,8,22)),
         stud_wall=shape.isInside(cq.Vector(12.,8,22)),
         curve_floor=shape.isInside(cq.Vector(
