@@ -17,7 +17,7 @@ class SharpCurveTests(unittest.TestCase):
         cls.shape, cls.p = build_curve(cls.c)
 
     def test_footprint_and_revision(self):
-        self.assertEqual(PART_ID, "C01-V1")
+        self.assertEqual(PART_ID, "C01-V2")
         self.assertEqual((self.p.nx, self.p.ny), (2,2))
         self.assertAlmostEqual(self.p.height, DUPLO.height)
         self.assertAlmostEqual(self.c.turn_radius, 16.)
@@ -42,7 +42,7 @@ class SharpCurveTests(unittest.TestCase):
         self.assertAlmostEqual(self.p.tube_radius,6.60)
         self.assertEqual(self.p.cavity_xy,(25.4,25.4))
         self.assertFalse(self.shape.isInside(cq.Vector(0,0,1)))
-        self.assertTrue(self.shape.isInside(cq.Vector(5.5,0,1)))
+        self.assertTrue(self.shape.isInside(cq.Vector(4.,4.,1)))
         self.assertFalse(self.shape.isInside(cq.Vector(8,8,22)))
         self.assertTrue(self.shape.isInside(cq.Vector(12,8,22)))
         for x,y in [(-8,-8),(-8,8),(8,-8)]:
