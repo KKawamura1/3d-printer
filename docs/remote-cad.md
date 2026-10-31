@@ -57,7 +57,7 @@ YAMLや中央の巨大switch/caseを毎回編集する必要はない。
 cad-tunnel/
   T01-V2.stl
   T01-V2.report.json
-  T01-V2.preview.png      # STLの実データを間引いて4視点から描画
+  T01-V2.preview.png      # STL全三角形を4視点から陰影付きで描画
   manifest.json           # 元コミット、依存、サイズ、三角形数、hash
   SHA256SUMS.txt
 ```
