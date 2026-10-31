@@ -137,7 +137,9 @@ def choose(specs, order, changed=None, targets='changed', root=ROOT):
 
 def changed_paths(base, root=ROOT):
     if not base or set(base) == {'0'}:
-        raise ValueError('Valid base SHA required for changed mode')
+        # First push of a new branch has no previous branch commit.
+        base = subprocess.check_output(
+            ['git', 'merge-base', 'HEAD', 'origin/main'], cwd=root, text=True).strip()
     out = subprocess.check_output(
         ['git', 'diff', '--name-only', '-z', '--no-renames', f'{base}...HEAD'], cwd=root)
     return [p.decode('utf-8') for p in out.split(b'\0') if p]
