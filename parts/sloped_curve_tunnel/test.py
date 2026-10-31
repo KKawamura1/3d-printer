@@ -1,4 +1,4 @@
-"""Targeted geometry tests for SC02-V1 (Issue #37 M31-05)."""
+"""Targeted geometry tests for SC02-V2 (Issue #37 M31-05)."""
 import tempfile
 import unittest
 from pathlib import Path
