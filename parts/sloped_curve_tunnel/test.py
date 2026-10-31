@@ -45,7 +45,7 @@ class SlopedCurveTunnelTests(unittest.TestCase):
 
         # The same text cutter must intersect a plain wall (negative control)
         # but have zero volume overlap with the exported, engraved STEP solid.
-        width = self.report['geometry']['parameters']['width']
+        width = self.report['geometry']['bounds_mm'][0]
         plane = cq.Plane(origin=(-width/2+MARK_DEPTH, MARK_Y, MARK_Z),
                          xDir=(0,-1,0), normal=(-1,0,0))
         glyphs = (cq.Workplane(plane).text(
