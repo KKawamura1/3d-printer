@@ -204,6 +204,48 @@ def verify_stl(path):
             'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
 
 
+
+def png_dimensions(path):
+    """Quick PNG signature/IHDR check for cached previews (not visual review)."""
+    with path.open('rb') as image:
+        header = image.read(24)
+    if len(header) < 24 or header[:8] != b'\\x89PNG\\r\\n\\x1a\\n' or header[12:16] != b'IHDR':
+        raise ValueError(f'Invalid PNG preview: {path}')
+    width, height = struct.unpack('>II', header[16:24])
+    if not (0 < width <= 20000 and 0 < height <= 20000):
+        raise ValueError(f'Invalid PNG dimensions: {path}')
+    return width, height
+
+
+def snapshot_artifact(stl, destination, *, cached=False, root=ROOT):
+    """Attach a cheap four-view PNG for every selected STL, even on cache hits.
+
+    Reuse a validated preview from the versioned CAD cache whenever possible.
+    This does not regenerate STL or imply a manual visual/slicer inspection.
+    """
+    preview = stl.with_suffix('.preview.png')
+    reusable = cached and preview.is_file()
+    if reusable:
+        try:
+            png_dimensions(preview)
+        except ValueError:
+            reusable = False
+    if not reusable:
+        subprocess.run([
+            sys.executable, str(root / 'scripts/run-stage.py'),
+            '--name', 'stl-snapshot-' + stl.stem,
+            '--timeout', '300', '--artifact', str(preview), '--',
+            sys.executable, str(root / 'scripts/stl_snapshot.py'),
+            '--stl', str(stl), '--out', str(preview)
+        ], cwd=root, check=True)
+    width, height = png_dimensions(preview)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(preview, destination)
+    return {'bytes': destination.stat().st_size,
+            'sha256': hashlib.sha256(destination.read_bytes()).hexdigest(),
+            'width': width, 'height': height}
+
+
 def build(root, specs, requested, previews=False):
     root = root.resolve()
     nodes = resolve(root, specs, requested)
@@ -269,6 +311,12 @@ def build(root, specs, requested, previews=False):
             shutil.copyfile(source.parent / 'report.json', dst.parent / 'report.json')
             key = str(Path(name) / version / rel)
             manifest['files'][key] = verify_stl(dst)
+            snapshot_rel = Path(rel).with_suffix('.preview.png')
+            snapshot_dst = output / name / version / snapshot_rel
+            snapshot_info = snapshot_artifact(source, snapshot_dst, cached=cached, root=root)
+            manifest['files'][key]['preview'] = {
+                'path': str(Path(name) / version / snapshot_rel), **snapshot_info
+            }
             if previews and (source.parent / 'viewer.html').exists():
                 captured = root / 'build/cad-artifacts/previews' / name / version / Path(rel).parent
                 subprocess.run([sys.executable, str(root / 'scripts/run-stage.py'),

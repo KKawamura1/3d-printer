@@ -20,7 +20,7 @@ build/         中間生成物（Git管理外）
 
 ## バージョン固定のCAD生成（GitHub Actions）
 
-設計コードと小さな設定ファイルだけをpushする。重いSTL・STEP・プレビューは [CAD preview and print artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) で生成し、14日間保持される `cad-verified-stl` Artifactから取得する。実スライス・印刷・嵌合は別途確認する。
+設計コードと小さな設定ファイルだけをpushする。重いSTL・STEP・プレビューは [CAD preview and print artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) で生成し、14日間保持される `cad-verified-stl` Artifactから取得する。**生成対象のSTLには4方向の簡易画像（`*.preview.png`）が自動添付される。** `previews=true` を指定した手動実行では従来のChromiumによる詳細画像も追加できる。画像は形状の概観用であり、スライス・印刷・嵌合の検証ではない。
 
 **パーツ**は `parts/<name>/cad-build.json` の `version` を形状変更時に必ず上げる。push時の自動生成は、そのpushでバージョンが新規追加・変更された `auto:true` のパーツだけ。パーツ単位の `test.py` とCAD/メッシュ検証を実行する。README、テスト、旧STLやワークフローを修正しただけならSTLは再生成しない。バージョンを変えずにCADソース／設定を変更した場合はエラーとし、古いバージョンの形状を書き換えない。共通CADコードの変更でも影響を受ける各パーツのバージョン更新が必要。
 

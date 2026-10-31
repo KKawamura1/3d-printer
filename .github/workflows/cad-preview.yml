@@ -11,6 +11,8 @@ on:
       - 'requirements.txt'
       - 'scripts/cad-artifacts.py'
       - 'scripts/cad_versions.py'
+      - 'scripts/stl_snapshot.py'
+      - 'scripts/test_stl_snapshot.py'
       - 'scripts/test_cad_versions.py'
       - 'scripts/cad-capture.cjs'
       - 'scripts/test_cad_artifacts.py'
@@ -73,6 +75,9 @@ jobs:
       - name: Install CAD dependencies
         if: steps.plan.outputs.has_models == 'true'
         run: pip install -r requirements.txt
+      - name: Test STL snapshot rendering
+        if: steps.plan.outputs.has_models == 'true'
+        run: python -m unittest discover -s scripts -p test_stl_snapshot.py -v
       - uses: actions/setup-node@v4
         if: steps.plan.outputs.has_models == 'true' && inputs.previews == true
         with:
