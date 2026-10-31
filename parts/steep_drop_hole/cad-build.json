@@ -1,0 +1,16 @@
+{
+  "version": "S01-V1",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.steep_drop_hole.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "DUPLO 2x2x2 open-top upper-west to lower-east ball drop; E31-05 underside, no top studs"
+}
