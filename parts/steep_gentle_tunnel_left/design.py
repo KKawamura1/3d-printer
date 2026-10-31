@@ -123,7 +123,20 @@ def build_part(label=PART_ID):
     # Keep the mark on the solid west inlet wall, not in the shallow
     # underside receiver band (the tiny V3 letters did not create enough
     # valid recessed volume after the chamber was opened).
-    body=engrave_west(body,label,x=-p.width/2,y=y,z=12.,size=2.,depth=.45)
+    # Diagnose a rejected engraving without confusing a bad BRep with a
+    # placement or letter-size issue.
+    try:
+        body=engrave_west(body,label,x=-p.width/2,y=y,z=12.,size=2.,depth=.45)
+    except ValueError as exc:
+        pl=cq.Plane(origin=(-p.width/2+.45,y,12.),xDir=(0,-1,0),normal=(-1,0,0))
+        cutter=(cq.Workplane(pl).text(label,2.,.50,
+                  font='DejaVu Sans',kind='bold',combine=False).val())
+        cut=body.cut(cutter).clean()
+        raise ValueError(
+            f'{exc}; pre=(valid={body.isValid()},solids={len(body.Solids())},'
+            f'volume={body.Volume():.3f}); post=(valid={cut.isValid()},'
+            f'solids={len(cut.Solids())},delta={body.Volume()-cut.Volume():.3f})'
+        ) from exc
     if not body.isValid() or len(body.Solids())!=1:raise ValueError('Expected one valid connected solid')
     return body,p
 
