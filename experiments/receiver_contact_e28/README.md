@@ -21,15 +21,15 @@
 
 必要であれば印刷品の凸外周に落とせる水性マーカーを薄く塗り、乾燥させてから純正凹・印刷凹に1度ずつ入れて擦れた箇所を観察する。マーカー膜と摩擦が結果を変え得るので定量的な証明とは扱わない。溶剤や強い押し込みは避ける。
 
-## STL生成（手動・対象実験だけ）
+## STL生成（版の追加・変更時に自動生成）
 
 リポジトリの [CAD preview and print artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) で Run workflow を使う。
 
-- branch: このPRの experiments/e28-receiver-contact
+- branch: このPRの experiments/e28-receiver-contact（手動再実行する場合）
 - targets: experiments/receiver_contact_e28
 - previews: false（必要になったときだけtrue）
 
-pushで実験生成を自動実行することはない。成果物は14日間保持の cad-verified-stl Artifact 内に配置する。
+E28は `auto:true`。新規実験の追加・バージョン更新時にE28だけをpushから自動生成する。READMEやテストのみの変更、バージョン未変更の場合はSTLを再生成しない。手動 `targets=experiments/receiver_contact_e28` でも再生成できる。成果物は14日間保持の cad-verified-stl Artifact 内に配置する。
 
 - 一括印刷：experiments/receiver_contact_e28/E28-V1/E28-plate.stl
 - 個別印刷：同ディレクトリ以下の E28-01/brick.stl 〜 E28-04/brick.stl

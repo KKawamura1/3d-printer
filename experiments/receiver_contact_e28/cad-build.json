@@ -1,6 +1,6 @@
 {
   "version": "E28-V1",
-  "auto": false,
+  "auto": true,
   "command": [
     "python",
     "-m",

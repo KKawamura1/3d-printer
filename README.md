@@ -22,9 +22,9 @@ build/         中間生成物（Git管理外）
 
 設計コードと小さな設定ファイルだけをpushする。重いSTL・STEP・プレビューは [CAD preview and print artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) で生成し、14日間保持される `cad-verified-stl` Artifactから取得する。**生成対象のSTLには4方向の簡易画像（`*.preview.png`）が自動添付される。** `previews=true` を指定した手動実行では従来のChromiumによる詳細画像も追加できる。画像は形状の概観用であり、スライス・印刷・嵌合の検証ではない。
 
-**パーツ**は `parts/<name>/cad-build.json` の `version` を形状変更時に必ず上げる。push時の自動生成は、そのpushでバージョンが新規追加・変更された `auto:true` のパーツだけ。パーツ単位の `test.py` とCAD/メッシュ検証を実行する。README、テスト、旧STLやワークフローを修正しただけならSTLは再生成しない。バージョンを変えずにCADソース／設定を変更した場合はエラーとし、古いバージョンの形状を書き換えない。共通CADコードの変更でも影響を受ける各パーツのバージョン更新が必要。
+**パーツ**は `parts/<name>/cad-build.json` の `version` を形状変更時に必ず上げる。push時の自動生成は、そのpushでバージョンが新規追加・変更された `auto:true` のパーツだけ。パーツ単位の `test.py` とCAD/メッシュ検証を実行する。README、テスト、旧STLやワークフローを修正しただけならSTLは再生成しない。`auto` フラグだけの変更も形状変更とみなさず、バージョンを上げずに切り替えられる。バージョンを変えずにCADソース／設定を変更した場合はエラーとし、古いバージョンの形状を書き換えない。共通CADコードの変更でも影響を受ける各パーツのバージョン更新が必要。
 
-**実験**は `experiments/<name>/cad-build.json` に独立した `version` を持たせ、必ず `auto:false` とする。実験はpushだけでは生成せず、必要なときに手動で実行する。既存パーツを使う場合、`requires` にターゲットと**明示的なバージョン**を指定する。古いバージョンを指している場合、対応するGitコミットの設計コードを隔離checkoutして再現する。既存パーツを使わず、実験自身の `command` で寸法・形状を直接定義することもできる。
+**実験**も `experiments/<name>/cad-build.json` に独立した `version` を持たせ、既定で `auto:true` とする。実験自身の新規追加・バージョン更新時のみpushで自動生成し、参照先パーツのバージョン更新だけでは再生成しない。既存パーツを使う場合、`requires` にターゲットと**明示的なバージョン**を指定する。古いバージョンを指している場合、対応するGitコミットの設計コードを隔離checkoutして再現する。既存パーツを使わず、実験自身の `command` で寸法・形状を直接定義することもできる。
 
 パーツの例：
 
@@ -43,7 +43,7 @@ build/         中間生成物（Git管理外）
 ```json
 {
   "version": "X07-V1",
-  "auto": false,
+  "auto": true,
   "requires": [{"target": "parts/tunnel", "version": "T01-V2"}],
   "command": ["python", "-m", "experiments.sample.design", "--out", "{out}", "--parts-root", "{deps}/parts"],
   "stl": ["brick.stl"]
@@ -52,7 +52,7 @@ build/         中間生成物（Git管理外）
 
 `{out}` は対象バージョン専用の生成先、`{deps}` は指定版の依存パーツが配置されるディレクトリ。新しいパーツ／実験を追加するとき、YAMLの固定ターゲット一覧を増やす必要はない。1つの実行内で同じパーツの異なる2版を要求する構成は現在非対応で、明示的にエラーになる。
 
-手動生成ではGitHub Actionsの **Run workflow** で対象ブランチを選び、`targets=parts/play_set` や `targets=experiments/pr20_comparison` を指定する。`targets=all` は自動対象パーツだけを列挙する。実験や8個セットは意図的に指定したときだけ生成する。`previews=true` でChromium画像もArtifactに追加できるが、撮影成功を人間の目視確認済みとは扱わない。
+手動生成ではGitHub Actionsの **Run workflow** で対象ブランチを選び、`targets=parts/play_set` や `targets=experiments/pr20_comparison` を指定する。`targets=all` は `auto:true` のパーツと実験を列挙する。`auto:false` を明示した8個セットなどは指定したときだけ生成する。`previews=true` でChromium画像もArtifactに追加できるが、撮影成功を人間の目視確認済みとは扱わない。
 
 生成済みのSTL・STEPと検証結果はバージョン別にGitHub Actionsキャッシュで可能な限り再利用する。キャッシュがない場合も、同一版の過去の設計コミットから再生成できる。キャッシュ・Artifactはいずれも永続保管を保証しないため、採用確定した印刷用STLは別途保管する。
 
@@ -93,6 +93,6 @@ python scripts/ci-tests.py --base <base-sha> --plan
 python scripts/ci-tests.py --base <base-sha>
 ```
 
-CAD変更時は対象モデルを生成し、そのviewerで形状を確認する。[環境構築・ブラウザ確認](docs/new-session.md) と [検証の範囲](docs/design.md) を参照。PRの自動CADワークフローは版が更新された継続パーツだけを生成し、実験と大きな組立セットは手動で生成する。
+CAD変更時は対象モデルを生成し、そのviewerで形状を確認する。[環境構築・ブラウザ確認](docs/new-session.md) と [検証の範囲](docs/design.md) を参照。push時のCADワークフローは、版が更新された `auto:true` のパーツと実験のみ生成する。参照先の変更では依存する実験を再生成せず、`auto:false` の大きな組立セットは手動で生成する。
 
 CADの検証合格と、実物の嵌合・保持力の確認は区別する。過去の `examples/`・`prints/` はパーツ／実験へ統合した。旧ファイルと生成レポートはGit履歴に残る。[移行対応表](docs/repository-layout.md) を参照。

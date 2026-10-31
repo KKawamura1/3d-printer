@@ -1,5 +1,5 @@
-"""Versioned CAD generator. Only version bumps of maintained parts build on push.
-Experiments are always manual; dependencies refer to immutable historical versions.
+"""Versioned CAD generator. Changed versions of parts and experiments build on push.
+Pinned dependencies do not cause reverse rebuilds; historical versions remain immutable.
 """
 import argparse
 import ast
@@ -50,10 +50,8 @@ def check(name, spec):
             raise ValueError(f'{name}: invalid dependency target')
         if not isinstance(revision, str) or not VERSION.fullmatch(revision):
             raise ValueError(f'{name}: invalid dependency version')
-    if not isinstance(spec.get('auto', name.startswith('parts/')), bool):
+    if not isinstance(spec.get('auto', True), bool):
         raise ValueError(f'{name}: invalid auto flag')
-    if name.startswith('experiments/') and spec.get('auto', False):
-        raise ValueError(f'{name}: experiments must be manual')
     if not isinstance(spec.get('timeout', 1200), int) or spec.get('timeout', 1200) <= 0:
         raise ValueError(f'{name}: invalid timeout')
     return spec
@@ -92,7 +90,7 @@ def imports_for(file, root, seen=None):
     return seen
 
 
-def source_fingerprint(root, name):
+def source_fingerprint(root, name, *, auto_override=None):
     """Fingerprint model source, transitive Python imports and shared CAD inputs."""
     relevant = imports_for(name + '/design.py', root)
     relevant.update(p.relative_to(root).as_posix() for p in (root / name).glob('*.py'))
@@ -103,21 +101,31 @@ def source_fingerprint(root, name):
     for rel in sorted(relevant):
         if (root / rel).is_file():
             digest.update(rel.encode() + bytes([0]))
-            digest.update((root / rel).read_bytes())
+            data = (root / rel).read_bytes()
+            if rel == name + '/cad-build.json' and auto_override is not None:
+                # Reproduce the cache fingerprint from before the auto flag migration.
+                data = re.sub(rb'("auto"\s*:\s*)(?:true|false)',
+                              lambda m: m.group(1) + (b'true' if auto_override else b'false'),
+                              data)
+            digest.update(data)
     return digest.hexdigest()
 
 
-def prior_version(root, base, name):
+def prior_config(root, base, name):
     try:
-        old = json.loads(git(root, 'show', f'{base}:{name}/cad-build.json'))
-        return old.get('version')
+        return json.loads(git(root, 'show', f'{base}:{name}/cad-build.json'))
     except subprocess.CalledProcessError:
         return None
 
 
-def select(specs, target, *, changed=(), prior=None, root=None):
+def prior_version(root, base, name):
+    old = prior_config(root, base, name)
+    return old.get('version') if old else None
+
+
+def select(specs, target, *, changed=(), prior=None, root=None, prior_specs=None):
     if target == 'all':
-        return sorted(n for n,s in specs.items() if s.get('auto', n.startswith('parts/')))
+        return sorted(n for n,s in specs.items() if s.get('auto', True))
     if target != 'changed':
         requested = [x.strip() for x in target.split(',') if x.strip()]
         invalid = set(requested) - specs.keys()
@@ -137,9 +145,17 @@ def select(specs, target, *, changed=(), prior=None, root=None):
                          for p in changed)
         imported = changed.intersection(imports_for(name + '/design.py', root) - {name + '/design.py'}) if root else set()
         config_changed = name + '/cad-build.json' in changed
-        if old is not None and not bumped and (local_code or imported or config_changed):
+        previous_spec = (prior_specs or {}).get(name)
+        # auto controls scheduling, not geometry or a CAD revision.
+        geometry_config_changed = config_changed and (
+            previous_spec is None or
+            {k: v for k, v in previous_spec.items() if k != 'auto'} !=
+            {k: v for k, v in spec.items() if k != 'auto'}
+        )
+        if old is not None and not bumped and (local_code or imported or geometry_config_changed):
             errors.append(f'{name}@{old}: design changed without version bump')
-        if bumped and spec.get('auto', name.startswith('parts/')):
+        # Referencing an updated part never selects its unchanged dependents.
+        if bumped and spec.get('auto', True):
             selected.append(name)
     if errors:
         raise ValueError('Version bump required: ' + '; '.join(errors))
@@ -272,7 +288,14 @@ def build(root, specs, requested, previews=False):
             try:
                 identity = json.loads(stamp.read_text())
                 if identity.get('version') == version and identity.get('source_sha256') != fingerprint:
-                    raise ValueError(f'{name}@{version}: cached source fingerprint changed without version bump')
+                    # Only allow reuse if the former cache differs by auto:false alone.
+                    legacy = (source_fingerprint(checkout, name, auto_override=False)
+                              if name.startswith('experiments/') and spec.get('auto', True)
+                              else None)
+                    if identity.get('source_sha256') != legacy:
+                        raise ValueError(f'{name}@{version}: cached source fingerprint changed without version bump')
+                    identity['source_sha256'] = fingerprint
+                    stamp.write_text(json.dumps(identity, indent=2) + chr(10))
                 cached = identity.get('version') == version and all(
                     (out / rel).exists() and
                     json.loads((out / rel).parent.joinpath('report.json').read_text()).get('passed') is True and
@@ -348,8 +371,11 @@ def main():
             base = git(root, 'merge-base', 'HEAD', 'origin/main').decode().strip()
         paths = git(root, 'diff', '--name-only', '-z', '--no-renames', base, 'HEAD')
         changed = [x.decode() for x in paths.split(bytes([0])) if x]
-        prior = {name: prior_version(root, base, name) for name in specs}
-        selected = select(specs, args.targets, changed=changed, prior=prior, root=root)
+        prior_specs = {name: prior_config(root, base, name) for name in specs}
+        prior = {name: old.get('version') if old else None
+                 for name, old in prior_specs.items()}
+        selected = select(specs, args.targets, changed=changed, prior=prior,
+                          root=root, prior_specs=prior_specs)
     else:
         selected = select(specs, args.targets)
     print('CAD selected:', ', '.join(selected) or '(none)', flush=True)
