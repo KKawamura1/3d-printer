@@ -16,6 +16,7 @@ import uuid
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--name', required=True)
+    parser.add_argument('--cwd', type=Path, default=None)
     parser.add_argument('--log-root', type=Path, default=Path('build/stages'))
     parser.add_argument('--timeout', type=float, default=600)
     parser.add_argument('--heartbeat', type=float, default=15)
@@ -69,7 +70,7 @@ def main():
     emit('start', command=command, cwd=str(Path.cwd()), timeout_s=args.timeout)
     try:
         with output_path.open('wb') as output:
-            child = subprocess.Popen(command, stdout=output, stderr=subprocess.STDOUT,
+            child = subprocess.Popen(command, cwd=args.cwd, stdout=output, stderr=subprocess.STDOUT,
                                      start_new_session=True,
                                      env={**os.environ, 'PYTHONUNBUFFERED': '1'})
             emit('spawned', pid=child.pid)
