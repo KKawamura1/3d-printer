@@ -28,12 +28,47 @@ class VersionSelectionTests(unittest.TestCase):
                                     changed=['parts/alpha/cad-build.json']),
                          ['parts/alpha'])
 
-    def test_experiment_never_autoruns_even_when_bumped(self):
+    def test_experiment_version_bump_autobuilds(self):
+        self.specs['experiments/trial']['auto'] = True
+        self.prior['parts/alpha'] = 'A02-V1'
+        self.assertEqual(cad.select(self.specs, 'changed', prior=self.prior,
+                                    changed=['experiments/trial/cad-build.json']),
+                         ['experiments/trial'])
+        self.assertEqual(cad.select(self.specs, 'all'),
+                         ['experiments/trial', 'parts/alpha', 'parts/beta'])
+        self.assertEqual(cad.select(self.specs, 'experiments/trial'), ['experiments/trial'])
+
+    def test_pinned_experiment_is_independent_of_part_updates(self):
+        self.specs['experiments/trial'] = spec('X01-V1', auto=True,
+            requires=[{'target': 'parts/alpha', 'version': 'A01-V1'}])
+        self.prior['experiments/trial'] = 'X01-V1'
+        # A -> A': only A' is selected; neither a(A) nor a(A') is built.
+        self.assertEqual(cad.select(self.specs, 'changed', prior=self.prior,
+                                    changed=['parts/alpha/design.py',
+                                             'parts/alpha/cad-build.json']),
+                         ['parts/alpha'])
+        # a -> a': a'(A) is selected, not A' or the earlier a(A).
+        self.prior['parts/alpha'] = 'A02-V1'
+        self.specs['experiments/trial']['version'] = 'X02-V1'
+        self.assertEqual(cad.select(self.specs, 'changed', prior=self.prior,
+                                    changed=['experiments/trial/cad-build.json']),
+                         ['experiments/trial'])
+        self.assertEqual(self.specs['experiments/trial']['requires'][0]['version'],
+                         'A01-V1')
+
+    def test_auto_only_change_does_not_bump_or_rebuild(self):
+        self.prior['parts/alpha'] = 'A02-V1'
+        self.prior['experiments/trial'] = 'X01-V1'
+        previous = spec('X01-V1', auto=False)
+        self.specs['experiments/trial']['auto'] = True
+        self.assertEqual(cad.select(self.specs, 'changed', prior=self.prior,
+                                    prior_specs={'experiments/trial': previous},
+                                    changed=['experiments/trial/cad-build.json']), [])
+
+    def test_explicit_opt_out(self):
         self.prior['parts/alpha'] = 'A02-V1'
         self.assertEqual(cad.select(self.specs, 'changed', prior=self.prior,
                                     changed=['experiments/trial/cad-build.json']), [])
-        self.assertEqual(cad.select(self.specs, 'all'), ['parts/alpha', 'parts/beta'])
-        self.assertEqual(cad.select(self.specs, 'experiments/trial'), ['experiments/trial'])
 
     def test_unbumped_geometry_edit_fails_instead_of_stale_output(self):
         with self.assertRaisesRegex(ValueError, 'parts/beta'):
@@ -48,13 +83,16 @@ class VersionSelectionTests(unittest.TestCase):
                                              'parts/beta/test.py',
                                              'scripts/cad_versions.py']), [])
 
-    def test_pin_required_and_experiment_not_auto(self):
+    def test_pin_required_and_experiment_auto_allowed(self):
         with self.assertRaisesRegex(ValueError, 'pin'):
             cad.check('experiments/trial', spec('X01-V1', requires=['parts/alpha']))
-        with self.assertRaisesRegex(ValueError, 'manual'):
-            cad.check('experiments/trial', spec('X01-V1', auto=True))
+        self.assertTrue(cad.check('experiments/trial', spec('X01-V1', auto=True))['auto'])
         self.assertEqual(cad.check('experiments/trial',
                                    spec('X01-V1', auto=False))['requires'], [])
+        defaulted = spec('X01-V1')
+        del defaulted['auto']
+        self.assertEqual(cad.select({'experiments/trial': defaulted}, 'all'),
+                         ['experiments/trial'])
         with self.assertRaises(ValueError):
             cad.check('parts/alpha', spec('bad version'))
 
@@ -78,6 +116,21 @@ class VersionSelectionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'parts/alpha'):
             cad.select(self.specs, 'changed', prior=self.prior,
                        changed=['parts/alpha/cad-build.json'])
+
+    def test_original_cache_fingerprint_survives_auto_only_migration(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            experiment = root / 'experiments/trial'
+            experiment.mkdir(parents=True)
+            cfg = spec('X01-V1', auto=False)
+            (experiment / 'cad-build.json').write_text(json.dumps(cfg, indent=2))
+            (experiment / 'design.py').write_text('MODEL = 1\n')
+            original = cad.source_fingerprint(root, 'experiments/trial')
+            cfg['auto'] = True
+            (experiment / 'cad-build.json').write_text(json.dumps(cfg, indent=2))
+            self.assertNotEqual(original, cad.source_fingerprint(root, 'experiments/trial'))
+            self.assertEqual(original, cad.source_fingerprint(
+                root, 'experiments/trial', auto_override=False))
 
     def test_source_fingerprint_changes_with_geometry(self):
         with tempfile.TemporaryDirectory() as tmp:
