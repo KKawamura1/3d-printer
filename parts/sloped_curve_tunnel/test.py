@@ -1,4 +1,4 @@
-"""Targeted geometry tests for SC02-V2 (Issue #37 M31-05)."""
+"""Targeted geometry tests for SC02-V3 (Issue #37 M31-05)."""
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,7 +8,7 @@ import cadquery as cq
 from brickcad.verify import intersection, VOLUME_TOL
 from parts.sloped_curve_tunnel.design import (
     PART_ID, BALL, DROP, RADIUS, RETAINED_TUBES,
-    _roof_probe, ball_centre, export, ports,
+    CLIPPED_RECEIVER_TUBES, TOP_Z, _roof_probe, ball_centre, export, ports,
 )
 
 
@@ -50,10 +50,28 @@ class SlopedCurveTunnelTests(unittest.TestCase):
         self.assertGreater(intersection(self.shape, cq.Solid.makeSphere(
             BALL/2,ball_centre(.5)-cq.Vector(0,0,2),angleDegrees1=-90)), VOLUME_TOL)
 
+    def test_flat_top_and_clipped_top_studs(self):
+        self.assertEqual(self.report['top']['plane_z_mm'], TOP_Z)
+        self.assertAlmostEqual(self.report['geometry']['bounds_mm'][2], TOP_Z+4.5, delta=.03)
+        self.assertTrue(self.report['checks']['flat_top'])
+        self.assertTrue(self.report['checks']['ten_top_stud_centres'])
+        self.assertFalse(self.report['top']['physical_fit_validated'])
+        self.assertEqual(sum(self.shape.isInside(cq.Vector(x,y,TOP_Z+1))
+                             for x in (-24,-8,8,24) for y in (-24,-8,8,24)), 10)
+        # The two unsupported corners stay empty, not full square plates.
+        for x,y in [(-24,24),(24,-24)]:
+            self.assertFalse(self.shape.isInside(cq.Vector(x,y,TOP_Z-1)))
+
     def test_corner_removal_and_receiver(self):
         for x,y in [(-24.,24.),(24.,-24.),(-16.,16.)]:
             self.assertFalse(self.shape.isInside(cq.Vector(x,y,1)))
         self.assertEqual(len(RETAINED_TUBES), 3)
+        self.assertEqual(len(CLIPPED_RECEIVER_TUBES), 4)
+        self.assertEqual(len(self.report['receiver_supports']['clipped_tubes']), 4)
+        self.assertFalse(self.report['receiver_supports']['vertical_cut_edge_fillets'])
+        self.assertFalse(self.report['receiver_supports']['physical_support_and_fit_validated'])
+        for x,y in CLIPPED_RECEIVER_TUBES:
+            self.assertTrue(self.shape.isInside(cq.Vector(x+5.7,y,1.)),(x,y))
         self.assertEqual(self.report['e31_05']['split_slots'], 4)
         self.assertFalse(self.report['e31_05']['physical_transfer_validated'])
         self.assertAlmostEqual(self.report['e31_05']['tube_od_mm'], 13.2)

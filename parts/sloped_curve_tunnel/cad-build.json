@@ -1,5 +1,5 @@
 {
-  "version": "SC02-V2",
+  "version": "SC02-V3",
   "auto": true,
   "command": ["python", "-m", "parts.sloped_curve_tunnel.design", "--out", "{out}"],
   "stl": ["brick.stl"],
