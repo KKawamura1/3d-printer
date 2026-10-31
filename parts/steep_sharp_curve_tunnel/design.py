@@ -1,4 +1,4 @@
-"""S02-V7: enclosed 2x2x3 sharp-right-turn steep drop tunnel.
+"""S02-V8: enclosed 2x2x3 sharp-right-turn steep drop tunnel.
 
 Uses PR36's west-to-south port arrangement and PR38 S01-V5's roofed steep
 drop with a 0.65 southward exit ramp. Because a complete R16 arc cannot
@@ -23,7 +23,7 @@ from parts.sharp_curve.design import SharpCurve
 from parts.steep_drop_hole.design import SteepDrop, ramp_normal_clearance
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "S02-V7"
+PART_ID = "S02-V8"
 SOURCE_CURVE_ID = "C01-V5"
 SOURCE_DROP_ID = "S01-V5"
 SHAFT_X = 0.0
@@ -62,9 +62,9 @@ def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), curve=SharpCurve(),
     if d.shaft_radius <= BALL_TRACK.ball_diameter / 2:
         raise ValueError("Shaft too narrow for the ball")
     if not .0 < d.ramp_grade <= .7 or d.ramp_end_x != 13.:
-        raise ValueError("S02-V7 requires a supported S01-V5 steep exit")
+        raise ValueError("S02-V8 requires a supported S01-V5 steep exit")
     if abs(d.ramp_grade - .65) > 1e-8:
-        raise ValueError("S02-V7 must use the S01-V5 33-degree ramp")
+        raise ValueError("S02-V8 must use the S01-V5 33-degree ramp")
     if not -15. <= d.ramp_start_x < d.shaft_x < d.ramp_end_x:
         raise ValueError("Ramp start must precede the landing and exit")
     if d.ramp_grade * (d.ramp_end_x - d.ramp_start_x) > d.drop - 1. + 1e-9:

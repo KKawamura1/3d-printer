@@ -1,4 +1,4 @@
-"""S02-V7: check the two-source 90-degree steep drop tunnel."""
+"""S02-V8: check the two-source 90-degree steep drop tunnel."""
 import unittest
 import cadquery as cq
 
@@ -20,7 +20,7 @@ class SteepSharpCurveTunnelTests(unittest.TestCase):
 
     def test_grid_roof_studs_and_revision(self):
         self.assertEqual((PART_ID, SOURCE_CURVE_ID, SOURCE_DROP_ID),
-                         ("S02-V7", "C01-V5", "S01-V5"))
+                         ("S02-V8", "C01-V5", "S01-V5"))
         self.assertEqual((self.p.nx, self.p.ny), (2, 2))
         self.assertAlmostEqual(self.p.height, 3 * DUPLO.height)
         self.assertTrue(self.shape.isValid())
