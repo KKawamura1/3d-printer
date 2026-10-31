@@ -1,8 +1,8 @@
-"""C02-V2: enclosed 2x2x2 R16 right-angle tunnel companion to C01-V2.
+"""C02-V3: 2x2x2 horizontal right-turn tunnel with a widened central chamber.
 
-The running surface is the same quarter-torus as C01-V2. A second DUPLO
-course provides a real ceiling and supports all four top studs.
-CAD clearance is not evidence that a ball will carry momentum through R16.
+C02-V2 passed nominal ball clearance but a real printed ball stalled in the bend.
+This revision retains circular ports and the original R16 groove while relieving
+the central pinch with a broad, domed turning chamber. Physical retest required.
 """
 from dataclasses import asdict, replace
 from pathlib import Path
@@ -21,8 +21,8 @@ from brickcad.verify import exact_bounds, mesh_check, VOLUME_TOL
 from parts.sharp_curve.design import SharpCurve, _curve_cut, ball_intersections, ports
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "C02-V2"
-SOURCE_CURVE_ID = "C01-V2"
+PART_ID = "C02-V3"
+SOURCE_CURVE_ID = "C01-V5"
 FIT_PROFILE_ID = "duplo-e27-play-v1"
 BODY_COURSES = 2
 # Inner roof is raised locally, keeping the circular end openings unchanged.
@@ -30,6 +30,10 @@ BODY_COURSES = 2
 # 3.4 mm of roof at the highest point.
 ROOF_DOME_RADIUS = 10.5
 ROOF_DOME_CENTER_Z = 24.5
+# 26.5 mm wide central turning room, entirely within the 31.8 mm body.
+# Leaves a 2.65 mm exterior wall and >=1.6 mm above the underside receiver.
+CHAMBER_RADIUS = 13.25
+CHAMBER_CAP_Z = 21.0
 
 
 def _engrave_north(shape, label, width):
@@ -49,7 +53,7 @@ def _engrave_north(shape, label, width):
 
 
 def build_tunnel(curve=SharpCurve(), *, label=PART_ID):
-    """Same west-to-south R16 channel as C01; add roof, not a new rail profile."""
+    """Preserve the circular ports and R16 groove, widen the central turn."""
     p = replace(brick_from_fit(FIT_PROFILE_ID, nx=2, ny=2,
                                height_units=BODY_COURSES), tube_radius=6.60)
     outer = (cq.Workplane("XY")
@@ -68,6 +72,26 @@ def build_tunnel(curve=SharpCurve(), *, label=PART_ID):
     # The spherical cap intersects the torus only inside the bend.
     # At the west/south mouths the original circular profile is untouched.
     body = body.cut(dome).clean()
+    # The real C02-V2 print jammed despite nominal R16 ball-clearance checks.
+    # At 2x2 size a tightly swept torus gives almost no usable lateral freedom.
+    # Cut a 26.5 mm-wide room around the turning corner: its flat floor is at
+    # the standard 6.35 mm rail datum, with a hemispherical upper roof rather
+    # than a large unsupported horizontal bridge. The chamber radius stays
+    # 2.65 mm inside each outer face and never reaches either edge opening,
+    # so both circular mouths and the receiver remain unchanged.
+    if CHAMBER_RADIUS > min(p.width, p.depth) / 2 - DUPLO.roof:
+        raise ValueError("Turning chamber would break through an external wall")
+    if CHAMBER_CAP_Z + CHAMBER_RADIUS > p.height - DUPLO.roof:
+        raise ValueError("Turning chamber would leave an insufficient roof")
+    if curve.floor - curve.receiver_depth < DUPLO.roof:
+        raise ValueError("Turning chamber would remove the receiver floor")
+    chamber_lower = cq.Solid.makeCylinder(
+        CHAMBER_RADIUS, CHAMBER_CAP_Z - curve.floor,
+        cq.Vector(0, 0, curve.floor))
+    chamber_cap = cq.Solid.makeSphere(
+        CHAMBER_RADIUS, cq.Vector(0, 0, CHAMBER_CAP_Z),
+        angleDegrees1=0, angleDegrees2=90)
+    body = body.cut(chamber_lower).cut(chamber_cap).clean()
     studs = make_studs(p.studs(), p.height, p.stud_radius,
                        p.stud_inner_radius, p.stud_height,
                        ROUNDED_EDGES.stud_lip_radius).val()
@@ -130,6 +154,11 @@ def export(out=Path("build/sharp-curve-tunnel")):
         curve_floor=shape.isInside(cq.Vector(
             -16+curve.turn_radius/math.sqrt(2),
             -16+curve.turn_radius/math.sqrt(2), curve.floor-.15)),
+        chamber_floor=shape.isInside(cq.Vector(0,0,curve.floor-.15)),
+        chamber_open_at_12_5=not shape.isInside(cq.Vector(0,12.5,20.)),
+        chamber_north_wall=shape.isInside(cq.Vector(0,14.2,20.)),
+        chamber_east_wall=shape.isInside(cq.Vector(14.2,0,20.)),
+        chamber_roof=shape.isInside(cq.Vector(0,0,p.height-1.)),
     )
     report = dict(
         schema_version=1, kind="duplo-sharp-curve-tunnel",
@@ -144,6 +173,14 @@ def export(out=Path("build/sharp-curve-tunnel")):
                   dome_radius_mm=ROOF_DOME_RADIUS,
                   dome_center_z_mm=ROOF_DOME_CENTER_Z,
                   all_four_studs=True),
+        turning_chamber=dict(
+            type="cylindrical_floor_hemispherical_roof",
+            radius_mm=CHAMBER_RADIUS,
+            diameter_mm=2*CHAMBER_RADIUS,
+            dome_equator_z_mm=CHAMBER_CAP_Z,
+            lowest_floor_z_mm=curve.floor,
+            nominal_min_side_wall_mm=min(p.width,p.depth)/2-CHAMBER_RADIUS,
+            physical_rolling_validated=False),
         mesh=mesh, collapsed_stl_triangles_removed=collapsed,
         ball_intersections_mm3=path,
         oversized_ball_intersections_mm3=oversize,
@@ -153,8 +190,10 @@ def export(out=Path("build/sharp-curve-tunnel")):
         physical_rolling_validated=False,
         slicing_validated=False,
         limitations=[
-            "Very tight R16 curve: a collision-free ball may still stop or jam.",
-            "Circular mouths, with a spherical roof relief near the middle of the bend.",
+            "C02-V2 physically jammed in the bend; C02-V3 is an unprinted corrective prototype.",
+            "A widened room improves geometric freedom, but impact/friction may still stop the ball.",
+            "The 26.5 mm chamber is joined to circular mouths; inspect transitions for ledges.",
+            "Hemispherical chamber roof and internal floor need support-free slicer inspection.",
             "Roof and underside bridge/overhang require Bambu Studio slicing.",
             "E31-05 receiver is a transferred trial, not physically verified here.",
             "Static sphere samples and manifold STL do not prove rolling.",
