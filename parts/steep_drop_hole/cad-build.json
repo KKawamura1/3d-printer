@@ -1,0 +1,16 @@
+{
+  "version": "S01-V5",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.steep_drop_hole.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "DUPLO 2x2x3 roofed steep-drop: 33deg 1:1.54 downhill run-out, 9.75mm landing-to-exit drop, E31-05 underside"
+}
