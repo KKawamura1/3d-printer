@@ -49,9 +49,12 @@ def select(changed):
         if path.startswith(('parts/', 'experiments/')) and path.endswith('.json') and len(path.split('/')) == 3:
             owner = '/'.join(path.split('/')[:2]) + '/design.py'
             changed.add(owner)
-    # Unknown/new CAD code and shared config fail open to the full suite.
-    if any(p.startswith('profiles/') or p in ('requirements.txt', 'brickcad/__init__.py',
-           'scripts/ci-tests.py', '.github/workflows/cad.yml') or
+    # CI plumbing changes validate the selector itself, not every historical CAD
+    # model. The workflow separately runs lightweight version/report tests.
+    if {'scripts/ci-tests.py', '.github/workflows/cad.yml'} & changed:
+        changed.add('tests/test_ci_selection.py')
+    # Unknown/new CAD code and shared geometry inputs still fail open.
+    if any(p.startswith('profiles/') or p in ('requirements.txt', 'brickcad/__init__.py') or
            (p.startswith(('brickcad/', 'parts/', 'experiments/')) and p.endswith('.py') and p not in known and not p.endswith('/__init__.py')) or
            (p.startswith('tests/') and p not in tests) for p in changed):
         return tests

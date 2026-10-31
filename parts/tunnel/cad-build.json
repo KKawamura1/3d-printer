@@ -2,7 +2,7 @@
   "command": [
     "python",
     "-m",
-    "parts.tunnel.design",
+    "parts.tunnel.design_e31",
     "--out",
     "{out}"
   ],
@@ -10,7 +10,7 @@
     "brick.stl"
   ],
   "timeout": 1200,
-  "description": "Maintained tunnel; targeted GitHub Actions build smoke test",
-  "version": "T01-V2",
+  "description": "E31-05 receiver + T04 circular mouth/high interior roof; single model, duplicate in slicer as needed.",
+  "version": "T01-V4",
   "auto": true
 }

@@ -1,12 +1,22 @@
-# 直線トンネル
+# 直線トンネル T01-V4（初回試し刷り）
 
-2×2、本体高さ38.40mm、スタッド込み42.90mm。水平の通り抜け穴。
+2×2、31.8×31.8 mm、本体38.4 mm／スタッド込み42.9 mm。
+今朝の **T04-V1 の丸入口1 mm→4 mmで高い涙滴天井に遷移する形状** を採用。
+下面はE31-05のチューブOD13.20＋R0.20ビード＋4スリットを移植。
+上面スタッドOD9.40／穴ID6.40。
 
-[現在の印刷用STL](model.stl)。今回の嵌合条件・角処理・印刷手順・残る確認は [週末用コースセット](../play_set/README.md) に集約。旧試作品はGit履歴とdesign-notes.mdを参照。
+## 今夜の試し刷り（3個を目安）
 
-```sh
-python -m parts.tunnel.design --out build/tunnel
-python -m unittest parts.tunnel.test -v
-```
+STLは `parts/tunnel` の版更新時にGitHub Actions `cad-verified-stl` Artifactへ生成されます。
+`T01-V4/brick.stl` 1つをBambu Studioで読み込み、**同じものを3個複製**します。
+0.20 mm積層、PLA Basic、スタッド上向き、サポートOFFを初期値としてスライスし、
+**必ず実際の所要時間と浮き・ブリッジ・スリット経路を確認**してください。
+2時間を超えるなら2個へ削減。印刷時間をCAD側で予測したものではありません。
 
-共通嵌合profileは duplo-e27-play-v1。保持力・実印刷・触感の新形状への転用は未検証。
+試し刷りでは大人がバリ・白化・割れ・小片の有無を確認。
+純正との双方向、印刷品同士の嵌合、および球の通過を検証する。
+E31-05試験片の凹高さは通常ブロック、今回のトンネルは4.75mmで異なるため、
+**E31-05が保持力・耐久性を保証するわけではありません**。子どもに渡す前に別途評価。
+
+生成：`python -m parts.tunnel.design_e31 --out build/tunnel`
+テスト：`python -m unittest parts.tunnel.test -v`
