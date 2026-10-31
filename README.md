@@ -20,7 +20,23 @@ build/         中間生成物（Git管理外）
 
 ## STLをGitHub Actionsで作る
 
-サイズの大きいSTLは、ChatGPT Workから転送・commitせずにGitHub Actions側で生成する。[CAD preview (manual)](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) でPRのブランチを選び、`play-set-8` を実行すると、8個セットと7種類の個別STL、検証結果のハッシュ一覧を `print-ready-play-set-8` Artifactとして取得できる。14日間保存。詳しくは[印刷セットの手順](parts/play_set/README.md)を参照。最終的なスライス・実物嵌合の確認は手元で行う。
+CAD出力はGitHub Actionsの [CAD preview and print artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) で行う。大きなSTLをChatGPTからpushしない。
+
+- PRで設計コードや各ディレクトリの `cad-build.json` を変更すると、変更されたモデルと実際の依存先だけを選んで生成する。READMEや過去のSTLを変更しただけでは生成しない。
+- 新規パーツは `parts/<name>/cad-build.json`（実験は `experiments/<run>/cad-build.json`）を置く。コマンドと生成されるSTLの相対パスを登録すればワークフローYAMLを編集せずに追加できる。
+- 手動実行は `targets=all` または `targets=parts/tunnel,parts/elbow` のように指定できる。任意の単一ターゲットも可。
+- `previews=true` では、生成済みviewerをChromiumで撮影したPNGをSTLと一緒にArtifactへ入れる。画像を実際に目視したことまでは保証しない。
+- 8個まとめたプレートは高コストなため自動生成しない。必要時のみ `targets=parts/play_set` で実行し、依存する個別パーツも同じrunner上で作成する。
+- Artifactは `cad-verified-stl`（14日保持）。STL、CAD検証report、形状ハッシュを含むmanifest、希望時のPNGを保存する。STEP・HTML・中間ファイルはGitにcommitしない。
+
+`cad-build.json` の例:
+
+```json
+{"command":["python","-m","parts.tunnel.design","--out","{out}"],
+ "stl":["brick.stl"],"timeout":1200}
+```
+
+`{out}` はそのモデル専用の出力ディレクトリ。必要な別モデルのSTLがある場合は `requires` で参照先を指定する。手動専用の大きな組立は `auto:false` とする。複数STLを出す実験は `stl` にすべての相対パスを登録する。各出力は同じディレクトリの `report.json` に `passed:true` と `mesh.passed:true` が必要。CAD合格は実スライス・印刷・物理嵌合の合格を意味しない。
 
 ## パーツを変更する
 

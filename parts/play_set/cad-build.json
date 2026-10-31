@@ -1,0 +1,24 @@
+{
+  "auto": false,
+  "requires": [
+    "parts/tunnel",
+    "parts/elbow",
+    "parts/sloped_curve",
+    "experiments/pr20_comparison"
+  ],
+  "command": [
+    "python",
+    "-m",
+    "parts.play_set.design",
+    "--parts-root",
+    "build/cad-artifacts/parts",
+    "--alternatives-root",
+    "build/cad-artifacts/experiments/pr20_comparison",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "play-set-8.stl"
+  ],
+  "timeout": 1200
+}

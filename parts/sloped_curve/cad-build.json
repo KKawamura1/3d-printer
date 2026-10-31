@@ -1,0 +1,13 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "parts.sloped_curve.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200
+}

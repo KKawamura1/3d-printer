@@ -1,0 +1,13 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "parts.tunnel.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200
+}

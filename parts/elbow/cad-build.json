@@ -1,0 +1,13 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "parts.elbow.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200
+}

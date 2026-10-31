@@ -1,138 +1,99 @@
-name: CAD preview and print artifact
+name: CAD preview and print artifacts
 on:
-  push:
-    branches:
-      - parts/weekend-play-set-v1
-    paths:
-      - '.github/workflows/cad-preview.yml'
-      - 'scripts/package_print_stl.py'
-      - 'scripts/test_package_print_stl.py'
-      - 'parts/play_set/**'
-      - 'experiments/pr20_comparison/**'
-      - 'parts/tunnel/**'
-      - 'parts/elbow/**'
-      - 'parts/sloped_curve/**'
-      - 'brickcad/**'
-      - 'requirements.txt'
   pull_request:
     paths:
-      - '.github/workflows/cad-preview.yml'
-      - 'scripts/package_print_stl.py'
-      - 'scripts/test_package_print_stl.py'
-      - 'parts/play_set/**'
-      - 'experiments/pr20_comparison/**'
-      - 'parts/tunnel/**'
-      - 'parts/elbow/**'
-      - 'parts/sloped_curve/**'
+      - 'parts/**/*.py'
+      - 'parts/**/cad-build.json'
+      - 'experiments/**/*.py'
+      - 'experiments/**/cad-build.json'
       - 'brickcad/**'
+      - 'profiles/**'
       - 'requirements.txt'
+      - 'scripts/cad-artifacts.py'
+      - 'scripts/cad-capture.cjs'
+      - 'scripts/test_cad_artifacts.py'
+      - 'scripts/run-stage.py'
+      - 'scripts/package_print_stl.py'
+      - '.github/workflows/cad-preview.yml'
   workflow_dispatch:
     inputs:
-      target:
-        description: Model or 8-piece printable set
-        type: choice
-        options: [play-set-8, duplo, duplo-2x2, rail, brick, tunnel, elbow, pitagora, sloped_curve, calibration, experiment, stud-holes, stud-combined, receiver-trial, xy-trial, lego]
-        default: tunnel
-      screenshots:
-        description: Browser screenshots (skipped for play-set-8)
+      targets:
+        description: 'all or comma-separated model paths, e.g. parts/tunnel'
+        type: string
+        default: all
+      previews:
+        description: 'Capture Chromium views for generated models'
         type: boolean
         default: false
 permissions:
   contents: read
 concurrency:
-  group: cad-preview-${{ github.ref }}-${{ inputs.target }}
+  group: cad-artifacts-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  preview:
+  generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check incremental planner
+        run: python -m unittest discover -s scripts -p test_cad_artifacts.py -v
+      - name: Plan changed models
+        id: plan
+        env:
+          BEFORE_SHA: ${{ github.event.before || github.event.pull_request.before || github.event.pull_request.base.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TARGETS: ${{ inputs.targets }}
+        run: |
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+            python scripts/cad-artifacts.py --mode plan --targets "$INPUT_TARGETS"
+          else
+            python scripts/cad-artifacts.py --mode plan --base "$BEFORE_SHA"
+          fi
       - uses: actions/setup-python@v5
+        if: steps.plan.outputs.has_models == 'true'
         with:
           python-version: '3.11'
           cache: pip
-      - run: pip install -r requirements.txt
-      - name: Verify artifact packaging without running CAD
-        if: github.event_name != 'workflow_dispatch' || inputs.target == 'play-set-8'
-        run: python -m unittest scripts.test_package_print_stl -v
-      - name: Generate the PR20 print set on the runner (no browser)
-        if: github.event_name != 'workflow_dispatch' || inputs.target == 'play-set-8'
-        run: |
-          python scripts/run-stage.py --name tunnel --timeout 900 --artifact build/print-source/tunnel/brick.stl -- python -m parts.tunnel.design --out build/print-source/tunnel
-          python scripts/run-stage.py --name elbow --timeout 900 --artifact build/print-source/elbow/brick.stl -- python -m parts.elbow.design --out build/print-source/elbow
-          python scripts/run-stage.py --name sloped-curve --timeout 900 --artifact build/print-source/sloped_curve/brick.stl -- python -m parts.sloped_curve.design --out build/print-source/sloped_curve
-          python scripts/run-stage.py --name comparison --timeout 1500 --artifact build/pr20-comparison/S02-V2/brick.stl -- python -m experiments.pr20_comparison.design
-          python scripts/run-stage.py --name assemble-eight --timeout 900 --artifact build/print-source/batch/play-set-8.stl -- python -m parts.play_set.design --parts-root build/print-source --out build/print-source/batch --alternatives-root build/pr20-comparison
-      - name: Check and package print-ready STL files
-        if: github.event_name != 'workflow_dispatch' || inputs.target == 'play-set-8'
-        run: python scripts/package_print_stl.py --parts-root build/print-source --comparison-root build/pr20-comparison --out build/print-ready
-      - name: Upload print-ready STL artifact
-        if: github.event_name != 'workflow_dispatch' || inputs.target == 'play-set-8'
-        uses: actions/upload-artifact@v4
-        with:
-          name: print-ready-play-set-8
-          path: build/print-ready/
-          if-no-files-found: error
-          retention-days: 14
-      - name: Save stage logs if remote generation fails
-        if: failure() && (github.event_name != 'workflow_dispatch' || inputs.target == 'play-set-8')
-        uses: actions/upload-artifact@v4
-        with:
-          name: failed-print-stages
-          path: build/stages/
-          if-no-files-found: ignore
-          retention-days: 7
-      - name: Generate and verify selected model once
-        if: github.event_name == 'workflow_dispatch' && inputs.target != 'play-set-8'
-        env:
-          TARGET: ${{ inputs.target }}
-        run: |
-          case "$TARGET" in
-            duplo) python -m brickcad build --out build/model ;;
-            duplo-2x2) python -m brickcad build --profile experiments/nominal_duplo_2x2/profile.json --out build/model ;;
-            rail|brick) python -m parts.straight_rail.design --kind "$TARGET" --out build/model ;;
-            tunnel|elbow|sloped_curve) python -m "parts.$TARGET.design" --out build/model ;;
-            pitagora) python -m experiments.pitagora_m1.design --out build/model ;;
-            receiver-trial) python -m experiments.receiver_fit.design --out build/model ;;
-            stud-combined) python -m experiments.stud_inner_wall.design --stage combined --hole 6.40 --out build/model ;;
-            stud-holes) python -m experiments.stud_inner_wall.design --out build/model ;;
-            xy-trial) python -m experiments.xy_fit.design --out build/model ;;
-            experiment) python -m experiments.full_height_fit.design --out build/model ;;
-            calibration) python -m experiments.initial_calibration.design build/model ;;
-            lego) python -m brickcad build --profile experiments/lego_first_print/profile.json --out build/model ;;
-            *) exit 1 ;;
-          esac
+      - name: Install CAD dependencies
+        if: steps.plan.outputs.has_models == 'true'
+        run: pip install -r requirements.txt
       - uses: actions/setup-node@v4
-        if: github.event_name == 'workflow_dispatch' && inputs.screenshots && inputs.target != 'play-set-8'
+        if: steps.plan.outputs.has_models == 'true' && inputs.previews == true
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci
-        if: github.event_name == 'workflow_dispatch' && inputs.screenshots && inputs.target != 'play-set-8'
-      - run: npx playwright install --with-deps chromium
-        if: github.event_name == 'workflow_dispatch' && inputs.screenshots && inputs.target != 'play-set-8'
-      - name: Capture selected model once
-        if: github.event_name == 'workflow_dispatch' && inputs.screenshots && inputs.target != 'play-set-8'
-        env:
-          TARGET: ${{ inputs.target }}
+      - name: Install optional Chromium
+        if: steps.plan.outputs.has_models == 'true' && inputs.previews == true
         run: |
-          case "$TARGET" in
-            sloped_curve) node scripts/sloped-curve-browser-check.cjs build/model build/browser-qa ;;
-            elbow) node scripts/elbow-browser-check.cjs build/model build/browser-qa ;;
-            pitagora) node scripts/pitagora-browser-check.cjs build/model build/browser-qa ;;
-            receiver-trial) npm run browser:check -- build/model/02 build/browser-qa ;;
-            stud-combined) npm run browser:check -- build/model/03 build/browser-qa ;;
-            stud-holes) npm run browser:check -- build/model/03 build/browser-qa ;;
-            experiment) npm run browser:check -- build/model/sample build/browser-qa ;;
-            calibration) npm run browser:check -- build/model/view-5 build/browser-qa ;;
-            *) npm run browser:check -- build/model build/browser-qa ;;
-          esac
-          python scripts/review-sheet.py build/browser-qa
-      - uses: actions/upload-artifact@v4
-        if: always() && github.event_name == 'workflow_dispatch' && inputs.target != 'play-set-8'
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Build and validate selected STL files
+        if: steps.plan.outputs.has_models == 'true'
+        env:
+          SELECTED: ${{ steps.plan.outputs.targets }}
+          PREVIEWS: ${{ inputs.previews }}
+        run: |
+          if [ "$PREVIEWS" = true ]; then
+            python scripts/cad-artifacts.py --mode build --targets "$SELECTED" --previews
+          else
+            python scripts/cad-artifacts.py --mode build --targets "$SELECTED"
+          fi
+      - name: Upload STL and optional screenshots
+        if: steps.plan.outputs.has_models == 'true' && success()
+        uses: actions/upload-artifact@v4
         with:
-          name: brick-cad-and-verification
-          path: build/
+          name: cad-verified-stl
+          path: build/cad-delivery/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload stage logs on failure
+        if: failure() && steps.plan.outputs.has_models == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-cad-stages
+          path: build/stages/
+          if-no-files-found: ignore
           retention-days: 7
-

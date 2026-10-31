@@ -132,5 +132,6 @@ if __name__=='__main__':
     import argparse
     parser=argparse.ArgumentParser()
     parser.add_argument('--only',nargs='+')
+    parser.add_argument('--out',type=Path,default=Path('build/pr20-comparison'))
     args=parser.parse_args()
-    export(only=args.only)
+    export(out=args.out,only=args.only)

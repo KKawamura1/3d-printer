@@ -42,3 +42,9 @@
 - A layout/import/docs-only change does not require new browser screenshots or CAD regeneration when geometry, dimensions and viewer behavior are unchanged. Validate imports, path resolution, affected tests and original STL blob identity instead.
 
 - Maintained printable parts also need an engraved design ID and revision (e.g. T01-V2). Keep the label on non-mating, non-running surfaces; use the same ID for identical copies and increment the revision when the released geometry changes. Match engraved IDs to STL names or a documented manifest.
+
+## Remote CAD workflow (PR20+)
+- Do not upload generated STL, STEP, viewer HTML, or PNG through the chat/GitHub connector. Commit small design/config/test changes only.
+- New maintained parts and experiments opt in with adjacent `cad-build.json`; read the root README. The generic remote planner discovers new configs automatically and selects affected CAD modules by changes and transitive imports.
+- The 8-piece plate is a manual-only target (`parts/play_set`) and must not run for ordinary small changes. Do not reintroduce a hard-coded list of PR20-only builds in the workflow.
+- Request screenshot captures with `previews=true` only when visual review is needed. Artifact PNGs must be opened and checked before asserting visual review. Remote CAD validation does not establish slicing or physical fit.
