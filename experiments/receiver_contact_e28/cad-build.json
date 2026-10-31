@@ -1,0 +1,19 @@
+{
+  "version": "E28-V1",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "experiments.receiver_contact_e28.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "E28-01/brick.stl",
+    "E28-02/brick.stl",
+    "E28-03/brick.stl",
+    "E28-04/brick.stl",
+    "E28-plate.stl"
+  ],
+  "timeout": 1800
+}
