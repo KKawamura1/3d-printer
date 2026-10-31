@@ -50,8 +50,8 @@ class E29Tests(unittest.TestCase):
         self.assertEqual(p[3], p[4])  # Waist only: same slotted bead receiver
 
     def test_stud_and_receiver_factor_isolation(self):
-        # Lower body+receiver is identical for each paired stud-groove test.
-        below = cq.Workplane("XY").box(36, 36, 19.2,
+        # Compare receiver region only; exterior E29-XX engravings differ.
+        below = cq.Workplane("XY").box(27, 27, 19.2,
                         centered=(True, True, False)).val()
         for left, right in (("E29-01", "E29-02"),
                             ("E29-04", "E29-05")):
