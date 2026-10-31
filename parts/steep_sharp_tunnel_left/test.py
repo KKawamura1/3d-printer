@@ -36,8 +36,10 @@ class Geometry(unittest.TestCase):
 
     def test_left_turn_ports_mate_and_height(self):
         high, low = ports(self.d)
-        self.assertEqual(high.floor_xyz_mm, (-16., 0., 25.55))
-        self.assertEqual(low.floor_xyz_mm, (0., 16., 6.35))
+        for actual, expected in zip(high.floor_xyz_mm, (-16., 0., 25.55)):
+            self.assertAlmostEqual(actual, expected)
+        for actual, expected in zip(low.floor_xyz_mm, (0., 16., 6.35)):
+            self.assertAlmostEqual(actual, expected)
         self.assertEqual(low.outward, (0., 1., 0.))
         self.assertAlmostEqual(
             high.floor_xyz_mm[2] - low.floor_xyz_mm[2], DUPLO.height)
