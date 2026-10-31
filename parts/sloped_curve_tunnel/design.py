@@ -1,4 +1,4 @@
-"""SC02-V4: 4x4 right R48 downhill tunnel, one DUPLO-course drop.
+"""SC02-V5: 4x4 right R48 downhill tunnel, one DUPLO-course drop.
 
 Reuse S01's rolling floor and the three intact lower receivers. Restore four
 footprint-clipped receiver supports without the previously problematic vertical
@@ -18,13 +18,14 @@ from brickcad.provenance import design_manifest
 from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
 from brickcad.standards import DUPLO
 from brickcad.connections import make_studs
+from brickcad.marking import engrave_west
 from parts.sloped_curve.design import (
     BALL, DROP, RADIUS, RAIL, RETAINED_TUBES, build_curve, curved_footprint,
     gradient, height, ports,
 )
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "SC02-V4"
+PART_ID = "SC02-V5"
 TOP_Z = 3 * DUPLO.height  # 57.6 mm: 2 courses cannot clear the high ball inlet
 # Restore four useful partial supports; omit two corners (no material / thin sliver).
 CLIPPED_RECEIVER_TUBES = ((0.,-16.),(-16.,0.),(16.,0.),(0.,16.))
@@ -35,6 +36,10 @@ MOUTH_LIP_MM = 1.0
 TRANSITION_MM = 4.0
 RUNNING_CLEARANCE_MM = 0.18
 SAMPLES = 49
+# Low, exterior west face below the high tunnel mouth: no studs or running track.
+MARK_Y = -16.0
+MARK_Z = 12.0
+MARK_DEPTH = 0.4
 
 
 def _zshift(t):
@@ -158,8 +163,12 @@ def build_part():
     # On cut rings the bead would protrude beyond the curved footprint.
     shape = add_e31_05_receiver_features(shape, RETAINED_TUBES, TUBE_RADIUS)
     shape = _add_flat_clipped_studs(shape, p)
+    # build_curve() already marked the open-rail base, but the added cover fills
+    # that recess. Apply the versioned cut LAST, after all geometry unions.
+    shape = engrave_west(shape, PART_ID, x=-p.width/2,
+                         y=MARK_Y, z=MARK_Z, depth=MARK_DEPTH)
     if not shape.isValid() or len(shape.Solids()) != 1:
-        raise ValueError('SC02-V4 requires one connected valid BRep')
+        raise ValueError('SC02-V5 requires one connected valid BRep')
     return shape, p
 
 
@@ -194,7 +203,15 @@ def verify(shape, p):
         BALL/2,ball_centre(.5)-cq.Vector(0,0,2),angleDegrees1=-90))
     bounds = exact_bounds(shape)
     high,low = ports()
+    # Regression: a cover fused *after* the label would fill these glyphs.
+    # Reconstruct the exact cutting volume and confirm that it is empty.
+    mark_plane = cq.Plane(origin=(-p.width/2+MARK_DEPTH, MARK_Y, MARK_Z),
+                          xDir=(0,-1,0), normal=(-1,0,0))
+    mark_tool = (cq.Workplane(mark_plane)
+                 .text(PART_ID, 3., MARK_DEPTH+.05, font='DejaVu Sans',
+                       kind='bold', combine=False).val())
     checks = {
+        'engraved_id_recess_remains_open':intersection(shape, mark_tool)<VOLUME_TOL,
         'valid_brep':shape.isValid(),
         'one_solid':len(shape.Solids())==1,
         'four_by_four_envelope':abs(bounds[0]-63.8)<.03 and abs(bounds[1]-63.8)<.03,
@@ -243,6 +260,9 @@ def export(out=Path('build/sloped-curve-tunnel')):
         'geometry':{'bounds_mm':bounds,'volume_mm3':shape.Volume(),
                     'parameters':asdict(p)},
         'design':design_manifest(p,channel=RAIL),
+        'marking':{'text':PART_ID,'face':'west (-X), below high mouth',
+                   'y_mm':MARK_Y,'z_mm':MARK_Z,'depth_mm':MARK_DEPTH,
+                   'applied_after_cover_and_studs':True},
         'curve':{'radius_mm':RADIUS,'turn_deg':90,'drop_mm':DROP,
                  'mouth':'circular','interior_roof':'teardrop',
                  'transition_mm':TRANSITION_MM,'circular_lip_mm':MOUTH_LIP_MM,
