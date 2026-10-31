@@ -12,6 +12,8 @@ on:
       - 'requirements.txt'
       - 'scripts/ci-tests.py'
       - 'scripts/cad_versions.py'
+      - 'scripts/cad_retry.py'
+      - 'scripts/test_cad_retry.py'
       - 'scripts/test_cad_versions.py'
       - 'scripts/cad_report.py'
       - 'scripts/test_cad_report.py'
@@ -33,6 +35,7 @@ jobs:
       - name: Test version planner and report contract (no CAD dependencies)
         run: |
           python -m unittest discover -s scripts -p test_cad_versions.py -v
+          python -m unittest discover -s scripts -p test_cad_retry.py -v
           python -m unittest discover -s scripts -p test_cad_report.py -v
       - name: Select affected tests
         id: plan
