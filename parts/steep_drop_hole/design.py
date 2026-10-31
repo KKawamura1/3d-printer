@@ -1,4 +1,4 @@
-"""S01-V3: enclosed 2x2x3 steep drop tunnel, high west inlet to low east outlet.
+"""S01-V4: enclosed 2x2x3 steep drop tunnel, high west inlet to low east outlet.
 
 The roofed vertical shaft has a printable tapered apex instead of an exposed
 opening or a broad horizontal bridge. This is a geometric prototype; ball
@@ -7,6 +7,7 @@ dynamics, support-free slicing, fit and child safety are not yet validated.
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 import hashlib
+import math
 import json
 import struct
 
@@ -20,7 +21,7 @@ from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import VOLUME_TOL, exact_bounds, intersection, mesh_check
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "S01-V3"
+PART_ID = "S01-V4"
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,8 @@ class SteepDrop:
     receiver_depth: float = 4.75
     taper_start_above_high_centre: float = 5.0
     roof_thickness: float = 1.8
+    ramp_grade: float = 0.25   # 14.0 degrees; a short downhill run-out
+    ramp_end_x: float = 13.0  # 3 mm of level exit, unchanged outlet port
 
     @property
     def low_centre_z(self):
@@ -41,6 +44,26 @@ class SteepDrop:
     @property
     def high_centre_z(self):
         return self.low_centre_z + self.drop
+
+
+def ramp_normal_clearance(d=SteepDrop()):
+    """Extra centre height above a slanted floor for a full-size ball."""
+    radius = BALL_TRACK.ball_diameter / 2
+    return radius * (math.sqrt(1. + d.ramp_grade ** 2) - 1.)
+
+
+def rolling_ball_path(d=SteepDrop()):
+    """Geometric centreline, not a rigid-body dynamics simulation."""
+    lift = ramp_normal_clearance(d)
+    landing = (d.low_centre_z +
+               d.ramp_grade * (d.ramp_end_x - d.shaft_x) + lift)
+    return (
+        cq.Vector(-16., 0., d.high_centre_z),
+        cq.Vector(d.shaft_x, 0., d.high_centre_z),
+        cq.Vector(d.shaft_x, 0., landing),
+        cq.Vector(d.ramp_end_x, 0., d.low_centre_z + lift),
+        cq.Vector(16., 0., d.low_centre_z),
+    )
 
 
 def ports(d=SteepDrop()):
@@ -71,6 +94,14 @@ def build_steep_drop(d=SteepDrop()):
         raise ValueError("Need overhead clearance above the entrance ball")
     if d.roof_thickness < 1.6:
         raise ValueError("Keep at least 1.6 mm roof material")
+    if not 0. < d.ramp_grade <= .35:
+        raise ValueError("Run-out must have a practical downhill grade")
+    if not d.shaft_x < d.ramp_end_x <= 13.:
+        raise ValueError("The ramp must stop before the outlet face")
+    if d.ramp_grade * (d.ramp_end_x - d.shaft_x) < 2.:
+        raise ValueError("Ramp must provide useful fall after landing")
+    if d.ramp_grade * (d.ramp_end_x + 15.) > 10.:
+        raise ValueError("Ramp must stay low enough to preserve the high passage")
 
     outer = (cq.Workplane("XY")
              .box(p.width, p.depth, p.height, centered=(True, True, False))
@@ -92,7 +123,28 @@ def build_steep_drop(d=SteepDrop()):
     low = cq.Solid.makeCylinder(
         d.section_radius, 21., cq.Vector(d.shaft_x, 0, d.low_centre_z),
         cq.Vector(1, 0, 0))
-    shape = body.cut(shaft).cut(cap).cut(high).cut(low).val().clean()
+    # Widen the lower passage above the incline: adding the ramp alone
+    # would collide with a full-size ball near the old horizontal roof.
+    # Preserve the standard circular exit with the original low cylinder.
+    path = rolling_ball_path(d)
+    start, end = path[2], path[3]
+    delta = end.sub(start)
+    sloped_bore = cq.Solid.makeCylinder(
+        d.section_radius, delta.Length, start, delta.normalized())
+    shape = body.cut(shaft).cut(cap).cut(high).cut(low).cut(sloped_bore).val().clean()
+
+    # Fused AFTER the sloped bore to retain the downhill running surface.
+    # The wedge stays inside the rounded block exterior and above the
+    # underside receiver's 1.6 mm roof.
+    left = -15.
+    floor = d.low_floor
+    ramp = (cq.Workplane("XZ")
+            .polyline(((left, floor - .2),
+                       (d.ramp_end_x, floor - .2),
+                       (d.ramp_end_x, floor),
+                       (left, floor + d.ramp_grade * (d.ramp_end_x - left))))
+            .close().extrude(14., both=True).val())
+    shape = shape.fuse(ramp).clean()
     shape = add_e31_05_receiver_features(shape, p.tubes(), p.tube_radius)
     studs = make_studs(
         p.studs(), p.height, p.stud_radius - p.clearance,
@@ -100,43 +152,36 @@ def build_steep_drop(d=SteepDrop()):
         lip_radius=ROUNDED_EDGES.stud_lip_radius)
     shape = cq.Workplane("XY").newObject([shape]).union(studs).val().clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
-        raise ValueError("S01-V3 must be a single connected valid solid")
+        raise ValueError("S01-V4 must be a single connected valid solid")
     shape = engrave(shape, PART_ID, x=0., y=-p.depth / 2, z=12.)
     return shape, p
 
 
 def sampled_ball_collisions(shape, d=SteepDrop()):
-    """Discrete full-ball clearance samples, not a rolling dynamics simulation."""
+    """Sample the descending full-ball centreline at each turn and ramp."""
     radius = BALL_TRACK.ball_diameter / 2
+    path = rolling_ball_path(d)
     centres = []
-    centres.extend(cq.Vector(x, 0, d.high_centre_z)
-                   for x in (-16., -12., -8., -4., d.shaft_x))
-    centres.extend(cq.Vector(d.shaft_x, 0, z)
-                   for z in (d.high_centre_z - 4., d.high_centre_z - 8.,
-                             d.high_centre_z - 12., d.low_centre_z))
-    centres.extend(cq.Vector(x, 0, d.low_centre_z)
-                   for x in (-1., 0., 3., 8., 13., 16.))
+    for start, end in zip(path, path[1:]):
+        centres.extend(start.add(end.sub(start).multiply(i / 12.))
+                       for i in range(13))
     return [intersection(shape, cq.Solid.makeSphere(
-        radius, center, angleDegrees1=-90)) for center in centres]
+        radius, centre, angleDegrees1=-90)) for centre in centres]
 
 
 def continuous_ball_path_intersections(shape, d=SteepDrop()):
-    """Rigid swept-ball clearance along the piecewise straight path; no dynamics."""
-    r = BALL_TRACK.ball_diameter / 2
-    high_z, low_z = d.high_centre_z, d.low_centre_z
-    segments = (
-        (cq.Vector(-16., 0, high_z), cq.Vector(d.shaft_x, 0, high_z)),
-        (cq.Vector(d.shaft_x, 0, high_z), cq.Vector(d.shaft_x, 0, low_z)),
-        (cq.Vector(d.shaft_x, 0, low_z), cq.Vector(16., 0, low_z)),
-    )
+    """Rigid swept-ball clearance only, not real rolling dynamics."""
+    radius = BALL_TRACK.ball_diameter / 2
+    path = rolling_ball_path(d)
     volumes = []
-    for start, end in segments:
+    for start, end in zip(path, path[1:]):
         delta = end.sub(start)
-        swept_cylinder = cq.Solid.makeCylinder(r, delta.Length, start, delta.normalized())
+        swept_cylinder = cq.Solid.makeCylinder(
+            radius, delta.Length, start, delta.normalized())
         volumes.append(intersection(shape, swept_cylinder))
-    for centre in (segments[0][0], segments[0][1], segments[1][1], segments[2][1]):
+    for centre in path:
         volumes.append(intersection(shape, cq.Solid.makeSphere(
-            r, centre, angleDegrees1=-90)))
+            radius, centre, angleDegrees1=-90)))
     return volumes
 
 
@@ -172,6 +217,13 @@ def export(out=Path("build/steep-drop-hole")):
         "sampled_ball_clear": max(collisions) < VOLUME_TOL,
         "continuous_ball_path_clear": max(sweeps) < VOLUME_TOL,
         "bottom_floor_present": shape.isInside(cq.Vector(0, 0, 6.2)),
+        "downhill_ramp_present": (shape.isInside(cq.Vector(
+            d.shaft_x, 0, d.low_floor + 1.)) and
+            not shape.isInside(cq.Vector(
+                d.shaft_x, 0, d.low_floor +
+                d.ramp_grade * (d.ramp_end_x - d.shaft_x) + 1.))),
+        "ramp_reaches_exit_floor": not shape.isInside(cq.Vector(
+            d.ramp_end_x, 0, d.low_floor + .2)),
         "enclosed_roof": shape.isInside(cq.Vector(
             d.shaft_x, 0, p.height - .1)),
         "four_top_stud_walls": all(shape.isInside(cq.Vector(
@@ -187,13 +239,16 @@ def export(out=Path("build/steep-drop-hole")):
     report = {
         "part_id": PART_ID,
         "passed": all(checks.values()),
-        "shape": "enclosed steep drop tunnel; west upper inlet, east lower outlet",
+        "shape": "enclosed steep drop tunnel with sloped run-out to low east outlet",
         "parameters": asdict(d),
         "bounds_mm": bounds,
         "checks": checks,
         "mesh": mesh,
         "ball_intersections_mm3": collisions,
         "continuous_path_intersections_mm3": sweeps,
+        "ramp_rise_at_landing_mm": d.ramp_grade * (d.ramp_end_x - d.shaft_x),
+        "ramp_angle_deg": math.degrees(math.atan(d.ramp_grade)),
+        "centreline_points_mm": [p.toTuple() for p in rolling_ball_path(d)],
         "taper_start_z_mm": d.high_centre_z + d.taper_start_above_high_centre,
         "taper_tip_z_mm": p.height - d.roof_thickness,
         "ports": [asdict(port) for port in ports(d)],
@@ -207,8 +262,8 @@ def export(out=Path("build/steep-drop-hole")):
         "support_free_slicing_validated": False,
         "limitations": [
             "Tapered roof and circular entrance need slicer confirmation without supports.",
-            "A falling ball may stall in the lower chamber: no physical dynamics test.",
-            "Piecewise swept-volume clearance does not prove the ball will turn or roll.",
+            "The inclined floor biases rolling toward the outlet, but physical rolling is untested.",
+            "Swept-volume clearance cannot prove impact or rolling dynamics.",
             "Entrance and exit edge finish and child safety need inspection.",
             "E31-05 underside and top studs are not physically validated on this shape.",
         ],
@@ -219,7 +274,7 @@ def export(out=Path("build/steep-drop-hole")):
     print(PART_ID, "PASS" if report["passed"] else "FAIL",
           checks, flush=True)
     if not report["passed"]:
-        raise RuntimeError("S01-V1 geometry verification failed")
+        raise RuntimeError("S01-V4 geometry verification failed")
     return report
 
 
