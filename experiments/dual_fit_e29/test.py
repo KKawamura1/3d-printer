@@ -16,7 +16,7 @@ class E29Tests(unittest.TestCase):
         cls.parts = {r["id"]: coupon(r) for r in SPECIMENS}
 
     def test_variants_are_unique_and_fit_on_bed(self):
-        self.assertEqual(VERSION, "E29-V1")
+        self.assertEqual(VERSION, "E29-V2")
         self.assertEqual(len(self.parts), 5)
         self.assertEqual(len({tuple(r["xy"]) for r in SPECIMENS}), 5)
         self.assertLess(max(r["xy"][0] for r in SPECIMENS) + 15.9, 180)
@@ -40,7 +40,7 @@ class E29Tests(unittest.TestCase):
         self.assertGreaterEqual(6.60-4.70, 1.80)  # receiver tube wall
         self.assertGreaterEqual(SLOT_WIDTH, 1.)
         self.assertGreaterEqual(SLOT_END_RADIUS, .5)
-        self.assertLessEqual(BEAD_MINOR_RADIUS, .20)
+        self.assertEqual(BEAD_MINOR_RADIUS, .16)
         self.assertGreaterEqual(min(z for _, z in GROOVE_PROFILE), 1.)
 
     def test_profile_changes_are_local(self):
