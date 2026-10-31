@@ -1,0 +1,33 @@
+{
+  "id": "sloped-curve",
+  "watch": [
+    "parts/sloped_curve/*.py",
+    "parts/sloped_curve/*.json",
+    "parts/straight_rail/design.py",
+    "brickcad/ports.py",
+    "brickcad/connections.py",
+    "brickcad/model.py",
+    "brickcad/standards.py",
+    "brickcad/marking.py",
+    "brickcad/verify.py",
+    "brickcad/render.py",
+    "brickcad/provenance.py",
+    "profiles/*.json",
+    "requirements.txt"
+  ],
+  "depends_on": [],
+  "command": [
+    "python",
+    "-m",
+    "parts.sloped_curve.design",
+    "--out",
+    "build/remote/sloped_curve"
+  ],
+  "outputs": [
+    {
+      "path": "build/remote/sloped_curve/brick.stl",
+      "name": "S01-V2.stl",
+      "report": "build/remote/sloped_curve/report.json"
+    }
+  ]
+}

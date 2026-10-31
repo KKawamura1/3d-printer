@@ -1,0 +1,31 @@
+{
+  "id": "t02-v1",
+  "watch": [
+    "experiments/pr20_comparison/*.py",
+    "parts/tunnel/design.py",
+    "parts/play_set/design.py",
+    "brickcad/model.py",
+    "brickcad/standards.py",
+    "brickcad/marking.py",
+    "brickcad/verify.py",
+    "brickcad/render.py",
+    "brickcad/provenance.py",
+    "profiles/*.json",
+    "requirements.txt"
+  ],
+  "depends_on": [],
+  "command": [
+    "python",
+    "-m",
+    "experiments.pr20_comparison.design",
+    "--only",
+    "T02-V1"
+  ],
+  "outputs": [
+    {
+      "path": "build/pr20-comparison/T02-V1/brick.stl",
+      "name": "T02-V1.stl",
+      "report": "build/pr20-comparison/T02-V1/report.json"
+    }
+  ]
+}

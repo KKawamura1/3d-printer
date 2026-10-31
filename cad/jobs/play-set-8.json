@@ -1,0 +1,35 @@
+{
+  "id": "play-set-8",
+  "watch": [
+    "parts/play_set/*.py",
+    "parts/play_set/*.json"
+  ],
+  "depends_on": [
+    "tunnel",
+    "elbow",
+    "sloped-curve",
+    "t02-v1",
+    "t03-v1",
+    "t04-v1",
+    "s02-v2"
+  ],
+  "rebuild_on_dependency_change": false,
+  "command": [
+    "python",
+    "-m",
+    "parts.play_set.design",
+    "--parts-root",
+    "build/remote",
+    "--out",
+    "build/remote/batch",
+    "--alternatives-root",
+    "build/pr20-comparison"
+  ],
+  "outputs": [
+    {
+      "path": "build/remote/batch/play-set-8.stl",
+      "name": "play-set-8.stl",
+      "report": "build/remote/batch/report.json"
+    }
+  ]
+}

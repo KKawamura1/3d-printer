@@ -1,0 +1,32 @@
+{
+  "id": "straight-rail",
+  "watch": [
+    "parts/straight_rail/*.py",
+    "parts/straight_rail/*.json",
+    "brickcad/model.py",
+    "brickcad/standards.py",
+    "brickcad/marking.py",
+    "brickcad/verify.py",
+    "brickcad/render.py",
+    "brickcad/provenance.py",
+    "profiles/*.json",
+    "requirements.txt"
+  ],
+  "depends_on": [],
+  "command": [
+    "python",
+    "-m",
+    "parts.straight_rail.design",
+    "--kind",
+    "rail",
+    "--out",
+    "build/remote/straight-rail"
+  ],
+  "outputs": [
+    {
+      "path": "build/remote/straight-rail/brick.stl",
+      "name": "straight-rail.stl",
+      "report": "build/remote/straight-rail/report.json"
+    }
+  ]
+}

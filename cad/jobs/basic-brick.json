@@ -1,0 +1,30 @@
+{
+  "id": "basic-brick",
+  "watch": [
+    "parts/basic_brick/*.py",
+    "parts/basic_brick/*.json",
+    "brickcad/model.py",
+    "brickcad/standards.py",
+    "brickcad/marking.py",
+    "brickcad/verify.py",
+    "brickcad/render.py",
+    "brickcad/provenance.py",
+    "profiles/*.json",
+    "requirements.txt"
+  ],
+  "depends_on": [],
+  "command": [
+    "python",
+    "-m",
+    "parts.basic_brick.design",
+    "--out",
+    "build/remote/basic-brick"
+  ],
+  "outputs": [
+    {
+      "path": "build/remote/basic-brick/brick.stl",
+      "name": "basic-brick.stl",
+      "report": "build/remote/basic-brick/report.json"
+    }
+  ]
+}

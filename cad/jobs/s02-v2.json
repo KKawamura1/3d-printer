@@ -1,0 +1,31 @@
+{
+  "id": "s02-v2",
+  "watch": [
+    "experiments/pr20_comparison/*.py",
+    "parts/sloped_curve/design.py",
+    "parts/play_set/design.py",
+    "brickcad/model.py",
+    "brickcad/standards.py",
+    "brickcad/marking.py",
+    "brickcad/verify.py",
+    "brickcad/render.py",
+    "brickcad/provenance.py",
+    "profiles/*.json",
+    "requirements.txt"
+  ],
+  "depends_on": [],
+  "command": [
+    "python",
+    "-m",
+    "experiments.pr20_comparison.design",
+    "--only",
+    "S02-V2"
+  ],
+  "outputs": [
+    {
+      "path": "build/pr20-comparison/S02-V2/brick.stl",
+      "name": "S02-V2.stl",
+      "report": "build/pr20-comparison/S02-V2/report.json"
+    }
+  ]
+}

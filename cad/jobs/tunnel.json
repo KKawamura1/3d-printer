@@ -1,0 +1,30 @@
+{
+  "id": "tunnel",
+  "watch": [
+    "parts/tunnel/*.py",
+    "parts/tunnel/*.json",
+    "brickcad/model.py",
+    "brickcad/standards.py",
+    "brickcad/marking.py",
+    "brickcad/verify.py",
+    "brickcad/render.py",
+    "brickcad/provenance.py",
+    "profiles/*.json",
+    "requirements.txt"
+  ],
+  "depends_on": [],
+  "command": [
+    "python",
+    "-m",
+    "parts.tunnel.design",
+    "--out",
+    "build/remote/tunnel"
+  ],
+  "outputs": [
+    {
+      "path": "build/remote/tunnel/brick.stl",
+      "name": "T01-V2.stl",
+      "report": "build/remote/tunnel/report.json"
+    }
+  ]
+}

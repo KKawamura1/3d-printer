@@ -1,0 +1,34 @@
+{
+  "id": "elbow",
+  "watch": [
+    "parts/elbow/*.py",
+    "parts/elbow/*.json",
+    "parts/tunnel/design.py",
+    "parts/straight_rail/design.py",
+    "brickcad/ports.py",
+    "brickcad/connections.py",
+    "brickcad/model.py",
+    "brickcad/standards.py",
+    "brickcad/marking.py",
+    "brickcad/verify.py",
+    "brickcad/render.py",
+    "brickcad/provenance.py",
+    "profiles/*.json",
+    "requirements.txt"
+  ],
+  "depends_on": [],
+  "command": [
+    "python",
+    "-m",
+    "parts.elbow.design",
+    "--out",
+    "build/remote/elbow"
+  ],
+  "outputs": [
+    {
+      "path": "build/remote/elbow/brick.stl",
+      "name": "E01-V2.stl",
+      "report": "build/remote/elbow/report.json"
+    }
+  ]
+}
