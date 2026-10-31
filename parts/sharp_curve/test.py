@@ -17,7 +17,7 @@ class SharpCurveTests(unittest.TestCase):
         cls.shape, cls.p = build_curve(cls.c)
 
     def test_footprint_and_revision(self):
-        self.assertEqual(PART_ID, "C01-V4")
+        self.assertEqual(PART_ID, "C01-V5")
         self.assertEqual((self.p.nx, self.p.ny), (2,2))
         self.assertAlmostEqual(self.p.height, DUPLO.height)
         self.assertAlmostEqual(self.c.turn_radius, 16.)
