@@ -1,4 +1,4 @@
-# GC01-V1
+# GC01-V2
 
 Issue #37: gentle_curve_open。独立した刻印・版付きパーツ。
 
