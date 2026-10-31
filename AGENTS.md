@@ -16,7 +16,7 @@
 - Keep negative controls (half-pitch misalignment, overinsertion, tight fit, broken mesh) so the harness demonstrably detects defects.
 - Never send printer commands or produce machine-specific G-code without the actual machine/nozzle/material/slicer setup. STL and STEP are machine-independent outputs.
 - Existing model supports rectangular bricks with at least two studs on each axis; 1-wide bricks and irregular layouts need new underside support logic and tests.
-- All intermediate outputs (STEP, 3MF, ZIP, viewer, screenshots, generated reports) go in ignored `build/`. For multi-megabyte STL outputs, **push small design sources only**; generate STL on GitHub Actions using the manual `CAD preview (manual)` workflow (`target=play-set-8` on PR #20), then download the print-ready Artifact. Do not stream Base64 STL through the connector or force an upload by reducing mesh accuracy. Only commit a print-ready STL beside its owner in `parts/` or `experiments/` when the user explicitly needs a repository-tracked version and a safe transfer path is available. Preserve source inputs and physical observations separately. Do not regenerate unchanged historical STLs during a layout-only refactor.
+- All intermediate outputs (STEP, 3MF, ZIP, viewer, screenshots, generated reports) go in ignored `build/`. For multi-megabyte STL outputs, **push small design sources only**; generate STL through the `CAD preview and print artifacts` GitHub Action. Specify `targets=parts/play_set` for the manually triggered 8-piece plate, then download the `cad-verified-stl` Artifact. Do not stream Base64 STL through the connector or force an upload by reducing mesh accuracy. Only commit a print-ready STL beside its owner in `parts/` or `experiments/` when the user explicitly needs a repository-tracked version and a safe transfer path is available. Preserve source inputs and physical observations separately. Do not regenerate unchanged historical STLs during a layout-only refactor.
 
 - Prefer the persistent `npm run browser:interactive` session for visual iteration: keep the browser alive, send JSON commands on stdin, open each returned screenshot, regenerate CAD and send `reload`. Use `BRICK_CHROMIUM_PACKAGE` for the bundled Linux fallback if the standard browser download fails. Do not default to CI for each edit.
 - Visual verification for a model or viewer change must use that model's generated viewer only: after setting up Playwright if needed, run `npm run browser:check -- <changed-model-output> build/browser-qa` and `python scripts/review-sheet.py build/browser-qa`. Do not use legacy `build/first-print` or run other models' previews by default. If a local browser is unavailable, use the manual CAD preview workflow for the **selected model** and retrieve its screenshots.
@@ -24,7 +24,7 @@
 - Do not mark visual review complete based on a successful screenshot command. Record the input hashes, screenshot hashes, observations and remaining limitations in a review note after actually inspecting images.
 
 
-- CI policy: automatic verification belongs only to PRs and runs affected test files once via `scripts/ci-tests.py`. Do not append model exports, calibration sweeps or browser captures to automatic CI. Use the manual `CAD preview (manual)` workflow with one selected target for remote generation/screenshots; add new targets there when needed. Model/viewer changes still require local visual review as above. CI-only edits do not require rebuilding CAD or browser screenshots.
+- CI policy: push runs the version-aware planner (`scripts/cad_versions.py`), which auto-generates only new/bumped maintained part revisions. Experiments and bulk plates require manual `targets`. Only the selected model's tests are executed; screenshots require explicit `previews=true`. Shared source changes require bumps on affected models instead of silently rebuilding unchanged revisions.
 
 
 ## Shared part design
@@ -44,7 +44,10 @@
 - Maintained printable parts also need an engraved design ID and revision (e.g. T01-V2). Keep the label on non-mating, non-running surfaces; use the same ID for identical copies and increment the revision when the released geometry changes. Match engraved IDs to STL names or a documented manifest.
 
 ## Remote CAD workflow (PR20+)
-- Do not upload generated STL, STEP, viewer HTML, or PNG through the chat/GitHub connector. Commit small design/config/test changes only.
-- New maintained parts and experiments opt in with adjacent `cad-build.json`; read the root README. The generic remote planner discovers new configs automatically and selects affected CAD modules by changes and transitive imports.
-- The 8-piece plate is a manual-only target (`parts/play_set`) and must not run for ordinary small changes. Do not reintroduce a hard-coded list of PR20-only builds in the workflow.
-- Request screenshot captures with `previews=true` only when visual review is needed. Artifact PNGs must be opened and checked before asserting visual review. Remote CAD validation does not establish slicing or physical fit.
+- Do not upload STL, STEP, viewer HTML, or PNG through the chat/GitHub connector. Commit small design/config/test changes only.
+- New maintained parts and experiments opt in through adjacent `cad-build.json`, with required `version`. Bump the version whenever a CAD source/config changes. Version is the immutable geometry identity and should match the engraved part revision.
+- Maintained parts may set `auto:true`; experiments must use `auto:false`. Only version-bumped maintained parts regenerate automatically. Tests and docs do not invalidate CAD outputs.
+- Dependencies must be pinned as `{"target":"parts/tunnel","version":"T01-V2"}`. When the current revision differs from the pin, generate the historical revision in an isolated checkout at a matching Git commit; never substitute today's geometry.
+- A dependent can use `{deps}` in its command to reference outputs of the pinned sources. Experiments with independent parameters can omit `requires`.
+- The 8-piece plate is manual-only (`targets=parts/play_set`). Cached same-version CAD output may be reused; an expired cache is re-created from versioned sources.
+- `previews=true` requests screenshots. The screenshots must actually be opened and checked before claiming visual review; CAD checks are not evidence of slicing or physical fit.
