@@ -5,5 +5,6 @@
 - [通常ブロック 2×4](basic_brick/)
 - [直線レール](straight_rail/)
 - [直線トンネル](tunnel/)
+- [2×2急カーブ（右90°・高さ1）](sharp_curve/)
 - [90度トンネル](elbow/)
 - [坂カーブ](sloped_curve/)
