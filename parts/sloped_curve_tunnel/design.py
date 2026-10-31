@@ -1,4 +1,4 @@
-"""SC02-V3: 4x4 right R48 downhill tunnel, one DUPLO-course drop.
+"""SC02-V4: 4x4 right R48 downhill tunnel, one DUPLO-course drop.
 
 Reuse S01's rolling floor and the three intact lower receivers. Restore four
 footprint-clipped receiver supports without the previously problematic vertical
@@ -24,7 +24,7 @@ from parts.sloped_curve.design import (
 )
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "SC02-V3"
+PART_ID = "SC02-V4"
 TOP_Z = 3 * DUPLO.height  # 57.6 mm: 2 courses cannot clear the high ball inlet
 # Restore four useful partial supports; omit two corners (no material / thin sliver).
 CLIPPED_RECEIVER_TUBES = ((0.,-16.),(-16.,0.),(16.,0.),(0.,16.))
@@ -159,7 +159,7 @@ def build_part():
     shape = add_e31_05_receiver_features(shape, RETAINED_TUBES, TUBE_RADIUS)
     shape = _add_flat_clipped_studs(shape, p)
     if not shape.isValid() or len(shape.Solids()) != 1:
-        raise ValueError('SC02-V3 requires one connected valid BRep')
+        raise ValueError('SC02-V4 requires one connected valid BRep')
     return shape, p
 
 
@@ -176,6 +176,14 @@ def _roof_probe(t):
     z = RAIL.floor + _zshift(t) + INNER_ROOF_ABOVE_FLOOR + .9
     return cq.Vector(-32+RADIUS*math.cos(angle),
                      32+RADIUS*math.sin(angle),z)
+
+
+def _stud_shell_present(shape, x, y):
+    """A hollow stud has NO solid at its center; test the cylindrical wall."""
+    z = TOP_Z + 1.0
+    return any(shape.isInside(cq.Vector(x+4*math.cos(a),y+4*math.sin(a),z))
+               for a in (0.,math.pi/4,math.pi/2,3*math.pi/4,math.pi,
+                         5*math.pi/4,3*math.pi/2,7*math.pi/4))
 
 
 def verify(shape, p):
@@ -196,7 +204,7 @@ def verify(shape, p):
                        for x,y in RETAINED_TUBES),
         'clipped_receiver_supports_present':all(shape.isInside(
             cq.Vector(x+5.7,y,1.)) for x,y in CLIPPED_RECEIVER_TUBES),
-        'ten_top_stud_centres':sum(shape.isInside(cq.Vector(x,y,TOP_Z+1.))
+        'ten_top_stud_shells':sum(_stud_shell_present(shape,x,y)
             for x,y in p.studs())==10,
         'ports_one_course_drop':abs(high.floor_xyz_mm[2]-low.floor_xyz_mm[2]-DROP)<1e-6,
         'sampled_ball_clear':max(collisions)<VOLUME_TOL,
@@ -241,7 +249,8 @@ def export(out=Path('build/sloped-curve-tunnel')):
                  'inner_roof_above_floor_mm':INNER_ROOF_ABOVE_FLOOR},
         'ports':[asdict(x) for x in ports()],
         'top':{'plane_z_mm':TOP_Z,'stud_height_mm':p.stud_height,
-               'top_clip':'curved 4x4 footprint','physical_fit_validated':False},
+               'top_clip':'curved 4x4 footprint','hollow_stud_shell_count':10,
+               'physical_fit_validated':False},
         'receiver_supports':{'whole_tubes':list(RETAINED_TUBES),
                   'clipped_tubes':list(CLIPPED_RECEIVER_TUBES),
                   'vertical_cut_edge_fillets':False,

@@ -1,4 +1,4 @@
-"""Targeted geometry tests for SC02-V3 (Issue #37 M31-05)."""
+"""Targeted geometry tests for SC02-V4 (Issue #37 M31-05)."""
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,7 +8,7 @@ import cadquery as cq
 from brickcad.verify import intersection, VOLUME_TOL
 from parts.sloped_curve_tunnel.design import (
     PART_ID, BALL, DROP, RADIUS, RETAINED_TUBES,
-    CLIPPED_RECEIVER_TUBES, TOP_Z, _roof_probe, ball_centre, export, ports,
+    CLIPPED_RECEIVER_TUBES, TOP_Z, _roof_probe, _stud_shell_present, ball_centre, export, ports,
 )
 
 
@@ -54,10 +54,12 @@ class SlopedCurveTunnelTests(unittest.TestCase):
         self.assertEqual(self.report['top']['plane_z_mm'], TOP_Z)
         self.assertAlmostEqual(self.report['geometry']['bounds_mm'][2], TOP_Z+4.5, delta=.03)
         self.assertTrue(self.report['checks']['flat_top'])
-        self.assertTrue(self.report['checks']['ten_top_stud_centres'])
+        self.assertTrue(self.report['checks']['ten_top_stud_shells'])
         self.assertFalse(self.report['top']['physical_fit_validated'])
-        self.assertEqual(sum(self.shape.isInside(cq.Vector(x,y,TOP_Z+1))
+        self.assertEqual(sum(_stud_shell_present(self.shape,x,y)
                              for x in (-24,-8,8,24) for y in (-24,-8,8,24)), 10)
+        self.assertFalse(self.shape.isInside(cq.Vector(-24,-24,TOP_Z+1)),
+                         'DUPLO stud centre must remain hollow')
         # The two unsupported corners stay empty, not full square plates.
         for x,y in [(-24,24),(24,-24)]:
             self.assertFalse(self.shape.isInside(cq.Vector(x,y,TOP_Z-1)))
