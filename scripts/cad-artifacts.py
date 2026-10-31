@@ -106,10 +106,10 @@ def choose(specs, order, changed=None, targets='changed', root=ROOT):
         if changed is None:
             raise ValueError('Changed mode needs a base SHA; use --targets all manually')
         changed = set(changed)
-        force_all = any(p == 'requirements.txt' or p.startswith(('brickcad/', 'profiles/')) or p in (
-            'scripts/cad-artifacts.py', 'scripts/cad-capture.cjs',
-            'scripts/package_print_stl.py', 'scripts/run-stage.py',
-            '.github/workflows/cad-preview.yml') for p in changed)
+        # Workflow/logging changes should run fast tests, not regenerate all models.
+        # Only shared model/toolchain inputs invalidate every opted-in design.
+        force_all = any(p == 'requirements.txt' or p.startswith(('brickcad/', 'profiles/'))
+                        for p in changed)
         selected = set()
         for name, spec in specs.items():
             if not spec.get('auto', True):

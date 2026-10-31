@@ -42,7 +42,8 @@ class PlannerTest(unittest.TestCase):
                          ['parts/alpha', 'parts/beta'])
 
     def test_docs_and_generated_stl_do_not_rebuild(self):
-        for change in ('parts/alpha/README.md', 'parts/alpha/model.stl'):
+        for change in ('parts/alpha/README.md', 'parts/alpha/model.stl',
+                       '.github/workflows/cad-preview.yml', 'scripts/cad-artifacts.py'):
             self.assertEqual(cad.choose(self.specs, self.order, changed={change}, root=self.root), [])
 
     def test_manual_requires_only_requested_dependencies(self):
