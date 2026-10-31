@@ -10,6 +10,8 @@ on:
       - 'profiles/**'
       - 'requirements.txt'
       - 'scripts/cad-artifacts.py'
+      - 'scripts/cad_versions.py'
+      - 'scripts/test_cad_versions.py'
       - 'scripts/cad-capture.cjs'
       - 'scripts/test_cad_artifacts.py'
       - 'scripts/run-stage.py'
@@ -20,7 +22,7 @@ on:
       targets:
         description: 'all or comma-separated model paths, e.g. parts/tunnel'
         type: string
-        default: all
+        default: parts/tunnel
       previews:
         description: 'Capture Chromium views for generated models'
         type: boolean
@@ -39,7 +41,10 @@ jobs:
         with:
           fetch-depth: 0
       - name: Check incremental planner
-        run: python -m unittest discover -s scripts -p test_cad_artifacts.py -v
+        run: |
+          python -m unittest discover -s scripts -p test_cad_artifacts.py -v
+          python -m unittest discover -s scripts -p test_cad_versions.py -v
+          python -m unittest discover -s scripts -p test_run_stage.py -v
       - name: Plan changed models
         id: plan
         env:
@@ -48,9 +53,9 @@ jobs:
           INPUT_TARGETS: ${{ inputs.targets }}
         run: |
           if [ "$EVENT_NAME" = workflow_dispatch ]; then
-            python scripts/cad-artifacts.py --mode plan --targets "$INPUT_TARGETS"
+            python scripts/cad_versions.py --mode plan --targets "$INPUT_TARGETS"
           else
-            python scripts/cad-artifacts.py --mode plan --base "$BEFORE_SHA"
+            python scripts/cad_versions.py --mode plan --base "$BEFORE_SHA"
           fi
       - uses: actions/setup-python@v5
         if: steps.plan.outputs.has_models == 'true'
@@ -77,9 +82,9 @@ jobs:
           PREVIEWS: ${{ inputs.previews }}
         run: |
           if [ "$PREVIEWS" = true ]; then
-            python scripts/cad-artifacts.py --mode build --targets "$SELECTED" --previews
+            python scripts/cad_versions.py --mode build --targets "$SELECTED" --previews
           else
-            python scripts/cad-artifacts.py --mode build --targets "$SELECTED"
+            python scripts/cad_versions.py --mode build --targets "$SELECTED"
           fi
       - name: Upload STL and optional screenshots
         if: steps.plan.outputs.has_models == 'true' && success()
