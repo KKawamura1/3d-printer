@@ -195,6 +195,13 @@ def verify(shape,p):
         worst_e=sorted(enumerate(segment_errors),key=lambda it:it[1],reverse=True)[:6]
         print('sphere collision idx/mm3/center',[(i,round(v,3),pts[i].toTuple()) for i,v in worst_s],flush=True)
         print('segment collision idx/mm3/start/end',[(i,round(v,3),pts[i].toTuple(),pts[i+1].toTuple()) for i,v in worst_e],flush=True)
+        for i,v in worst_s[:3]:
+            overlap=shape.intersect(cq.Solid.makeSphere(r,pts[i],angleDegrees1=-90))
+            bb=overlap.BoundingBox()
+            print('overlap bounding mm',i,'vol',round(v,3),
+                  'x',round(bb.xmin,3),round(bb.xmax,3),
+                  'y',round(bb.ymin,3),round(bb.ymax,3),
+                  'z',round(bb.zmin,3),round(bb.zmax,3),flush=True)
     mid=pts[len(pts)//2]
     negative=intersection(shape,cq.Solid.makeSphere(r,mid-cq.Vector(0,0,3),angleDegrees1=-90))
     checks=dict(valid_brep=shape.isValid(),one_solid=len(shape.Solids())==1,
