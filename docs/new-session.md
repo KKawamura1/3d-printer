@@ -33,9 +33,11 @@ python scripts/run-stage.py --name curve-browser --timeout 120 -- \
 
 ## 大きなSTLの生成・配布
 
-数MB以上のSTLをChatGPT WorkやGitHubコネクターでBase64転送しない。転送失敗を再現したため、設計の小さなソースファイルのみをpushする。PR #20の8個セットは既存の [CAD preview (manual)](../.github/workflows/cad-preview.yml) で `target=play-set-8` を選び、生成された `print-ready-play-set-8` Artifactから取得する。
+数MB以上のSTLをChatGPT WorkやGitHubコネクターでBase64転送しない。設計の小さなソースファイルと `cad-build.json` だけをpushする。パーツには `version` を明示し、変更した場合だけGitHub Actionsの自動ビルドを起動する。実験は `auto:false` で自動生成しない。
 
-GitHub Actionsでは生成を個別工程に分け、イベント・ハッシュと各ログをrunner上に保存する。失敗すればログのみアップロードし、検証に失敗したSTLは成果物として配布しない。配布ArtifactはGitの履歴とは別物で、期限付きなので印刷に使うものは手元で保管する。
+PR #20の8個セットは [CAD preview and print artifacts](../.github/workflows/cad-preview.yml) の手動実行で `targets=parts/play_set`、実験単体なら `targets=experiments/pr20_comparison` を選ぶ。画像が要るときだけ `previews=true` を指定する。生成された `cad-verified-stl` ArtifactからSTL、manifest、CADレポートを取得する。依存パーツの過去版は対応するGitコミットを隔離checkoutして生成する。結果は版ごとにActionsキャッシュに保存され、キャッシュに残っていれば再生成しない。
+
+生成・検証ログはrunner上の `build/stages/` に保存し、失敗時はログをArtifact化する。期限付きの配布ArtifactとActionsキャッシュは永続保存ではないため、採用版のSTLは手元に保管する。CAD合格とスライス・印刷・物理嵌合の確認は別に行う。
 
 ## CADの準備
 
