@@ -94,6 +94,7 @@ def build_part(label=PART_ID):
     mask=loft('mask').intersect(clip)
     outer=loft('outer').intersect(clip)
     body=receiver(p,cq.Workplane(obj=outer),DEPTH,0).val().clean()
+    print('stage receiver', body.isValid(),len(body.Solids()),flush=True)
     # Reject unsupported near-tangent tube slivers; use complete and useful clipped rings.
     body=body.intersect(mask).clean()
     if STEEP:
@@ -108,14 +109,18 @@ def build_part(label=PART_ID):
     # Previously those two solids were constructed but never subtracted,
     # leaving an apparently roofed yet internally blocked drop.
     body=body.cut(passage).clean()
+    print('stage after chamber cut',body.isValid(),len(body.Solids()),flush=True)
     if STEEP: body=body.fix().clean()
+    print('stage after fix',body.isValid(),len(body.Solids()),flush=True)
     full=[]
     for x,y in p.tubes():
         if all(mask.isInside(cq.Vector(x+6.85*math.cos(a),y+6.85*math.sin(a),2)) for a in [i*math.pi/4 for i in range(8)]):full.append((x,y))
     if full: body=add_e31_05_receiver_features(body,full,p.tube_radius)
+    print('stage after E31',body.isValid(),len(body.Solids()),flush=True)
     if TUNNEL:
         studs=make_studs(p.studs(),57.45,p.stud_radius,p.stud_inner_radius,4.65,.5).val().intersect(mask)
         body=body.fuse(studs).clean()
+        print('stage after studs',body.isValid(),len(body.Solids()),flush=True)
     # Mark below the running floor, on the inlet face; avoids mating contact below 4.75.
     x,y,_,_=xy(0)
     if MIRROR:
