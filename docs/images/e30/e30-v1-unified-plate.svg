@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1170" height="1060" viewBox="0 0 1170 1060">
+<rect width="1170" height="1060" fill="#f8fbfd"/>
+<text x="48" y="62" font-family="sans-serif" font-size="40" font-weight="bold" fill="#17334a">E30-V1 | One-print fit experiment</text>
+<text x="48" y="101" font-family="sans-serif" font-size="25" fill="#45667e">E28 + E29 | 9 specimens | one A1 mini print job</text>
+<text x="48" y="139" font-family="sans-serif" font-size="19" fill="#597489">Plate centers: X/Y 45 / 90 / 135 mm  —  121.8 x 121.8 mm overall</text>
+<g><rect x="45" y="155" width="328" height="246" rx="18" fill="#e9eff5" stroke="#cbdae6" stroke-width="2"/>
+ <text x="65" y="195" font-family="sans-serif" font-size="27" font-weight="bold" fill="#233d54">E30-01</text>
+ <text x="65" y="229" font-family="sans-serif" font-size="21" font-weight="bold" fill="#405e79">Baseline A</text>
+ <text x="65" y="254" font-family="sans-serif" font-size="16" fill="#516d82">E28/E29</text>
+ <line x1="208" y1="268" x2="208" y2="374" stroke="#afc4d4" stroke-width="2"/>
+ <circle cx="145" cy="311" r="42" fill="#cedce8" stroke="#607b93" stroke-width="3"/><circle cx="145" cy="311" r="21" fill="#fff" stroke="#607b93" stroke-width="2"/><circle cx="295" cy="313" r="42" fill="none" stroke="#7d9eb1" stroke-width="15"/>
+ <text x="145" y="386" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">stud</text>
+ <text x="295" y="386" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">receiver</text></g>
+<g><rect x="397" y="155" width="328" height="246" rx="18" fill="#e9eff5" stroke="#cbdae6" stroke-width="2"/>
+ <text x="417" y="195" font-family="sans-serif" font-size="27" font-weight="bold" fill="#233d54">E30-02</text>
+ <text x="417" y="229" font-family="sans-serif" font-size="21" font-weight="bold" fill="#405e79">Baseline B</text>
+ <text x="417" y="254" font-family="sans-serif" font-size="16" fill="#516d82">duplicate</text>
+ <line x1="560" y1="268" x2="560" y2="374" stroke="#afc4d4" stroke-width="2"/>
+ <circle cx="497" cy="311" r="42" fill="#cedce8" stroke="#607b93" stroke-width="3"/><circle cx="497" cy="311" r="21" fill="#fff" stroke="#607b93" stroke-width="2"/><circle cx="647" cy="313" r="42" fill="none" stroke="#7d9eb1" stroke-width="15"/>
+ <text x="497" y="386" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">stud</text>
+ <text x="647" y="386" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">receiver</text></g>
+<g><rect x="749" y="155" width="328" height="246" rx="18" fill="#e4f4f0" stroke="#cbdae6" stroke-width="2"/>
+ <text x="769" y="195" font-family="sans-serif" font-size="27" font-weight="bold" fill="#233d54">E30-03</text>
+ <text x="769" y="229" font-family="sans-serif" font-size="21" font-weight="bold" fill="#1c8a72">Wall relief</text>
+ <text x="769" y="254" font-family="sans-serif" font-size="16" fill="#516d82">E28</text>
+ <line x1="912" y1="268" x2="912" y2="374" stroke="#afc4d4" stroke-width="2"/>
+ <circle cx="849" cy="311" r="42" fill="#cedce8" stroke="#607b93" stroke-width="3"/><circle cx="849" cy="311" r="21" fill="#fff" stroke="#607b93" stroke-width="2"/><circle cx="999" cy="313" r="42" fill="none" stroke="#7d9eb1" stroke-width="15"/>
+ <text x="849" y="386" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">stud</text>
+ <text x="999" y="386" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">receiver</text></g>
+<g><rect x="45" y="430" width="328" height="246" rx="18" fill="#e4f4f0" stroke="#cbdae6" stroke-width="2"/>
+ <text x="65" y="470" font-family="sans-serif" font-size="27" font-weight="bold" fill="#233d54">E30-04</text>
+ <text x="65" y="504" font-family="sans-serif" font-size="21" font-weight="bold" fill="#1c8a72">Tube relief</text>
+ <text x="65" y="529" font-family="sans-serif" font-size="16" fill="#516d82">E28</text>
+ <line x1="208" y1="543" x2="208" y2="649" stroke="#afc4d4" stroke-width="2"/>
+ <circle cx="145" cy="586" r="42" fill="#cedce8" stroke="#607b93" stroke-width="3"/><circle cx="145" cy="586" r="21" fill="#fff" stroke="#607b93" stroke-width="2"/><circle cx="295" cy="588" r="42" fill="none" stroke="#7d9eb1" stroke-width="15"/>
+ <text x="145" y="661" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">stud</text>
+ <text x="295" y="661" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">receiver</text></g>
+<g><rect x="397" y="430" width="328" height="246" rx="18" fill="#e8efff" stroke="#cbdae6" stroke-width="2"/>
+ <text x="417" y="470" font-family="sans-serif" font-size="27" font-weight="bold" fill="#233d54">E30-05</text>
+ <text x="417" y="504" font-family="sans-serif" font-size="21" font-weight="bold" fill="#4c67be">Stud groove</text>
+ <text x="417" y="529" font-family="sans-serif" font-size="16" fill="#516d82">E29</text>
+ <line x1="560" y1="543" x2="560" y2="649" stroke="#afc4d4" stroke-width="2"/>
+ <circle cx="497" cy="586" r="42" fill="#cedce8" stroke="#607b93" stroke-width="3"/><circle cx="497" cy="586" r="21" fill="#fff" stroke="#607b93" stroke-width="2"/><circle cx="497" cy="586" r="37" fill="none" stroke="#4c67be" stroke-width="6" stroke-dasharray="9 5"/><circle cx="647" cy="588" r="42" fill="none" stroke="#7d9eb1" stroke-width="15"/>
+ <text x="497" y="661" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">stud</text>
+ <text x="647" y="661" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">receiver</text></g>
+<g><rect x="749" y="430" width="328" height="246" rx="18" fill="#e8efff" stroke="#cbdae6" stroke-width="2"/>
+ <text x="769" y="470" font-family="sans-serif" font-size="27" font-weight="bold" fill="#233d54">E30-06</text>
+ <text x="769" y="504" font-family="sans-serif" font-size="21" font-weight="bold" fill="#4c67be">Split tube</text>
+ <text x="769" y="529" font-family="sans-serif" font-size="16" fill="#516d82">E29</text>
+ <line x1="912" y1="543" x2="912" y2="649" stroke="#afc4d4" stroke-width="2"/>
+ <circle cx="849" cy="586" r="42" fill="#cedce8" stroke="#607b93" stroke-width="3"/><circle cx="849" cy="586" r="21" fill="#fff" stroke="#607b93" stroke-width="2"/><circle cx="999" cy="588" r="42" fill="none" stroke="#7d9eb1" stroke-width="15"/><g stroke="#fff" stroke-width="10"><path d="M951 588H1047"/><path d="M999 540V636"/></g>
+ <text x="849" y="661" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">stud</text>
+ <text x="999" y="661" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">receiver</text></g>
+<g><rect x="45" y="705" width="328" height="246" rx="18" fill="#e8efff" stroke="#cbdae6" stroke-width="2"/>
+ <text x="65" y="745" font-family="sans-serif" font-size="27" font-weight="bold" fill="#233d54">E30-07</text>
+ <text x="65" y="779" font-family="sans-serif" font-size="21" font-weight="bold" fill="#4c67be">Split + bead</text>
+ <text x="65" y="804" font-family="sans-serif" font-size="16" fill="#516d82">E29</text>
+ <line x1="208" y1="818" x2="208" y2="924" stroke="#afc4d4" stroke-width="2"/>
+ <circle cx="145" cy="861" r="42" fill="#cedce8" stroke="#607b93" stroke-width="3"/><circle cx="145" cy="861" r="21" fill="#fff" stroke="#607b93" stroke-width="2"/><circle cx="295" cy="863" r="42" fill="none" stroke="#7d9eb1" stroke-width="15"/><g stroke="#fff" stroke-width="10"><path d="M247 863H343"/><path d="M295 815V911"/></g><circle cx="295" cy="863" r="35" fill="none" stroke="#4c67be" stroke-width="5" stroke-dasharray="18 13"/>
+ <text x="145" y="936" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">stud</text>
+ <text x="295" y="936" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">receiver</text></g>
+<g><rect x="397" y="705" width="328" height="246" rx="18" fill="#f8edff" stroke="#cbdae6" stroke-width="2"/>
+ <text x="417" y="745" font-family="sans-serif" font-size="27" font-weight="bold" fill="#233d54">E30-08</text>
+ <text x="417" y="779" font-family="sans-serif" font-size="21" font-weight="bold" fill="#8552ad">Hybrid A</text>
+ <text x="417" y="804" font-family="sans-serif" font-size="16" fill="#516d82">E29</text>
+ <line x1="560" y1="818" x2="560" y2="924" stroke="#afc4d4" stroke-width="2"/>
+ <circle cx="497" cy="861" r="42" fill="#cedce8" stroke="#607b93" stroke-width="3"/><circle cx="497" cy="861" r="21" fill="#fff" stroke="#607b93" stroke-width="2"/><circle cx="497" cy="861" r="37" fill="none" stroke="#8552ad" stroke-width="6" stroke-dasharray="9 5"/><circle cx="647" cy="863" r="42" fill="none" stroke="#7d9eb1" stroke-width="15"/><g stroke="#fff" stroke-width="10"><path d="M599 863H695"/><path d="M647 815V911"/></g><circle cx="647" cy="863" r="35" fill="none" stroke="#8552ad" stroke-width="5" stroke-dasharray="18 13"/>
+ <text x="497" y="936" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">stud</text>
+ <text x="647" y="936" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">receiver</text></g>
+<g><rect x="749" y="705" width="328" height="246" rx="18" fill="#f8edff" stroke="#cbdae6" stroke-width="2"/>
+ <text x="769" y="745" font-family="sans-serif" font-size="27" font-weight="bold" fill="#233d54">E30-09</text>
+ <text x="769" y="779" font-family="sans-serif" font-size="21" font-weight="bold" fill="#8552ad">Hybrid B</text>
+ <text x="769" y="804" font-family="sans-serif" font-size="16" fill="#516d82">duplicate</text>
+ <line x1="912" y1="818" x2="912" y2="924" stroke="#afc4d4" stroke-width="2"/>
+ <circle cx="849" cy="861" r="42" fill="#cedce8" stroke="#607b93" stroke-width="3"/><circle cx="849" cy="861" r="21" fill="#fff" stroke="#607b93" stroke-width="2"/><circle cx="849" cy="861" r="37" fill="none" stroke="#8552ad" stroke-width="6" stroke-dasharray="9 5"/><circle cx="999" cy="863" r="42" fill="none" stroke="#7d9eb1" stroke-width="15"/><g stroke="#fff" stroke-width="10"><path d="M951 863H1047"/><path d="M999 815V911"/></g><circle cx="999" cy="863" r="35" fill="none" stroke="#8552ad" stroke-width="5" stroke-dasharray="18 13"/>
+ <text x="849" y="936" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">stud</text>
+ <text x="999" y="936" font-family="sans-serif" font-size="17" fill="#35546a" text-anchor="middle">receiver</text></g>
+<rect x="45" y="996" width="1048" height="45" rx="10" fill="#e3eef5"/>
+<text x="61" y="1026" font-family="sans-serif" font-size="19" fill="#2c526a">01 ↔ 02: baseline  |  01 → 03 / 04: E28  |  05 → 07: hybrid mechanism  |  08 ↔ 09: printed-on-printed</text>
+<text x="45" y="974" font-family="sans-serif" font-size="17" fill="#667d8c">Illustrative diagram, not to scale. Slicer validation, physical fit, and child safety are not established.</text>
+</svg>
