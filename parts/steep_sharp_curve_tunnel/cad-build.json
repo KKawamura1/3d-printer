@@ -1,0 +1,26 @@
+{
+  "version": "S02-V7",
+  "auto": true,
+  "requires": [
+    {
+      "target": "parts/sharp_curve",
+      "version": "C01-V5"
+    },
+    {
+      "target": "parts/steep_drop_hole",
+      "version": "S01-V5"
+    }
+  ],
+  "command": [
+    "python",
+    "-m",
+    "parts.steep_sharp_curve_tunnel.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "2x2x3 roofed west-high to south-low right turn; 33deg south exit ramp derived from S01-V5"
+}
