@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG01-V2'
+PART_ID = 'SG01-V3'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
@@ -102,9 +102,12 @@ def build_part(label=PART_ID):
         passage=passage.fuse(cq.Solid.makeCylinder(14.,43.5-(height(12)+14),cq.Vector(x,y,height(12)+14)))
         passage=passage.fuse(cq.Solid.makeCone(14.,0.,12.3,cq.Vector(x,y,43.5)))
     else: passage=loft('passage')
-    if STEEP:
-        body=body.cut(loft('passage',-.3,12.2,'high')).cut(loft('passage',11.8,LENGTH+.3,'low')).clean()
-    else: body=body.cut(passage).clean()
+    # The falling ball must pass through the vertical transition between
+    # the high inlet and low curved exit.  Cut the complete union, including
+    # the vertical cylindrical chamber and its printable conical roof.
+    # Previously those two solids were constructed but never subtracted,
+    # leaving an apparently roofed yet internally blocked drop.
+    body=body.cut(passage).clean()
     if STEEP: body=body.fix().clean()
     full=[]
     for x,y in p.tubes():
@@ -113,7 +116,6 @@ def build_part(label=PART_ID):
     if TUNNEL:
         studs=make_studs(p.studs(),57.45,p.stud_radius,p.stud_inner_radius,4.65,.5).val().intersect(mask)
         body=body.fuse(studs).clean()
-        if STEEP: print('stud body valid',body.isValid(),flush=True)
     # Mark below the running floor, on the inlet face; avoids mating contact below 4.75.
     x,y,_,_=xy(0)
     if MIRROR:
