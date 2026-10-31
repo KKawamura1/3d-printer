@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG02-V1'
+PART_ID = 'SG02-V2'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
@@ -175,7 +175,13 @@ def export(out):
     cq.exporters.export(shape,str(out/'brick.step'))
     restored=cq.importers.importStep(str(out/'brick.step')).val()
     m=mesh_check(stl);checks['mesh_closed']=m['passed']
-    delta=shape.cut(restored).Volume()+restored.cut(shape).Volume()
+    from OCP.BRepGProp import BRepGProp
+    from OCP.GProp import GProp_GProps
+    def precise_volume(solid):
+        props=GProp_GProps()
+        BRepGProp.VolumeProperties_s(solid.wrapped,props,1e-9,True,False)
+        return props.Mass()
+    delta=precise_volume(shape)-precise_volume(restored)
     checks['step_roundtrip']=restored.isValid() and len(restored.Solids())==1 and abs(delta)<.01
     report=dict(part_id=PART_ID,passed=all(checks.values()),checks=checks,mesh=m,clearance=clearance,ports=[asdict(v) for v in ports()],design=design_manifest(p),bounds_mm=exact_bounds(shape),physical_fit_validated=False,physical_rolling_validated=False,slicer_support_free_validated=False,sha256_stl=hashlib.sha256(stl.read_bytes()).hexdigest())
     (out/'report.json').write_text(json.dumps(report,indent=2)+'\n')
