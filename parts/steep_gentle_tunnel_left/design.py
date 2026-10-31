@@ -104,8 +104,12 @@ def build_part(label=PART_ID):
         high=loft('passage',-.3,12.2,'high')
         low=loft('passage',11.8,LENGTH+.3,'low')
         x,y,_,_=xy(12)
-        chamber=cq.Solid.makeCylinder(14.,43.5-(height(12)+14),
-                                      cq.Vector(x,y,height(12)+14))
+        # A falling sphere also occupies the LOWER half of the chamber.
+        # Starting the cylinder at floor+14 left a solid obstruction beneath
+        # the ball immediately after the drop (CI collision >1400 mm^3).
+        chamber_bottom=height(12,'low')-.5
+        chamber=cq.Solid.makeCylinder(14.,43.5-chamber_bottom,
+                                      cq.Vector(x,y,chamber_bottom))
         chamber_roof=cq.Solid.makeCone(14.,0.,12.3,cq.Vector(x,y,43.5))
         body=body.cut(high).cut(low).clean()
         print('stage after paired loft cuts',body.isValid(),len(body.Solids()),flush=True)
