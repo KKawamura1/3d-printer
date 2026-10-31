@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG01-V3'
+PART_ID = 'SG01-V4'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
@@ -120,7 +120,10 @@ def build_part(label=PART_ID):
     x,y,_,_=xy(0)
     if MIRROR:
         body=body.mirror('XZ');y=-y
-    body=engrave_west(body,label,x=-p.width/2,y=y,z=5.55,size=1.1,depth=.3)
+    # Keep the mark on the solid west inlet wall, not in the shallow
+    # underside receiver band (the tiny V3 letters did not create enough
+    # valid recessed volume after the chamber was opened).
+    body=engrave_west(body,label,x=-p.width/2,y=y,z=12.,size=2.,depth=.45)
     if not body.isValid() or len(body.Solids())!=1:raise ValueError('Expected one valid connected solid')
     return body,p
 
