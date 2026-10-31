@@ -90,23 +90,24 @@ def export(out=Path('build/pr20-comparison'), *, only=None):
             continuous_ball_path_mm3=clear,oversize_negative_mm3=blocked,
             minimum_roof_mm=p.height-(t.ceiling if roof=='transition' else cy+t.radius),
             minimum_side_wall_mm=p.depth/2-t.radius-t.entry)
-    print('BUILD '+CURVE_ID,flush=True)
-    s,p=build_wall_curve(); shapes[CURVE_ID]=(s,p)
-    audit=receiver_audit(s,p)
-    audit['calibration']['retained_complete_tubes']=list(RETAINED_TUBES)
-    audit['calibration']['limitation']='Three full tubes, four closed D tubes and one solid segment; no corner floors. Physical fit and slicing untested.'
-    assert audit['no_blocking_collision']
-    hits=[intersection(s,cq.Solid.makeSphere(BALL/2,ball_centre(i/48),angleDegrees1=-90)) for i in range(49)]
-    assert max(hits)<VOLUME_TOL
-    baseline,_=build_curve();upper=cq.Solid.makeBox(100,100,60,cq.Vector(-50,-50,RAIL.floor+.01))
-    # IDs differ on the inlet face; compare upper rail outside the label strip.
-    label_mask=cq.Solid.makeBox(1,24,5,cq.Vector(-32,-28,9.5))
-    delta=s.cut(baseline).fuse(baseline.cut(s)).cut(label_mask).intersect(upper)
-    assert not delta.Solids() or delta.Volume()<VOLUME_TOL
-    reports[CURVE_ID]=dict(complete_tubes=3,closed_d_tubes=4,solid_segments=1,
-        supports=[r for _,r in d_supports(p)],square_wall_base=False,corner_floors_restored=False,
-        receiver_audit=audit,ball_samples=49,ball_intersection_mm3=max(hits),
-        added_volume_mm3=s.Volume()-baseline.Volume(),upper_track_delta_mm3=delta.Volume() if delta.Solids() else 0.)
+    if only is None or CURVE_ID in only:
+        print('BUILD '+CURVE_ID,flush=True)
+        s,p=build_wall_curve(); shapes[CURVE_ID]=(s,p)
+        audit=receiver_audit(s,p)
+        audit['calibration']['retained_complete_tubes']=list(RETAINED_TUBES)
+        audit['calibration']['limitation']='Three full tubes, four closed D tubes and one solid segment; no corner floors. Physical fit and slicing untested.'
+        assert audit['no_blocking_collision']
+        hits=[intersection(s,cq.Solid.makeSphere(BALL/2,ball_centre(i/48),angleDegrees1=-90)) for i in range(49)]
+        assert max(hits)<VOLUME_TOL
+        baseline,_=build_curve();upper=cq.Solid.makeBox(100,100,60,cq.Vector(-50,-50,RAIL.floor+.01))
+        # IDs differ on the inlet face; compare upper rail outside the label strip.
+        label_mask=cq.Solid.makeBox(1,24,5,cq.Vector(-32,-28,9.5))
+        delta=s.cut(baseline).fuse(baseline.cut(s)).cut(label_mask).intersect(upper)
+        assert not delta.Solids() or delta.Volume()<VOLUME_TOL
+        reports[CURVE_ID]=dict(complete_tubes=3,closed_d_tubes=4,solid_segments=1,
+            supports=[r for _,r in d_supports(p)],square_wall_base=False,corner_floors_restored=False,
+            receiver_audit=audit,ball_samples=49,ball_intersection_mm3=max(hits),
+            added_volume_mm3=s.Volume()-baseline.Volume(),upper_track_delta_mm3=delta.Volume() if delta.Solids() else 0.)
     for label,(s,p) in shapes.items():
         folder=out/label;folder.mkdir(exist_ok=True)
         assert s.isValid() and len(s.Solids())==1
