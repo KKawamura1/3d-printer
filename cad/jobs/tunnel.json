@@ -27,5 +27,5 @@
       "report": "build/remote/tunnel/report.json"
     }
   ],
-  "description": "Automated single-model smoke test: T01-V2 straight tunnel"
+  "description": "Straight tunnel T01-V2; verify full-mesh 4-view preview quality"
 }
