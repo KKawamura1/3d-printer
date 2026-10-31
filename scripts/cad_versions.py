@@ -95,7 +95,10 @@ def imports_for(file, root, seen=None):
 def source_fingerprint(root, name, *, auto_override=None):
     """Fingerprint model source, transitive Python imports and shared CAD inputs."""
     relevant = imports_for(name + '/design.py', root)
-    relevant.update(p.relative_to(root).as_posix() for p in (root / name).glob('*.py'))
+    # Test-only fixes must not invalidate an immutable geometry cache entry.
+    # Verification still runs in the independent CAD tests workflow.
+    relevant.update(p.relative_to(root).as_posix() for p in (root / name).glob('*.py')
+                    if p.name != 'test.py')
     relevant.add(name + '/cad-build.json')
     relevant.add('requirements.txt')
     relevant.update(p.relative_to(root).as_posix() for p in (root / 'profiles').glob('*.json'))
@@ -390,6 +393,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices=('plan', 'build'), required=True)
     parser.add_argument('--base', default='')
+    parser.add_argument('--retry-base', default='',
+                        help='Recheck branch versions since this base if previous CAD runs failed')
     parser.add_argument('--targets', default='changed')
     parser.add_argument('--previews', action='store_true')
     args = parser.parse_args()
@@ -404,6 +409,20 @@ def main():
                  for name, old in prior_specs.items()}
         selected = select(specs, args.targets, changed=changed, prior=prior,
                           root=root, prior_specs=prior_specs)
+        if args.retry_base:
+            retry_base = choose_diff_base(root, args.retry_base)
+            retry_paths = git(root, 'diff', '--name-only', '-z', '--no-renames',
+                              retry_base, 'HEAD')
+            retry_changed = [x.decode() for x in retry_paths.split(bytes([0])) if x]
+            retry_specs = {name: prior_config(root, retry_base, name) for name in specs}
+            retry_prior = {name: old.get('version') if old else None
+                           for name, old in retry_specs.items()}
+            retry_selected = select(specs, 'changed', changed=retry_changed,
+                                    prior=retry_prior, root=root,
+                                    prior_specs=retry_specs)
+            selected = sorted(set(selected) | set(retry_selected))
+            print('CAD retry from', retry_base, 'selected:',
+                  ', '.join(retry_selected) or '(none)', flush=True)
     else:
         selected = select(specs, args.targets)
     print('CAD selected:', ', '.join(selected) or '(none)', flush=True)

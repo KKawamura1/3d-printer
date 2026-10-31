@@ -143,6 +143,31 @@ class VersionSelectionTests(unittest.TestCase):
             (part / 'design.py').write_text('MODEL = 2' + chr(10))
             self.assertNotEqual(before, cad.source_fingerprint(root, 'parts/alpha'))
 
+    def test_test_only_fix_can_reselect_failed_branch_version(self):
+        # Immediate push diff has no bump, but the unresolved branch version does.
+        current = {'parts/alpha': 'A02-V1', 'parts/beta': 'B01-V1',
+                   'experiments/trial': 'X01-V1'}
+        self.assertEqual(cad.select(self.specs, 'changed',
+                                    prior=current,
+                                    changed=['parts/alpha/test.py']), [])
+        self.assertEqual(cad.select(self.specs, 'changed',
+                                    prior=self.prior,
+                                    changed=['parts/alpha/cad-build.json',
+                                             'parts/alpha/test.py']),
+                         ['parts/alpha'])
+
+    def test_test_edits_do_not_invalidate_immutable_geometry_cache(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            part = root / 'parts/alpha'
+            part.mkdir(parents=True)
+            (part / 'cad-build.json').write_text(json.dumps(spec('A01-V1')))
+            (part / 'design.py').write_text('MODEL = 1' + chr(10))
+            (part / 'test.py').write_text('assert True' + chr(10))
+            before = cad.source_fingerprint(root, 'parts/alpha')
+            (part / 'test.py').write_text('assert 1 == 1' + chr(10))
+            self.assertEqual(before, cad.source_fingerprint(root, 'parts/alpha'))
+
     def test_stl_binary_integrity(self):
         with tempfile.TemporaryDirectory() as tmp:
             model = Path(tmp) / 'brick.stl'
