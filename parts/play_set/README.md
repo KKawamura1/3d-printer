@@ -18,6 +18,19 @@ IDは形状番号＋版。複製同士は同じ刻印で、設計を変更する
 
 S02-V2は隅の床を増やさず、切れた円筒を切断面の壁で閉じる。小さい1か所は中実にし、縦角・下端をR0.5で丸める。S01-V2より下面天井の支えを増やした比較案。丸入口案も#19の仮説を実物比較する候補であり、短い真円区間がサポート不要を保証するものではない。
 
+## GitHub Actionsで印刷用STLを生成する（推奨）
+
+大きなSTLをWorkからpushしない。**設計コードのみをPRにpush**し、GitHub側で生成する。
+
+1. [CAD preview (manual)](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) を開き、**Run workflow** を押す。
+2. **Branch: `parts/weekend-play-set-v1`**（変更した設計のブランチ）を選ぶ。
+3. **target: `play-set-8`**、**screenshots: OFF** で実行する。
+4. 成功した実行の **Artifacts → `print-ready-play-set-8`** を取得する。ZIP内に `play-set-8.stl` と7種類の個別STL、`manifest.json`、`SHA256SUMS.txt` が入る。90度トンネル2個は同じ `E01-V2.stl` を複製したもの。
+
+実行中はトンネル・90度トンネル・坂カーブ・4比較形状・8個配置を分離して生成し、各工程の短いイベントログを保存する。形状検証が失敗した場合はSTLを配布せず、`failed-print-stages` に診断ログを残す。生成物はGitHub ActionsのArtifactに保存し、Gitコミットには追加しない（保持14日）。**Actionsの成功は実スライス・実物嵌合の成功を意味しない。**
+
+本ブランチのSTLは移行前の記録として残っているが、以後の新規STLはリモートArtifactから取得する。
+
 印刷前：サポートOFFで、浮き警告・天井の積層・上面スタッドのInner wall・所要時間を確認。印刷後：大人が縁を触り、上下接続と球通過を両方向に確認。結果は刻印IDで報告すればよい。
 
 ```sh
