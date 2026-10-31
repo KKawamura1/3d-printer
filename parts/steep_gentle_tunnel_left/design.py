@@ -158,7 +158,15 @@ def build_part(label=PART_ID):
 def path():
     def point(s,branch='low'):
         x,y,_,_=xy(s)
-        z=height(s,branch)+BALL/2*math.sqrt(1+slope(s,branch)**2)+.5
+        if STEEP and branch=='low':
+            # A ball cannot jump down by 2.3mm at the sharp ramp-to-flat
+            # corner: its trailing contact remains on the inclined floor.
+            # Envelope of contact with the extended 0.65 slope and flat exit.
+            ramp_contact=FLOOR+.65*(27-s)+(BALL/2)*math.sqrt(1+.65**2)
+            flat_contact=FLOOR+BALL/2
+            z=max(ramp_contact,flat_contact)+.5
+        else:
+            z=height(s,branch)+BALL/2+.5
         return cq.Vector(x,-y if MIRROR else y,z)
     if not STEEP:return [point(s) for s in stations(0,LENGTH)]
     return [point(s,'high') for s in stations(0,12)]+[point(s) for s in stations(12,LENGTH)]
