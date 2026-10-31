@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG01-V4'
+PART_ID = 'SG01-V5'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
@@ -61,17 +61,23 @@ def wire(s, role, branch='low'):
     if role in ('outer','mask'):
         top=90 if role=='mask' else (57.6 if TUNNEL else f+12.85)
         return w.polyline([(-15.9,0),(15.9,0),(15.9,top),(-15.9,top)]).close().val()
-    # Exact endpoint radius, a wider interior for the inclined sphere envelope.
+    # Preserve standard mouth size; add running clearance inside the curved, inclined path.
+    # A ball on the 0.65 ramp sits above the nominal floor-based centre and
+    # sweeps across several curved cross sections. R=14 caused 22.8 mm3
+    # of collision near s=20; keep at least 1.1 mm side wall (outer half-width 15.9).
     distance=min(max(0,s),max(0,LENGTH-s))
     blend=min(1.,distance/5.)
-    rad=BALL_TRACK.radius+(14.-BALL_TRACK.radius)*blend
+    rad=BALL_TRACK.radius+(14.8-BALL_TRACK.radius)*blend
     c=f+rad
     a=rad/math.sqrt(2)
     if not TUNNEL:
         return (w.moveTo(-rad,c).threePointArc((0,f),(rad,c))
                 .lineTo(rad,95).lineTo(-rad,95).close().val())
-    # Printable pointed roof; circular upper half at the mouth transitions in 5mm.
-    roof=f+2*BALL_TRACK.radius+(30.3-2*BALL_TRACK.radius)*blend
+    # Keep the inlet's original roof so it fits beneath the top plate.
+    # Increase only the low ramp roof: its rising sphere envelope touched
+    # the steeply tapering upper walls even though the section at the floor fit.
+    roof_clearance=33.8 if STEEP and branch=='low' else 30.3
+    roof=f+2*BALL_TRACK.radius+(roof_clearance-2*BALL_TRACK.radius)*blend
     return (w.moveTo(-a,c+a).threePointArc((0,f),(a,c+a))
             .lineTo(.4,roof).lineTo(-.4,roof).close().val())
 
