@@ -1,5 +1,8 @@
 # PR20 比較候補
 
+この実験のCAD生成バージョンは `C20-V1`（`cad-build.json`）。`auto:false` のためpush時には生成されず、GitHub Actionsから `targets=experiments/pr20_comparison` を手動指定する。実験条件を変更したらこのバージョンを更新する。既存パーツの版を使う場合は `requires` に `target` と `version` を固定し、独立設定で作る場合は参照を省略できる。
+
+
 継続パーツの現行形とは別に、一度の印刷で比較する候補。刻印・STL名・下記IDを一致させる。
 
 | 刻印 | 形状 | 比較の狙い |
