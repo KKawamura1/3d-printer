@@ -18,9 +18,16 @@ build/         中間生成物（Git管理外）
 
 [週末用コースセット](parts/play_set/)：版付き刻印のある8個セット。坂カーブ2構造、直線トンネル4形状、90度トンネル2個を比較できる。通常ブロック／通常レールは含めない。新形状の実物検証は印刷後に行う。
 
-## STLをGitHub Actionsで作る
+## STLを変更部分だけGitHub Actionsで作る
 
-サイズの大きいSTLは、ChatGPT Workから転送・commitせずにGitHub Actions側で生成する。[CAD preview (manual)](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) でPRのブランチを選び、`play-set-8` を実行すると、8個セットと7種類の個別STL、検証結果のハッシュ一覧を `print-ready-play-set-8` Artifactとして取得できる。14日間保存。詳しくは[印刷セットの手順](parts/play_set/README.md)を参照。最終的なスライス・実物嵌合の確認は手元で行う。
+新しいパーツやバリエーションは、`cad/jobs/<id>.json` に設定・生成コマンド・
+依存関係を登録する。Pythonコードやその設定をpushすると、**変更に対応する
+モデルだけがGitHub Actions上で生成**される。STL、形状検証レポート、
+4方向の軽量プレビュー、SHA-256を `cad-<id>` Artifactとしてダウンロードできる。
+大容量STLをChatGPT WorkからGitHubへ直接pushしない。
+
+詳しくは [リモートCAD生成と反復レビュー](docs/remote-cad.md) を参照。
+従来の8個セット専用手動Actionも残すが、今後は `Targeted CAD artifacts` が基本。
 
 ## パーツを変更する
 
