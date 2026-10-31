@@ -4,6 +4,13 @@ class Geometry(unittest.TestCase):
     def test_continuous_clearance_and_structure(self):
         shape,p=build_part()
         checks,_=verify(shape,p)
+        if not checks["continuous_sphere_path_clear"]:
+            from parts.steep_gentle_tunnel_right.design import path as centres
+            pts=centres()
+            sphere=sorted(enumerate(_["sphere_intersections_mm3"]),key=lambda row:row[1],reverse=True)[:8]
+            segment=sorted(enumerate(_["segment_intersections_mm3"]),key=lambda row:row[1],reverse=True)[:8]
+            print("SG02 collision spheres",[(i,round(v,3),pts[i].toTuple()) for i,v in sphere],flush=True)
+            print("SG02 collision segments",[(i,round(v,3),pts[i].toTuple(),pts[i+1].toTuple()) for i,v in segment],flush=True)
         self.assertTrue(all(checks.values()),checks)
     def test_port_drop(self):
         self.assertAlmostEqual(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2],DROP)
