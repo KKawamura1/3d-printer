@@ -1,5 +1,5 @@
 {
-  "version": "S01-V3",
+  "version": "S01-V4",
   "auto": true,
   "command": [
     "python",
@@ -12,5 +12,5 @@
     "brick.stl"
   ],
   "timeout": 1200,
-  "description": "DUPLO 2x2x3 enclosed steep-drop tunnel; tapered roof, 4 studs, E31-05 underside"
+  "description": "DUPLO 2x2x3 enclosed steep drop, 1:4 downhill landing ramp and enlarged sloped run-out; E31-05 underside"
 }
