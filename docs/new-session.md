@@ -33,9 +33,12 @@ python scripts/run-stage.py --name curve-browser --timeout 120 -- \
 
 ## 大きなSTLの生成・配布
 
-数MB以上のSTLをChatGPT WorkやGitHubコネクターでBase64転送しない。転送失敗を再現したため、設計の小さなソースファイルのみをpushする。PR #20の8個セットは既存の [CAD preview (manual)](../.github/workflows/cad-preview.yml) で `target=play-set-8` を選び、生成された `print-ready-play-set-8` Artifactから取得する。
-
-GitHub Actionsでは生成を個別工程に分け、イベント・ハッシュと各ログをrunner上に保存する。失敗すればログのみアップロードし、検証に失敗したSTLは成果物として配布しない。配布ArtifactはGitの履歴とは別物で、期限付きなので印刷に使うものは手元で保管する。
+数MB以上のSTLをChatGPT WorkやGitHubコネクターでBase64転送しない。
+設計コード・寸法パラメータをpushし、登録済みの `cad/jobs/<id>.json` と
+ソースの変更内容から自動選択された **対象モデルのみ** をActionsで生成する。
+配布Artifact `cad-<id>` にSTL・レポート・全メッシュから描いたプレビュー・SHA-256がある。
+このArtifactを取得し、レポートと画像を実際に開いてから次の修正を決める。
+詳細は [remote-cad.md](remote-cad.md)。8個セット専用の旧手動ワークフローは補助用途。
 
 ## CADの準備
 
