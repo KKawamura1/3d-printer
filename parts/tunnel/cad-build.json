@@ -10,5 +10,7 @@
     "brick.stl"
   ],
   "timeout": 1200,
-  "description": "Maintained tunnel; targeted GitHub Actions build smoke test"
+  "description": "Maintained tunnel; targeted GitHub Actions build smoke test",
+  "version": "T01-V2",
+  "auto": true
 }
