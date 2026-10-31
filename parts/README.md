@@ -9,3 +9,6 @@
 - [2×2急カーブトンネル（右90°・高さ2）](sharp_curve_tunnel/)
 - [90度トンネル](elbow/)
 - [坂カーブ](sloped_curve/)
+
+- [2×2 急落下トンネル・33°坂（高さ3）](steep_drop_hole/)
+- [2×2 急カーブ＋急落下トンネル（高さ3）](steep_sharp_curve_tunnel/)
