@@ -1,0 +1,100 @@
+name: Targeted CAD artifacts
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'cad/jobs/**'
+      - 'parts/**/*.py'
+      - 'parts/**/*.json'
+      - 'experiments/**/*.py'
+      - 'experiments/**/*.json'
+      - 'brickcad/**/*.py'
+      - 'profiles/**/*.json'
+      - 'requirements.txt'
+      - 'scripts/cad_remote.py'
+      - 'scripts/stl_snapshot.py'
+      - 'scripts/test_cad_remote.py'
+      - '.github/workflows/cad-targeted.yml'
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: 'Job IDs separated by comma (e.g. tunnel or play-set-8)'
+        type: string
+        required: true
+        default: tunnel
+
+permissions:
+  contents: read
+
+concurrency:
+  group: targeted-cad-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.selector.outputs.matrix }}
+      has_jobs: ${{ steps.selector.outputs.has_jobs }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test change selection (no CAD dependencies)
+        run: python -m unittest scripts.test_cad_remote -v
+      - name: Select changed models only
+        id: selector
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          TARGETS: ${{ inputs.targets }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            python scripts/cad_remote.py plan --targets "$TARGETS" --github-output "$GITHUB_OUTPUT"
+          else
+            python scripts/cad_remote.py plan --before "$BEFORE" --after "$AFTER" --github-output "$GITHUB_OUTPUT"
+          fi
+
+  generate:
+    needs: plan
+    if: needs.plan.outputs.has_jobs == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install CAD dependencies
+        run: pip install -r requirements.txt
+      - name: Generate and verify this model and its prerequisites
+        env:
+          JOB_ID: ${{ matrix.id }}
+        run: python scripts/cad_remote.py build --job "$JOB_ID"
+      - name: Publish STL, report, manifest and preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: cad-${{ matrix.id }}
+          path: build/cad-artifacts/${{ matrix.id }}/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preserve stage logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cad-failure-${{ matrix.id }}
+          path: build/remote/_logs/
+          if-no-files-found: ignore
+          retention-days: 7
