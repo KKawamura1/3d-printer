@@ -1,0 +1,21 @@
+{
+  "version": "C02-V1",
+  "auto": true,
+  "requires": [
+    {
+      "target": "parts/sharp_curve",
+      "version": "C01-V2"
+    }
+  ],
+  "command": [
+    "python",
+    "-m",
+    "parts.sharp_curve_tunnel.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200
+}
