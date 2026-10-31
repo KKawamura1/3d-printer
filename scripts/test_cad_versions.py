@@ -96,6 +96,31 @@ class VersionSelectionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             cad.check('parts/alpha', spec('bad version'))
 
+    def test_pinned_import_source_does_not_force_new_dependent_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            alpha = root / 'parts/alpha'
+            beta = root / 'parts/beta'
+            shared = root / 'brickcad'
+            for directory in (alpha, beta, shared):
+                directory.mkdir(parents=True)
+            (alpha / 'design.py').write_text('def shape(): pass\\n')
+            (beta / 'design.py').write_text(
+                'from parts.alpha.design import shape\\n'
+                'from brickcad.geometry import shared_shape\\n')
+            (shared / 'geometry.py').write_text('shared_shape = 1\\n')
+            self.specs['parts/beta'] = spec('B01-V1',
+                requires=[{'target':'parts/alpha','version':'A01-V1'}])
+            self.prior['experiments/trial'] = 'X01-V1'
+            self.assertEqual(cad.select(
+                self.specs, 'changed', prior=self.prior, root=root,
+                changed=['parts/alpha/design.py', 'parts/alpha/cad-build.json']
+            ), ['parts/alpha'])
+            # Unpinned shared CAD code remains revision-controlled.
+            with self.assertRaisesRegex(ValueError, 'parts/beta'):
+                cad.select(self.specs, 'changed', prior=self.prior, root=root,
+                           changed=['brickcad/geometry.py'])
+
     def test_shared_geometry_change_needs_bump(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

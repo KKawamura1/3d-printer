@@ -175,6 +175,12 @@ def select(specs, target, *, changed=(), prior=None, root=None, prior_specs=None
                          not p.endswith('/test.py') and not p.endswith('/__init__.py')
                          for p in changed)
         imported = changed.intersection(imports_for(name + '/design.py', root) - {name + '/design.py'}) if root else set()
+        # A pinned part is an immutable historical input. Updating that part's
+        # live source must not force a revision or rebuild of this dependent.
+        # Shared/unpinned imports continue to require an explicit version bump.
+        pinned = tuple(dep['target'] + '/' for dep in spec.get('requires', []))
+        imported = {path for path in imported
+                    if not any(path.startswith(prefix) for prefix in pinned)}
         config_changed = name + '/cad-build.json' in changed
         previous_spec = (prior_specs or {}).get(name)
         # auto controls scheduling, not geometry or a CAD revision.
