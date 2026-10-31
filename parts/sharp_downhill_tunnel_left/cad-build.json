@@ -1,5 +1,5 @@
 {
-  "version": "SD04-V1",
+  "version": "SD04-V2",
   "auto": true,
   "command": [
     "python",
