@@ -1,4 +1,4 @@
-# SC03-V1
+# SC03-V2
 
 Issue #37: sloped_curve_open_right。独立した刻印・版付きパーツ。
 
@@ -11,3 +11,5 @@ Issue #37: sloped_curve_open_right。独立した刻印・版付きパーツ。
 
 生成: `python -m parts.sloped_curve_open_right.design --out build/sloped_curve_open_right`。
 Actionsの`cad-verified-stl`にSTL/STEP/検証レポートを保存。
+
+STEP往復は適応型Gauss積分（相対誤差1e-9）による体積差0.01mm³未満とソリッド有効性を検査。
