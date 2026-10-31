@@ -26,5 +26,6 @@
       "name": "T01-V2.stl",
       "report": "build/remote/tunnel/report.json"
     }
-  ]
+  ],
+  "description": "Automated single-model smoke test: T01-V2 straight tunnel"
 }
