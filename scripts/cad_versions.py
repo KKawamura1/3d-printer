@@ -2,6 +2,7 @@
 Experiments are always manual; dependencies refer to immutable historical versions.
 """
 import argparse
+import ast
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -67,6 +68,30 @@ def discover(root=ROOT):
     return specs
 
 
+def imports_for(file, root, seen=None):
+    seen = set() if seen is None else seen
+    if file in seen or not (root / file).exists():
+        return seen
+    seen.add(file)
+    tree = ast.parse((root / file).read_text())
+    package = file.removesuffix('.py').replace('/', '.').split('.')[:-1]
+    for node in ast.walk(tree):
+        names = []
+        if isinstance(node, ast.Import):
+            names = [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            prefix = node.module.split('.') if node.module else []
+            if node.level:
+                prefix = package[:max(0, len(package)-node.level+1)] + prefix
+            names = ['.'.join(prefix)] + ['.'.join(prefix + [a.name]) for a in node.names]
+        for item in names:
+            if item.split('.')[0] in ('parts', 'experiments', 'brickcad'):
+                candidate = item.replace('.', '/') + '.py'
+                if (root / candidate).exists():
+                    imports_for(candidate, root, seen)
+    return seen
+
+
 def prior_version(root, base, name):
     try:
         old = json.loads(git(root, 'show', f'{base}:{name}/cad-build.json'))
@@ -75,7 +100,7 @@ def prior_version(root, base, name):
         return None
 
 
-def select(specs, target, *, changed=(), prior=None):
+def select(specs, target, *, changed=(), prior=None, root=None):
     if target == 'all':
         return sorted(n for n,s in specs.items() if s.get('auto', n.startswith('parts/')))
     if target != 'changed':
@@ -95,7 +120,9 @@ def select(specs, target, *, changed=(), prior=None):
         local_code = any(p.startswith(name + '/') and p.endswith('.py') and
                          not p.endswith('/test.py') and not p.endswith('/__init__.py')
                          for p in changed)
-        if old is not None and not bumped and local_code:
+        imported = changed.intersection(imports_for(name + '/design.py', root) - {name + '/design.py'}) if root else set()
+        config_changed = name + '/cad-build.json' in changed
+        if old is not None and not bumped and (local_code or imported or config_changed):
             errors.append(f'{name}@{old}: design changed without version bump')
         if bumped and spec.get('auto', name.startswith('parts/')):
             selected.append(name)
@@ -180,21 +207,38 @@ def build(root, specs, requested, previews=False):
         cmd = [s.replace('{out}', str(out)).replace('{deps}', str(deps))
                for s in spec['command']]
         label = name.replace('/', '-') + '-' + version
+        stamp = out / '.cad-version.json'
+        cached = False
+        if stamp.exists():
+            try:
+                identity = json.loads(stamp.read_text())
+                cached = identity.get('version') == version and all(
+                    (out / rel).exists() and
+                    json.loads((out / rel).parent.joinpath('report.json').read_text()).get('passed') is True and
+                    json.loads((out / rel).parent.joinpath('report.json').read_text()).get('mesh', {}).get('passed') is True and
+                    verify_stl(out / rel)['sha256'] == identity['sha256'][rel]
+                    for rel in spec['stl'])
+            except (OSError, KeyError, ValueError, json.JSONDecodeError):
+                cached = False
         # Only the affected model's tests; never replay unrelated models.
-        if (checkout / name / 'test.py').exists():
+        if not cached and (checkout / name / 'test.py').exists():
             subprocess.run([sys.executable, str(root / 'scripts/run-stage.py'),
                             '--name', 'test-' + label, '--cwd', str(checkout),
                             '--timeout', '600', '--', sys.executable, '-m', 'unittest',
                             name.replace('/', '.') + '.test'], cwd=root, check=True)
-        subprocess.run([sys.executable, str(root / 'scripts/run-stage.py'), '--name', label,
-                        '--cwd', str(checkout), '--timeout', str(spec.get('timeout', 1200)),
-                        '--', *cmd], cwd=root, check=True)
+        if not cached:
+            subprocess.run([sys.executable, str(root / 'scripts/run-stage.py'), '--name', label,
+                            '--cwd', str(checkout), '--timeout', str(spec.get('timeout', 1200)),
+                            '--', *cmd], cwd=root, check=True)
+        else:
+            print('CAD CACHE HIT', name, version, flush=True)
         link = deps / name
         link.parent.mkdir(parents=True, exist_ok=True)
         if link.exists() or link.is_symlink():
             link.unlink()
         link.symlink_to(out, target_is_directory=True)
-        manifest['versions'][name] = {'version': version, 'source_commit': source_sha}
+        manifest['versions'][name] = {'version': version, 'source_commit': source_sha,
+                                      'cached': cached}
         for rel in spec['stl']:
             source = out / valid_path(rel)
             report = json.loads((source.parent / 'report.json').read_text())
@@ -213,6 +257,10 @@ def build(root, specs, requested, previews=False):
                                 'node', str(root / 'scripts/cad-capture.cjs'),
                                 str(source.parent), str(captured)], cwd=root, check=True)
                 shutil.copytree(captured, dst.parent / 'previews', dirs_exist_ok=True)
+        if not cached:
+            stamp.write_text(json.dumps({'version': version, 'sha256': {
+                rel: verify_stl(out / rel)['sha256'] for rel in spec['stl']
+            }}, indent=2) + chr(10))
     output.mkdir(parents=True, exist_ok=True)
     (output / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + chr(10))
     print('CAD VERIFIED', ', '.join(manifest['files']), flush=True)
@@ -234,7 +282,7 @@ def main():
         paths = git(root, 'diff', '--name-only', '-z', '--no-renames', base, 'HEAD')
         changed = [x.decode() for x in paths.split(bytes([0])) if x]
         prior = {name: prior_version(root, base, name) for name in specs}
-        selected = select(specs, args.targets, changed=changed, prior=prior)
+        selected = select(specs, args.targets, changed=changed, prior=prior, root=root)
     else:
         selected = select(specs, args.targets)
     print('CAD selected:', ', '.join(selected) or '(none)', flush=True)
