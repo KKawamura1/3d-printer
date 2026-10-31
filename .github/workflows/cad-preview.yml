@@ -3,12 +3,12 @@ on:
   workflow_dispatch:
     inputs:
       target:
-        description: Generate one model
+        description: Model or 8-piece printable set
         type: choice
         options: [play-set-8, duplo, duplo-2x2, rail, brick, tunnel, elbow, pitagora, sloped_curve, calibration, experiment, stud-holes, stud-combined, receiver-trial, xy-trial, lego]
         default: tunnel
       screenshots:
-        description: Also capture browser screenshots
+        description: Browser screenshots (skipped for play-set-8)
         type: boolean
         default: false
 permissions:
