@@ -18,6 +18,10 @@ build/         中間生成物（Git管理外）
 
 [週末用コースセット](parts/play_set/)：版付き刻印のある8個セット。坂カーブ2構造、直線トンネル4形状、90度トンネル2個を比較できる。通常ブロック／通常レールは含めない。新形状の実物検証は印刷後に行う。
 
+## STLをGitHub Actionsで作る
+
+サイズの大きいSTLは、ChatGPT Workから転送・commitせずにGitHub Actions側で生成する。[CAD preview (manual)](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) でPRのブランチを選び、`play-set-8` を実行すると、8個セットと7種類の個別STL、検証結果のハッシュ一覧を `print-ready-play-set-8` Artifactとして取得できる。14日間保存。詳しくは[印刷セットの手順](parts/play_set/README.md)を参照。最終的なスライス・実物嵌合の確認は手元で行う。
+
 ## パーツを変更する
 
 各フォルダの `design.py` と `test.py` を入口にする。共通のピッチ・高さ・突起・下面・通路の規格は [brickcad/standards.py](brickcad/standards.py)、使用方法は [共通設計](docs/shared-part-design.md) を参照。
