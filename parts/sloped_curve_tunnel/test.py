@@ -53,8 +53,11 @@ class SlopedCurveTunnelTests(unittest.TestCase):
             kind='bold', combine=False).val())
         unmarked_wall = cq.Solid.makeBox(
             0.5, 20., 7., cq.Vector(-width/2, MARK_Y-10, MARK_Z-3.5))
-        self.assertGreater(intersection(unmarked_wall, glyphs), .2)
-        self.assertLess(intersection(self.shape, glyphs), VOLUME_TOL)
+        control_volume = intersection(unmarked_wall, glyphs)
+        self.assertGreater(control_volume, .2)
+        # STEP roundtrip can leave tiny (~0.04 mm^3) edge overlaps at glyphs.
+        # Require <2% of the plain-wall overlap, so a refilled label fails.
+        self.assertLess(intersection(self.shape, glyphs), .02 * control_volume)
 
     def test_grid_ports_and_enclosed_roof(self):
         west,north = ports()
