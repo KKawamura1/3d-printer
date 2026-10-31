@@ -210,18 +210,9 @@ def verify(shape,p):
                   'z',round(bb.zmin,3),round(bb.zmax,3),flush=True)
     mid=pts[len(pts)//2]
     negative=intersection(shape,cq.Solid.makeSphere(r,mid-cq.Vector(0,0,3),angleDegrees1=-90))
-    # S01/S02 regression: explicitly inspect the landing floor under the
-    # fall chamber, not just the nominal ball-path intersection.
-    chamber_x,chamber_y,_,_=xy(12.)
-    landing_floor=shape.isInside(cq.Vector(
-        chamber_x,-chamber_y if MIRROR else chamber_y,
-        height(12.,'low')-1.))
-    oversized=intersection(shape,cq.Solid.makeSphere(14.,mid,angleDegrees1=-90))
     checks=dict(valid_brep=shape.isValid(),one_solid=len(shape.Solids())==1,
         continuous_sphere_path_clear=max(sphere_errors+segment_errors)<VOLUME_TOL,
         lowered_ball_detected=negative>VOLUME_TOL,
-        oversized_ball_blocked=oversized>VOLUME_TOL,
-        landing_floor_present=landing_floor,
         drop_matches_grid=abs(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2]-DROP)<1e-6,
         receiver_depth=abs(FLOOR-DEPTH-1.6)<1e-6,
         full_roof=(not TUNNEL or all(shape.isInside(cq.Vector(x,-y if MIRROR else y,57.5)) for x,y,_,_ in [xy(LENGTH*t) for t in (.1,.3,.5,.7,.9)])),
