@@ -55,7 +55,7 @@ def ramp_normal_clearance(d=SteepDrop()):
 
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "S03-V1"
+PART_ID = "S03-V2"
 SOURCE_CURVE_ID = "C01-V5"
 SOURCE_DROP_ID = "S01-V5"
 SHAFT_X = 0.0
@@ -301,7 +301,15 @@ def export(out=Path("build/steep-sharp-curve-tunnel")):
     (out / "report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     from brickcad.render import viewer
-    viewer(shape.copy(mesh=False),p,{**report,'fit':dict(insertion=[],poses=[])},out)
+    viewer_report={**report,'geometry':dict(bounds_mm=exact_bounds(shape),parameters=asdict(p)),
+                   'fit':dict(insertion=[],poses=[])}
+    for name,dx,angle in [('aligned',0,0),('cross_90',0,90),('half_pitch_negative_control',8,0)]:
+        upper=shape.rotate((0,0,0),(0,0,1),angle).translate((dx,0,p.height))
+        overlap=intersection(shape,upper)
+        row=dict(name=name,xyz_mm=[dx,0,p.height],rotation_deg=angle,intersection_mm3=overlap,collision=overlap>VOLUME_TOL)
+        if name=='aligned':viewer_report['fit']['insertion'].append(dict(row,pair='printed/printed',lift_mm=0))
+        else:viewer_report['fit']['poses'].append(row)
+    viewer(shape.copy(mesh=False),p,viewer_report,out)
     cq.exporters.export(shape,str(out/'brick.step'))
     print(PART_ID, "PASS" if report["passed"] else "FAIL", checks, flush=True)
     if not report["passed"]:
