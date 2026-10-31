@@ -1,4 +1,4 @@
-# D02-V1
+# D02-V2
 
 Issue #37: downhill_open。独立した刻印・版付きパーツ。
 
