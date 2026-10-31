@@ -1,6 +1,6 @@
 import unittest
 import cadquery as cq
-from parts.tunnel.design import Tunnel, build_tunnel, ball_sweep
+from parts.tunnel.v3_design import Tunnel, build_tunnel, ball_sweep
 from parts.straight_rail.design import Rail, build_rail
 from brickcad.verify import intersection, VOLUME_TOL
 
@@ -26,14 +26,23 @@ class TunnelTests(unittest.TestCase):
             self.assertLess(intersection(assembly,ball),VOLUME_TOL)
 
     def test_adopted_e27_connection_geometry(self):
-        self.assertEqual((self.p.stud_radius,self.p.stud_inner_radius,self.p.tube_radius),(4.7,3.2,6.75))
+        self.assertEqual((self.p.stud_radius,self.p.stud_inner_radius,self.p.tube_radius),(4.7,3.2,6.60))
         self.assertEqual(self.p.cavity_xy,(25.4,25.4))
-        self.assertTrue(self.shape.isInside(cq.Vector(6.74,0,1)))
-        self.assertFalse(self.shape.isInside(cq.Vector(6.76,0,1)))
+        self.assertFalse(self.shape.isInside(cq.Vector(6.5,0,2.25)))  # E31-05 open radial slot
+        self.assertTrue(self.shape.isInside(cq.Vector(4.78,4.78,2.25)))  # R0.20 bead, 45-degree quadrant
+        self.assertFalse(self.shape.isInside(cq.Vector(4.85,4.85,2.25)))
         for x,y in self.p.studs():
             self.assertTrue(self.shape.isInside(cq.Vector(x+4.69,y,39.5)))
             self.assertFalse(self.shape.isInside(cq.Vector(x+4.71,y,39.5)))
             self.assertFalse(self.shape.isInside(cq.Vector(x,y,39.5)))
+
+    def test_round_entry_high_ceiling_style(self):
+        from parts.tunnel.v3_design import PART_ID
+        self.assertEqual(PART_ID, 'T01-V3')
+        # Internal roof is higher than the circular entrance at this position.
+        z_circle=self.t.floor+2*self.t.radius
+        self.assertFalse(self.shape.isInside(cq.Vector(0,0,z_circle+0.2)))
+        self.assertTrue(self.shape.isInside(cq.Vector(0,0,self.t.ceiling+0.5)))
 
     def test_receiver_separated_from_passage(self):
         # Full 1.6 mm floor above receiver at the lowest channel location.
