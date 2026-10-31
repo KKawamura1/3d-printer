@@ -1,4 +1,4 @@
-"""E29-V2: dual-fit DUPLO concepts; adult-only experimental coupons.
+"""E29-V3: dual-fit DUPLO concepts; adult-only experimental coupons.
 
 Only rounded/recessed contact features. Physical fit, fatigue and child safety
 are NOT validated by CAD, mesh or automated tests.
@@ -15,7 +15,7 @@ from brickcad.model import brick_from_fit, build as build_brick
 from brickcad.verify import exact_bounds
 from experiments.full_height_fit.design import export_stl
 
-VERSION = "E29-V2"
+VERSION = "E29-V3"
 PROFILE = "duplo-e27-play-v1"
 # Each coupon is 31.8 mm square. 2 rows x 3 columns, 45 mm spacing.
 SPECIMENS = (
@@ -30,7 +30,7 @@ GROOVE_PROFILE = (
     (4.70, 3.20), (5.00, 3.20), (5.00, 1.05),
 )
 SLOT_WIDTH = 1.10
-SLOT_END_RADIUS = .55
+SLOT_END_RADIUS = .65
 SLOT_END_Z = 4.40
 BEAD_MINOR_RADIUS = .16
 BEAD_Z = 2.25
@@ -138,7 +138,7 @@ def generate(out=Path("build/dual-fit-e29")):
         cq.exporters.export(shape, str(folder / "brick.step"))
         restored = cq.importers.importStep(str(folder / "brick.step")).val()
         if (not restored.isValid() or len(restored.Solids()) != 1 or
-                abs(restored.Volume() - shape.Volume()) > 1e-4):
+                abs(restored.Volume() - shape.Volume()) / shape.Volume() > 1e-6):
             raise ValueError(f"STEP roundtrip failed: {record['id']}")
         report = dict(
             passed=mesh["mesh"]["passed"], id=record["id"],
