@@ -49,6 +49,15 @@ def select(changed):
         if path.startswith(('parts/', 'experiments/')) and path.endswith('.json') and len(path.split('/')) == 3:
             owner = '/'.join(path.split('/')[:2]) + '/design.py'
             changed.add(owner)
+    # A model owns its adjacent tests even if those tests import a new design
+    # module (e.g. design_e31.py) rather than the changed legacy design.py.
+    # This also covers cad-build.json changes mapped to design.py above.
+    owners = {'/'.join(path.split('/')[:2]) for path in changed
+              if path.startswith(('parts/', 'experiments/'))
+              and path.endswith('.py') and len(path.split('/')) >= 3
+              and not path.split('/')[-1].startswith('test')}
+    adjacent_tests = {test for test in tests
+                      if any(test.startswith(owner + '/test') for owner in owners)}
     # CI plumbing changes validate the selector itself, not every historical CAD
     # model. The workflow separately runs lightweight version/report tests.
     if {'scripts/ci-tests.py', '.github/workflows/cad.yml'} & changed:
@@ -58,7 +67,7 @@ def select(changed):
            (p.startswith(('brickcad/', 'parts/', 'experiments/')) and p.endswith('.py') and p not in known and not p.endswith('/__init__.py')) or
            (p.startswith('tests/') and p not in tests) for p in changed):
         return tests
-    return [test for test in tests if graph[test].intersection(changed)]
+    return [test for test in tests if test in adjacent_tests or graph[test].intersection(changed)]
 
 
 def main():
