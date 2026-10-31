@@ -1,10 +1,10 @@
-"""C02 targeted CAD checks: dimensions, curved channel, roof, and receiver."""
+"""C02-V3 checks: circular ports, wider inner chamber, roof and receiver."""
 import unittest
 import cadquery as cq
 from brickcad.ports import mate, straight_ports
 from brickcad.standards import BALL_TRACK, DUPLO
 from brickcad.verify import VOLUME_TOL
-from parts.sharp_curve_tunnel.design import PART_ID, build_tunnel
+from parts.sharp_curve_tunnel.design import (PART_ID, CHAMBER_RADIUS, CHAMBER_CAP_Z, build_tunnel)
 from parts.sharp_curve.design import SharpCurve, ball_intersections, ports
 
 
@@ -15,7 +15,7 @@ class SharpCurveTunnelTests(unittest.TestCase):
         cls.shape,cls.p=build_tunnel(cls.c)
 
     def test_height_and_top_studs(self):
-        self.assertEqual(PART_ID,"C02-V2")
+        self.assertEqual(PART_ID,"C02-V3")
         self.assertEqual((self.p.nx,self.p.ny),(2,2))
         self.assertAlmostEqual(self.p.height,2*DUPLO.height)
         self.assertTrue(self.shape.isValid())
@@ -37,6 +37,23 @@ class SharpCurveTunnelTests(unittest.TestCase):
     def test_ball_path_and_negative_control(self):
         self.assertLess(max(ball_intersections(self.shape,self.c,samples=19)),VOLUME_TOL)
         self.assertGreater(max(ball_intersections(self.shape,self.c,diameter=28.,samples=5)),VOLUME_TOL)
+
+    def test_enlarged_turn_room_and_mouths(self):
+        # C02-V2 passed nominal R16 collision checks but physically jammed.
+        # These points were solid in V2: guard against shrinking the new room.
+        self.assertAlmostEqual(CHAMBER_RADIUS, 13.25)
+        self.assertAlmostEqual(CHAMBER_CAP_Z, 21.)
+        self.assertFalse(self.shape.isInside(cq.Vector(0.,12.5,20.)))
+        self.assertFalse(self.shape.isInside(cq.Vector(12.5,0.,20.)))
+        # The enlarged room must not open new mouths on north or east.
+        self.assertTrue(self.shape.isInside(cq.Vector(0.,14.2,20.)))
+        self.assertTrue(self.shape.isInside(cq.Vector(14.2,0.,20.)))
+        self.assertTrue(self.shape.isInside(cq.Vector(-15.8,0.,33.)))
+        self.assertTrue(self.shape.isInside(cq.Vector(0.,-15.8,33.)))
+        self.assertTrue(self.shape.isInside(cq.Vector(0.,0.,6.2)))
+        self.assertFalse(self.shape.isInside(cq.Vector(0.,0.,6.5)))
+        self.assertFalse(self.shape.isInside(cq.Vector(0.,0.,33.)))
+        self.assertTrue(self.shape.isInside(cq.Vector(0.,0.,37.4)))
 
     def test_underside_and_ceiling(self):
         self.assertAlmostEqual(self.p.tube_radius,6.60)
