@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420" height="760" viewBox="0 0 1420 760">
+<rect width="1420" height="760" fill="#f1f6f9"/>
+<g font-family="Arial,'Noto Sans JP',sans-serif">
+<text x="48" y="66" font-size="42" font-weight="bold" fill="#183750">E29-05  |  2つの保持機構を組み合わせる</text>
+<text x="48" y="110" font-size="23" fill="#476477">上面の浅い溝 ＋ 下面の分割チューブと丸い係合部</text>
+<rect x="42" y="148" width="652" height="532" rx="24" fill="#ffffff" stroke="#d9e4ec" stroke-width="2"/>
+<rect x="722" y="148" width="652" height="532" rx="24" fill="#ffffff" stroke="#d9e4ec" stroke-width="2"/>
+<text x="72" y="201" font-size="27" font-weight="bold" fill="#1e3a56">上面：浅いスタッド溝</text>
+<text x="752" y="201" font-size="27" font-weight="bold" fill="#1e3a56">下面：4分割チューブ＋内部ビード</text>
+<g transform="translate(102,40) scale(1.80)"><polygon points="74,203 160,247 160,318 74,274" fill="#28749c"/><polygon points="160,247 246,203 246,274 160,318" fill="#225d80"/><polygon points="74,203 160,159 246,203 160,247" fill="#61b2d4" stroke="#245a79" stroke-width="2"/><path d="M 147 181.16 v -20 a 13 6 0 0 1 26 0 v 20 a 13 6 0 0 1 -26 0" fill="#358bb8" stroke="#194e6b" stroke-width="1.4"/><path d="M 147 170.16 q 13 5 26 0" fill="none" stroke="#a8deed" stroke-width="3"/><ellipse cx="160" cy="161.16" rx="13" ry="6" fill="#8bd0e7" stroke="#1c5679" stroke-width="1.4"/><ellipse cx="160" cy="161.16" rx="6" ry="3" fill="#245e80"/><path d="M 191.72 203 v -20 a 13 6 0 0 1 26 0 v 20 a 13 6 0 0 1 -26 0" fill="#358bb8" stroke="#194e6b" stroke-width="1.4"/><path d="M 191.72 192 q 13 5 26 0" fill="none" stroke="#a8deed" stroke-width="3"/><ellipse cx="204.72" cy="183" rx="13" ry="6" fill="#8bd0e7" stroke="#1c5679" stroke-width="1.4"/><ellipse cx="204.72" cy="183" rx="6" ry="3" fill="#245e80"/><path d="M 102.28 203 v -20 a 13 6 0 0 1 26 0 v 20 a 13 6 0 0 1 -26 0" fill="#358bb8" stroke="#194e6b" stroke-width="1.4"/><path d="M 102.28 192 q 13 5 26 0" fill="none" stroke="#a8deed" stroke-width="3"/><ellipse cx="115.28" cy="183" rx="13" ry="6" fill="#8bd0e7" stroke="#1c5679" stroke-width="1.4"/><ellipse cx="115.28" cy="183" rx="6" ry="3" fill="#245e80"/><path d="M 147 224.84 v -20 a 13 6 0 0 1 26 0 v 20 a 13 6 0 0 1 -26 0" fill="#358bb8" stroke="#194e6b" stroke-width="1.4"/><path d="M 147 213.84 q 13 5 26 0" fill="none" stroke="#a8deed" stroke-width="3"/><ellipse cx="160" cy="204.84" rx="13" ry="6" fill="#8bd0e7" stroke="#1c5679" stroke-width="1.4"/><ellipse cx="160" cy="204.84" rx="6" ry="3" fill="#245e80"/></g>
+<g transform="translate(735,60) scale(1.66)"><polygon points="80.52,205 204,143.26 327.48,205 204,266.74" fill="#215e7f" stroke="#1e536e" stroke-width="3"/>
+  <polygon points="106.98,205 204,157.96 301.02,205 204,252.04" fill="#e8f4fa" stroke="#8cbccc" stroke-width="2"/><circle cx="204" cy="205" r="36.75" fill="none" stroke="#368eb4" stroke-width="19.11" stroke-dasharray="47.04 10.29" transform="rotate(45 204 205)"/><ellipse cx="204" cy="205" rx="33.81" ry="17.64" fill="none" stroke="#d6ec8d" stroke-width="5.88"/></g>
+<text x="72" y="601" font-size="23" fill="#335d75">浅い環状溝（約0.19 mm）</text>
+<text x="72" y="638" font-size="21" fill="#59768a">外側に尖ったフックを設けない</text>
+<text x="752" y="601" font-size="23" fill="#335d75">スリット終端 R0.65 / ビード R0.16</text>
+<text x="752" y="638" font-size="21" fill="#59768a">破断や脱落のリスクは実物で要検証</text>
+<text x="48" y="727" font-size="21" fill="#637a89">※ 機構説明用模式図（非縮尺）。安全性・耐久性が確認されるまでは大人専用の試験片。</text>
+</g>
+</svg>
