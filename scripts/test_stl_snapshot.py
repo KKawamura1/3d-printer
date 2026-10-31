@@ -26,7 +26,7 @@ class SnapshotRenderTests(unittest.TestCase):
             render(source, target)
             with target.open('rb') as result:
                 head = result.read(24)
-            self.assertEqual(head[:8], b'\\x89PNG\\r\\n\\x1a\\n')
+            self.assertEqual(head[:8], b'\x89PNG\r\n\x1a\n')
             self.assertEqual(struct.unpack('>II', head[16:24]), (1440, 1080))
 
 

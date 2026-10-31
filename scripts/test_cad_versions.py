@@ -107,11 +107,11 @@ class SnapshotArtifactTests(unittest.TestCase):
             root = Path(tmp)
             model = root / 'source/brick.stl'
             model.parent.mkdir(parents=True)
-            model.write_bytes(b' ' * 80 + struct.pack('<I', 1) + b'\\0' * 50)
+            model.write_bytes(b' ' * 80 + struct.pack('<I', 1) + b'\0' * 50)
             delivered = root / 'delivery/brick.preview.png'
             preview = model.with_suffix('.preview.png')
             # A minimal PNG header is enough to exercise cache bookkeeping.
-            header = (b'\\x89PNG\\r\\n\\x1a\\n' +
+            header = (b'\x89PNG\r\n\x1a\n' +
                       struct.pack('>I', 13) + b'IHDR' +
                       struct.pack('>II', 1200, 900) + bytes(5))
             def fake_render(command, **kwargs):
@@ -131,12 +131,12 @@ class SnapshotArtifactTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             model = root / 'brick.stl'
-            model.write_bytes(b' ' * 80 + struct.pack('<I', 1) + b'\\0' * 50)
+            model.write_bytes(b' ' * 80 + struct.pack('<I', 1) + b'\0' * 50)
             preview = model.with_suffix('.preview.png')
             preview.write_bytes(b'not a PNG')
             def fake_render(_command, **_kwargs):
                 preview.write_bytes(
-                    b'\\x89PNG\\r\\n\\x1a\\n' + struct.pack('>I', 13) +
+                    b'\x89PNG\r\n\x1a\n' + struct.pack('>I', 13) +
                     b'IHDR' + struct.pack('>II', 1200, 900) + bytes(5))
             with mock.patch.object(cad.subprocess, 'run', side_effect=fake_render) as run:
                 cad.snapshot_artifact(model, root / 'export.png', cached=True, root=root)

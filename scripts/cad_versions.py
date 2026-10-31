@@ -209,7 +209,7 @@ def png_dimensions(path):
     """Quick PNG signature/IHDR check for cached previews (not visual review)."""
     with path.open('rb') as image:
         header = image.read(24)
-    if len(header) < 24 or header[:8] != b'\\x89PNG\\r\\n\\x1a\\n' or header[12:16] != b'IHDR':
+    if len(header) < 24 or header[:8] != b'\x89PNG\r\n\x1a\n' or header[12:16] != b'IHDR':
         raise ValueError(f'Invalid PNG preview: {path}')
     width, height = struct.unpack('>II', header[16:24])
     if not (0 < width <= 20000 and 0 < height <= 20000):
