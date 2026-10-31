@@ -15,7 +15,7 @@ class SharpCurveTunnelTests(unittest.TestCase):
         cls.shape,cls.p=build_tunnel(cls.c)
 
     def test_height_and_top_studs(self):
-        self.assertEqual(PART_ID,"C02-V1")
+        self.assertEqual(PART_ID,"C02-V2")
         self.assertEqual((self.p.nx,self.p.ny),(2,2))
         self.assertAlmostEqual(self.p.height,2*DUPLO.height)
         self.assertTrue(self.shape.isValid())
@@ -44,7 +44,12 @@ class SharpCurveTunnelTests(unittest.TestCase):
         self.assertFalse(self.shape.isInside(cq.Vector(0,0,1)))
         self.assertTrue(self.shape.isInside(cq.Vector(4,4,1)))
         self.assertTrue(self.shape.isInside(cq.Vector(-4.686,-4.686,37.4)))
-        self.assertGreater(self.p.height-(self.c.floor+2*self.c.section_radius),DUPLO.roof)
+        mid=-16+self.c.turn_radius/(2**.5)
+        self.assertFalse(self.shape.isInside(cq.Vector(mid,mid,34.)))
+        self.assertTrue(self.shape.isInside(cq.Vector(mid,mid,36.)))
+        self.assertTrue(self.shape.isInside(cq.Vector(-15.8,0,33.)))
+        self.assertTrue(self.shape.isInside(cq.Vector(0,-15.8,33.)))
+        self.assertGreater(self.p.height-35.,DUPLO.roof)
 
 
 if __name__=="__main__":

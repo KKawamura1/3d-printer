@@ -1,4 +1,4 @@
-"""C02-V1: enclosed 2x2x2 R16 right-angle tunnel companion to C01-V2.
+"""C02-V2: enclosed 2x2x2 R16 right-angle tunnel companion to C01-V2.
 
 The running surface is the same quarter-torus as C01-V2. A second DUPLO
 course provides a real ceiling and supports all four top studs.
@@ -21,10 +21,15 @@ from brickcad.verify import exact_bounds, mesh_check, VOLUME_TOL
 from parts.sharp_curve.design import SharpCurve, _curve_cut, ball_intersections, ports
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "C02-V1"
+PART_ID = "C02-V2"
 SOURCE_CURVE_ID = "C01-V2"
 FIT_PROFILE_ID = "duplo-e27-play-v1"
 BODY_COURSES = 2
+# Inner roof is raised locally, keeping the circular end openings unchanged.
+# A mid-bend spherical relief avoids a twisted tight-radius loft and leaves
+# 3.4 mm of roof at the highest point.
+ROOF_DOME_RADIUS = 10.5
+ROOF_DOME_CENTER_Z = 24.5
 
 
 def _engrave_north(shape, label, width):
@@ -56,6 +61,13 @@ def build_tunnel(curve=SharpCurve(), *, label=PART_ID):
     # C01's toroidal cut initially travels west -> north; reflect it to
     # west -> south. Its circular mouths match the open rail exactly.
     body = body.cut(_curve_cut(curve)).clean().mirror("XZ")
+    mid_x = -16+curve.turn_radius/math.sqrt(2)
+    dome = cq.Solid.makeSphere(
+        ROOF_DOME_RADIUS, cq.Vector(mid_x, mid_x, ROOF_DOME_CENTER_Z),
+        angleDegrees1=-90)
+    # The spherical cap intersects the torus only inside the bend.
+    # At the west/south mouths the original circular profile is untouched.
+    body = body.cut(dome).clean()
     studs = make_studs(p.studs(), p.height, p.stud_radius,
                        p.stud_inner_radius, p.stud_height,
                        ROUNDED_EDGES.stud_lip_radius).val()
@@ -90,7 +102,9 @@ def export(out=Path("build/sharp-curve-tunnel")):
     path = ball_intersections(shape, curve, samples=19)
     oversize = ball_intersections(shape, curve, diameter=28., samples=5)
     bounds = exact_bounds(shape)
-    ceiling_z = curve.floor+2*curve.section_radius
+    ceiling_z = max(curve.floor+2*curve.section_radius,
+                    ROOF_DOME_CENTER_Z+ROOF_DOME_RADIUS)
+    mid_xy = -16+curve.turn_radius/math.sqrt(2)
     checks = dict(
         valid_brep=shape.isValid(),
         one_solid=len(shape.Solids())==1,
@@ -107,9 +121,11 @@ def export(out=Path("build/sharp-curve-tunnel")):
                           for x,y in p.studs()),
         studs_walls=all(shape.isInside(cq.Vector(x+4.,y,p.height+2.))
                          for x,y in p.studs()),
-        roof_present=shape.isInside(cq.Vector(
-            -16+curve.turn_radius/math.sqrt(2),
-            -16+curve.turn_radius/math.sqrt(2), p.height-1.)),
+        roof_present=shape.isInside(cq.Vector(mid_xy,mid_xy,p.height-1.)),
+        inner_roof_raised=not shape.isInside(cq.Vector(mid_xy,mid_xy,34.)),
+        roof_solid_above_dome=shape.isInside(cq.Vector(mid_xy,mid_xy,36.)),
+        west_mouth_circular=shape.isInside(cq.Vector(-15.8,0,33.)),
+        south_mouth_circular=shape.isInside(cq.Vector(0,-15.8,33.)),
         roof_min_thickness=p.height-ceiling_z>=DUPLO.roof,
         curve_floor=shape.isInside(cq.Vector(
             -16+curve.turn_radius/math.sqrt(2),
@@ -122,8 +138,11 @@ def export(out=Path("build/sharp-curve-tunnel")):
         geometry=dict(bounds_mm=bounds, volume_mm3=shape.Volume(),
                       parameters=asdict(p)),
         curve=asdict(curve), ports=[asdict(x) for x in ports(curve)],
-        roof=dict(style="circular", minimum_thickness_mm=p.height-ceiling_z,
+        roof=dict(style="circular_mouth_raised_center_dome",
+                  minimum_thickness_mm=p.height-ceiling_z,
                   ceiling_max_z_mm=ceiling_z,
+                  dome_radius_mm=ROOF_DOME_RADIUS,
+                  dome_center_z_mm=ROOF_DOME_CENTER_Z,
                   all_four_studs=True),
         mesh=mesh, collapsed_stl_triangles_removed=collapsed,
         ball_intersections_mm3=path,
@@ -135,7 +154,7 @@ def export(out=Path("build/sharp-curve-tunnel")):
         slicing_validated=False,
         limitations=[
             "Very tight R16 curve: a collision-free ball may still stop or jam.",
-            "C01-V2 circular quarter-torus retained; no raised internal ceiling.",
+            "Circular mouths, with a spherical roof relief near the middle of the bend.",
             "Roof and underside bridge/overhang require Bambu Studio slicing.",
             "E31-05 receiver is a transferred trial, not physically verified here.",
             "Static sphere samples and manifold STL do not prove rolling.",
