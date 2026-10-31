@@ -1,10 +1,10 @@
 {
-  "version": "C02-V2",
+  "version": "C02-V3",
   "auto": true,
   "requires": [
     {
       "target": "parts/sharp_curve",
-      "version": "C01-V2"
+      "version": "C01-V5"
     }
   ],
   "command": [
