@@ -1,0 +1,15 @@
+{
+  "version": "GC01-V1",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.gentle_curve_open.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 2400
+}
