@@ -57,6 +57,38 @@ class VersionSelectionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             cad.check('parts/alpha', spec('bad version'))
 
+    def test_shared_geometry_change_needs_bump(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            part = root / 'parts/beta'
+            shared = root / 'brickcad'
+            part.mkdir(parents=True)
+            shared.mkdir(parents=True)
+            (part / 'design.py').write_text('from brickcad.geometry import shape' + chr(10))
+            (shared / 'geometry.py').write_text('shape = 1' + chr(10))
+            self.prior['parts/alpha'] = 'A02-V1'
+            self.prior['experiments/trial'] = 'X01-V1'
+            with self.assertRaisesRegex(ValueError, 'parts/beta'):
+                cad.select(self.specs, 'changed', prior=self.prior,
+                           changed=['brickcad/geometry.py'], root=root)
+
+    def test_config_edit_without_version_change_needs_bump(self):
+        self.prior['parts/alpha'] = 'A02-V1'
+        with self.assertRaisesRegex(ValueError, 'parts/alpha'):
+            cad.select(self.specs, 'changed', prior=self.prior,
+                       changed=['parts/alpha/cad-build.json'])
+
+    def test_source_fingerprint_changes_with_geometry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            part = root / 'parts/alpha'
+            part.mkdir(parents=True)
+            (part / 'cad-build.json').write_text(json.dumps(spec('A01-V1')))
+            (part / 'design.py').write_text('MODEL = 1' + chr(10))
+            before = cad.source_fingerprint(root, 'parts/alpha')
+            (part / 'design.py').write_text('MODEL = 2' + chr(10))
+            self.assertNotEqual(before, cad.source_fingerprint(root, 'parts/alpha'))
+
     def test_stl_binary_integrity(self):
         with tempfile.TemporaryDirectory() as tmp:
             model = Path(tmp) / 'brick.stl'
