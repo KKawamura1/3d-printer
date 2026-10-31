@@ -24,7 +24,7 @@
 - Do not mark visual review complete based on a successful screenshot command. Record the input hashes, screenshot hashes, observations and remaining limitations in a review note after actually inspecting images.
 
 
-- CI policy: push runs the version-aware planner (`scripts/cad_versions.py`), which auto-generates only new/bumped maintained part revisions. Experiments and bulk plates require manual `targets`. Only the selected model's tests are executed; screenshots require explicit `previews=true`. Shared source changes require bumps on affected models instead of silently rebuilding unchanged revisions.
+- CI policy: push runs the version-aware planner (`scripts/cad_versions.py`); new/bumped `auto:true` revisions generate for **parts and experiments**. `auto:false` (including bulk plates) requires manual `targets`. Only the selected model's tests are executed; screenshots require explicit `previews=true`. Shared source changes require bumps on affected models instead of silently rebuilding unchanged revisions.
 
 
 ## Shared part design
@@ -46,8 +46,16 @@
 ## Remote CAD workflow (PR20+)
 - Do not upload STL, STEP, viewer HTML, or PNG through the chat/GitHub connector. Commit small design/config/test changes only.
 - New maintained parts and experiments opt in through adjacent `cad-build.json`, with required `version`. Bump the version whenever a CAD source/config changes. Version is the immutable geometry identity and should match the engraved part revision.
-- Maintained parts may set `auto:true`; experiments must use `auto:false`. Only version-bumped maintained parts regenerate automatically. Tests and docs do not invalidate CAD outputs.
+- Both parts and experiments default to `auto:true` and generate only on their own new/bumped `version`. An experiment's pinned dependency revision changing does not automatically rebuild that experiment. Set `auto:false` only when a large manual/batch build is intentional. Tests and docs do not invalidate CAD outputs.
 - Dependencies must be pinned as `{"target":"parts/tunnel","version":"T01-V2"}`. When the current revision differs from the pin, generate the historical revision in an isolated checkout at a matching Git commit; never substitute today's geometry.
 - A dependent can use `{deps}` in its command to reference outputs of the pinned sources. Experiments with independent parameters can omit `requires`.
 - The 8-piece plate is manual-only (`targets=parts/play_set`). Cached same-version CAD output may be reused; an expired cache is re-created from versioned sources.
 - `previews=true` requests screenshots. The screenshots must actually be opened and checked before claiming visual review; CAD checks are not evidence of slicing or physical fit.
+
+## PR and CI recovery policy
+- Prefer one topic per PR. Fix tests, reports and generation failures by committing to the **same branch/PR**; do not close and recreate a PR just to make CI green.
+- Never force-push or rewrite an open PR's history as routine error correction. If absolutely necessary, first inspect the current branch head and the incremental planner's fallback behavior.
+- For ordinary pushes, the runner compares the exact previous commit. If it is unreachable (e.g. history rewrite), the planner uses the common ancestor with `origin/main` and logs the broader selection. If there is no safe common ancestor, fail explicitly rather than silently skipping builds.
+- Run small source-only checks first: `python -m unittest discover -s scripts -p test_cad_versions.py -v` and `python -m unittest discover -s scripts -p test_cad_report.py -v`. Then run only changed model tests and GitHub Actions; do not regenerate unchanged CAD.
+- New model reports must provide top-level `passed: true` only after all geometry checks pass. The shared pipeline validates or supplies `mesh.passed` from the actual STL when absent. Never use a report/schema fix to hide a failing geometry or mesh test. Numeric dimensions are floating point: use tolerance-based comparisons (e.g. `assertAlmostEqual`), not strict equality.
+- Before claiming completion, inspect both CAD tests and CAD artifact workflow results and confirm whether the downloadable STL artifact exists; these do not validate Bambu Studio slicing or physical fit.

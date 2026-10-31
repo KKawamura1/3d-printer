@@ -14,6 +14,8 @@ import struct
 import subprocess
 import sys
 
+from cad_report import verified_report
+
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._-]*$')
 
@@ -109,6 +111,35 @@ def source_fingerprint(root, name, *, auto_override=None):
                               data)
             digest.update(data)
     return digest.hexdigest()
+
+
+def choose_diff_base(root, before, fallback_ref='origin/main'):
+    """Use push-before only if reachable in the new history.
+
+    A force push can make github.event.before unreachable even with fetch-depth
+    zero. In that case compare to the common ancestor with the default branch.
+    This may select more newly versioned targets, but never silently ignores
+    source changes or forces all historic models to rebuild.
+    """
+    valid_sha = before and re.fullmatch(r'[0-9a-fA-F]{40}', before) and set(before) != {'0'}
+    if valid_sha:
+        try:
+            git(root, 'cat-file', '-e', before + '^{commit}')
+            git(root, 'merge-base', '--is-ancestor', before, 'HEAD')
+            return before
+        except subprocess.CalledProcessError:
+            pass
+    try:
+        base = git(root, 'merge-base', 'HEAD', fallback_ref).decode().strip()
+    except subprocess.CalledProcessError as exc:
+        raise ValueError(
+            f'Cannot resolve push diff base {before!r}; no common ancestor with '
+            f'{fallback_ref}. Refusing to guess changed CAD versions.'
+        ) from exc
+    print(f'CAD PLAN fallback: before={before!r} is absent or not an ancestor; '
+          f'using merge-base HEAD {fallback_ref}={base}. '
+          'This may include additional version bumps since branching.', flush=True)
+    return base
 
 
 def prior_config(root, base, name):
@@ -299,7 +330,6 @@ def build(root, specs, requested, previews=False):
                 cached = identity.get('version') == version and all(
                     (out / rel).exists() and
                     json.loads((out / rel).parent.joinpath('report.json').read_text()).get('passed') is True and
-                    json.loads((out / rel).parent.joinpath('report.json').read_text()).get('mesh', {}).get('passed') is True and
                     verify_stl(out / rel)['sha256'] == identity['sha256'][rel]
                     for rel in spec['stl'])
             except (OSError, KeyError, json.JSONDecodeError):
@@ -325,9 +355,9 @@ def build(root, specs, requested, previews=False):
                                       'source_sha256': fingerprint, 'cached': cached}
         for rel in spec['stl']:
             source = out / valid_path(rel)
-            report = json.loads((source.parent / 'report.json').read_text())
-            if report.get('passed') is not True or report.get('mesh', {}).get('passed') is not True:
-                raise ValueError(f'CAD verification failed: {name}/{rel}')
+            # Central contract: require geometry success and independently
+            # compute missing mesh verification, even for a restored cache.
+            verified_report(source)
             dst = output / name / version / rel
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, dst)
@@ -366,9 +396,7 @@ def main():
     root = ROOT
     specs = discover(root)
     if args.targets == 'changed':
-        base = args.base
-        if not base or set(base) == {'0'}:
-            base = git(root, 'merge-base', 'HEAD', 'origin/main').decode().strip()
+        base = choose_diff_base(root, args.base)
         paths = git(root, 'diff', '--name-only', '-z', '--no-renames', base, 'HEAD')
         changed = [x.decode() for x in paths.split(bytes([0])) if x]
         prior_specs = {name: prior_config(root, base, name) for name in specs}

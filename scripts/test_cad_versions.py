@@ -228,5 +228,53 @@ class HistoricalDependencyTests(unittest.TestCase):
             self.assertEqual(nodes[1][4], None)
 
 
+class DiffBaseRecoveryTests(unittest.TestCase):
+    """Simulate force-push history loss without touching the user's repository."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        subprocess.run(['git', 'init', '-q'], cwd=self.root, check=True)
+        subprocess.run(['git', 'config', 'user.name', 'CAD Test'], cwd=self.root, check=True)
+        subprocess.run(['git', 'config', 'user.email', 'cad@example.invalid'],
+                       cwd=self.root, check=True)
+        (self.root / 'marker').write_text('base')
+        subprocess.run(['git', 'add', '.'], cwd=self.root, check=True)
+        subprocess.run(['git', 'commit', '-qm', 'base'], cwd=self.root, check=True)
+        self.base = cad.git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        subprocess.run(['git', 'update-ref', 'refs/remotes/origin/main', self.base],
+                       cwd=self.root, check=True)
+        (self.root / 'marker').write_text('feature')
+        subprocess.run(['git', 'add', '.'], cwd=self.root, check=True)
+        subprocess.run(['git', 'commit', '-qm', 'feature'], cwd=self.root, check=True)
+
+    def test_normal_push_uses_exact_previous_commit(self):
+        self.assertEqual(cad.choose_diff_base(self.root, self.base), self.base)
+
+    def test_unreachable_before_falls_back_to_merge_base(self):
+        self.assertEqual(cad.choose_diff_base(self.root, 'f' * 40), self.base)
+        self.assertEqual(cad.git(self.root, 'diff', '--name-only',
+                                 self.base, 'HEAD').decode().strip(), 'marker')
+
+    def test_zero_before_recovers_new_branch(self):
+        self.assertEqual(cad.choose_diff_base(self.root, '0' * 40), self.base)
+
+    def test_missing_default_branch_fails_loudly(self):
+        subprocess.run(['git', 'update-ref', '-d', 'refs/remotes/origin/main'],
+                       cwd=self.root, check=True)
+        with self.assertRaisesRegex(ValueError, 'Cannot resolve push diff base'):
+            cad.choose_diff_base(self.root, 'f' * 40)
+
+    def test_old_diverged_commit_uses_merge_base(self):
+        subprocess.run(['git', 'checkout', '-qb', 'other', self.base],
+                       cwd=self.root, check=True)
+        (self.root / 'marker').write_text('other')
+        subprocess.run(['git', 'commit', '-qam', 'other'], cwd=self.root, check=True)
+        other = cad.git(self.root, 'rev-parse', 'HEAD').decode().strip()
+        subprocess.run(['git', 'checkout', '-q', 'master'], cwd=self.root, check=True)
+        self.assertEqual(cad.choose_diff_base(self.root, other), self.base)
+
+
 if __name__ == '__main__':
     unittest.main()
