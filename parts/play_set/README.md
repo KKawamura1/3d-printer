@@ -18,9 +18,13 @@ IDは形状番号＋版。複製同士は同じ刻印で、設計を変更する
 
 S02-V2は隅の床を増やさず、切れた円筒を切断面の壁で閉じる。小さい1か所は中実にし、縦角・下端をR0.5で丸める。S01-V2より下面天井の支えを増やした比較案。丸入口案も#19の仮説を実物比較する候補であり、短い真円区間がサポート不要を保証するものではない。
 
-## GitHub Actionsで印刷用STLを生成する（推奨）
+## GitHub Actionsで印刷用STLを生成する（変更分のみ生成）
 
 大きなSTLをWorkからpushしない。**設計コードのみをPRにpush**し、GitHub側で生成する。
+
+**現在の推奨経路:** [Targeted CAD artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-targeted.yml) で、設定変更時は対応するパーツだけ自動生成。8個セットを明示的に生成する場合は `workflow_dispatch` の `targets=play-set-8` を選ぶ。詳しくは [共通生成基盤](../../docs/remote-cad.md)。
+
+旧8個セット専用の手動経路も残している（追加のブラウザ確認等に利用）。
 
 1. [CAD preview (manual)](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) を開き、**Run workflow** を押す。
 2. **Branch: `parts/weekend-play-set-v1`**（変更した設計のブランチ）を選ぶ。
