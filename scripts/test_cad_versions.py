@@ -162,10 +162,10 @@ class VersionSelectionTests(unittest.TestCase):
             part = root / 'parts/alpha'
             part.mkdir(parents=True)
             (part / 'cad-build.json').write_text(json.dumps(spec('A01-V1')))
-            (part / 'design.py').write_text('MODEL = 1\\n')
-            (part / 'test.py').write_text('assert True\\n')
+            (part / 'design.py').write_text('MODEL = 1' + chr(10))
+            (part / 'test.py').write_text('assert True' + chr(10))
             before = cad.source_fingerprint(root, 'parts/alpha')
-            (part / 'test.py').write_text('assert 1 == 1\\n')
+            (part / 'test.py').write_text('assert 1 == 1' + chr(10))
             self.assertEqual(before, cad.source_fingerprint(root, 'parts/alpha'))
 
     def test_stl_binary_integrity(self):
