@@ -80,6 +80,15 @@ def build_steep_drop(d=SteepDrop()):
         cq.Vector(1, 0, 0))
     # No top studs: a stud crossing this upper opening would obstruct a ball.
     shape = body.cut(shaft).cut(high).cut(low).val().clean()
+    # Soften the four long exposed upper-hole edges; do not round the
+    # outside silhouette or short corner transition seams.
+    rim_edges = [e for e in shape.Edges()
+                 if abs(e.BoundingBox().zmin - p.height) < .001
+                 and abs(e.BoundingBox().zmax - p.height) < .001
+                 and 8. < e.Length() < 28.]
+    if len(rim_edges) != 4:
+        raise ValueError('Expected four upper aperture rim segments')
+    shape = shape.fillet(.30, rim_edges).clean()
     shape = add_e31_05_receiver_features(shape, p.tubes(), p.tube_radius)
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError("S01-V1 must be a single connected valid solid")
