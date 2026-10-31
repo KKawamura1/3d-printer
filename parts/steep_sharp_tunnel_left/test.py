@@ -7,4 +7,4 @@ class Geometry(unittest.TestCase):
         self.assertEqual(len(shape.Solids()),1)
         self.assertLess(max(swept_ball_path_collisions(shape)),VOLUME_TOL)
         self.assertEqual(ports()[1].outward,(0.,1.,0.))
-        self.assertTrue(shape.isInside(cq.Vector(0,-15.7,18.)))
+        self.assertTrue(shape.isInside(cq.Vector(0,-15.2,18.)))
