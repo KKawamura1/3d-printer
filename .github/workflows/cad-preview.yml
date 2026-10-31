@@ -5,7 +5,7 @@ on:
       target:
         description: Generate one model
         type: choice
-        options: [duplo, duplo-2x2, rail, brick, tunnel, elbow, pitagora, sloped_curve, calibration, experiment, stud-holes, stud-combined, receiver-trial, xy-trial, lego]
+        options: [play-set-8, duplo, duplo-2x2, rail, brick, tunnel, elbow, pitagora, sloped_curve, calibration, experiment, stud-holes, stud-combined, receiver-trial, xy-trial, lego]
         default: tunnel
       screenshots:
         description: Also capture browser screenshots
@@ -19,7 +19,7 @@ concurrency:
 jobs:
   preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,7 +27,35 @@ jobs:
           python-version: '3.11'
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Generate the PR20 print set on the runner (no browser)
+        if: inputs.target == 'play-set-8'
+        run: |
+          python scripts/run-stage.py --name tunnel --timeout 900 --artifact build/print-source/tunnel/brick.stl -- python -m parts.tunnel.design --out build/print-source/tunnel
+          python scripts/run-stage.py --name elbow --timeout 900 --artifact build/print-source/elbow/brick.stl -- python -m parts.elbow.design --out build/print-source/elbow
+          python scripts/run-stage.py --name sloped-curve --timeout 900 --artifact build/print-source/sloped_curve/brick.stl -- python -m parts.sloped_curve.design --out build/print-source/sloped_curve
+          python scripts/run-stage.py --name comparison --timeout 1500 --artifact build/pr20-comparison/S02-V2/brick.stl -- python -m experiments.pr20_comparison.design
+          python scripts/run-stage.py --name assemble-eight --timeout 900 --artifact build/print-source/batch/play-set-8.stl -- python -m parts.play_set.design --parts-root build/print-source --out build/print-source/batch --alternatives-root build/pr20-comparison
+      - name: Check and package print-ready STL files
+        if: inputs.target == 'play-set-8'
+        run: python scripts/package_print_stl.py --parts-root build/print-source --comparison-root build/pr20-comparison --out build/print-ready
+      - name: Upload print-ready STL artifact
+        if: inputs.target == 'play-set-8'
+        uses: actions/upload-artifact@v4
+        with:
+          name: print-ready-play-set-8
+          path: build/print-ready/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Save stage logs if remote generation fails
+        if: failure() && inputs.target == 'play-set-8'
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-print-stages
+          path: build/stages/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Generate and verify selected model once
+        if: inputs.target != 'play-set-8'
         env:
           TARGET: ${{ inputs.target }}
         run: |
@@ -47,16 +75,16 @@ jobs:
             *) exit 1 ;;
           esac
       - uses: actions/setup-node@v4
-        if: inputs.screenshots
+        if: inputs.screenshots && inputs.target != 'play-set-8'
         with:
           node-version: '22'
           cache: npm
       - run: npm ci
-        if: inputs.screenshots
+        if: inputs.screenshots && inputs.target != 'play-set-8'
       - run: npx playwright install --with-deps chromium
-        if: inputs.screenshots
+        if: inputs.screenshots && inputs.target != 'play-set-8'
       - name: Capture selected model once
-        if: inputs.screenshots
+        if: inputs.screenshots && inputs.target != 'play-set-8'
         env:
           TARGET: ${{ inputs.target }}
         run: |
@@ -73,7 +101,7 @@ jobs:
           esac
           python scripts/review-sheet.py build/browser-qa
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && inputs.target != 'play-set-8'
         with:
           name: brick-cad-and-verification
           path: build/
