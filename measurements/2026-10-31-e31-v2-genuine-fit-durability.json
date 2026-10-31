@@ -1,0 +1,88 @@
+{
+  "schema": "physical-fit-observations-v1",
+  "experiment": "E31-V2",
+  "date_local": "2026-10-31",
+  "source": "User firsthand physical experiment report in ChatGPT",
+  "previous_measurements": "measurements/2026-10-31-e31-v2-repeatability-genuine-fit.json",
+  "protocol": {
+    "orientation": "bottom genuine DUPLO stud -> second E31 receiver -> genuine DUPLO blocks above",
+    "grip": "bottommost genuine block",
+    "direction": "light manual back-and-forth shaking",
+    "score": "maximum genuine DUPLO blocks above the second block that survive shaking; the second block is not counted",
+    "target_failure_joint": "B: interface of bottommost block and second block",
+    "trial2_relative_rotation": "90 degrees, according to user supplemental note",
+    "trial1_orientation": "not explicitly restated (preceding test was markings facing forward)",
+    "force_calibrated": false,
+    "no_competing_failures_reported": true
+  },
+  "shake_tests": [
+    {
+      "id": "E31-05",
+      "prior": 2,
+      "added_trials": [
+        {
+          "trial": 1,
+          "score": 2,
+          "failure": "B"
+        },
+        {
+          "trial": 2,
+          "score": 3,
+          "failure": "B",
+          "rotation_relative_deg": 90
+        }
+      ],
+      "three_trial_median": 2
+    },
+    {
+      "id": "E31-07",
+      "prior": 2,
+      "added_trials": [
+        {
+          "trial": 1,
+          "score": 3,
+          "failure": "B"
+        },
+        {
+          "trial": 2,
+          "score": 3,
+          "failure": "B",
+          "rotation_relative_deg": 90
+        }
+      ],
+      "three_trial_median": 3
+    }
+  ],
+  "shake_test_order": [
+    "E31-05 trial1",
+    "E31-07 trial1",
+    "E31-07 trial2",
+    "E31-05 trial2"
+  ],
+  "insertion_removal_durability": [
+    {
+      "id": "E31-05",
+      "stud": "genuine_duplo",
+      "receiver": "E31-05",
+      "cycles_10": "良好",
+      "cycles_30": "良好",
+      "final_extraction": "適度"
+    },
+    {
+      "id": "E31-07",
+      "stud": "genuine_duplo",
+      "receiver": "E31-07",
+      "cycles_10": "良好",
+      "cycles_30": "良好",
+      "final_extraction": "適度"
+    }
+  ],
+  "raw_user_report": "E31-V2 追加再現性・耐久試験結果\n方法：最下段の純正を持ち、2段目にE31候補を載せ、その上に純正を積む。前後方向に軽く揺らす。最大数は2段目を除外。B＝最下段と2段目の界面。\n以前の純正凸→E31凹：05=2個(B),07=2個(B)\nE31-05 試行1: 最大耐久数=2, 脱落箇所=B\nE31-07 試行1: 最大耐久数=3, 脱落箇所=B\nE31-07 試行2: 最大耐久数=3, 脱落箇所=B\nE31-05 試行2: 最大耐久数=3, 脱落箇所=B\n耐久試験：\nE31-05: 試験ペア=純正凸→E31-05凹,10回=良好,30回=良好,最終抜去感=適度\nE31-07: 試験ペア=純正凸→E31-07凹,10回=良好,30回=良好,最終抜去感=適度\n補足=2回目は90度回転",
+  "analytical_limitations": [
+    "Each CAD variant represented by only one printed sample",
+    "Shaking amplitude/acceleration not instrumented",
+    "90-degree rotation coupled with sequence and possible insertion wear",
+    "Durability test covers genuine-to-printed receiver only; does not establish printed-to-printed child-friendly removal or long-term fatigue safety",
+    "Ratings 良好 and 適度 are qualitative user observations, not physical force measurements"
+  ]
+}
