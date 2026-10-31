@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG02-V2'
+PART_ID = 'SG02-V3'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
@@ -97,14 +97,24 @@ def build_part(label=PART_ID):
     # Reject unsupported near-tangent tube slivers; use complete and useful clipped rings.
     body=body.intersect(mask).clean()
     if STEEP:
-        passage=loft('passage',-.3,12,'high').fuse(loft('passage',12,LENGTH+.3,'low'))
-        x,y,_,_=xy(12)
-        passage=passage.fuse(cq.Solid.makeCylinder(14.,43.5-(height(12)+14),cq.Vector(x,y,height(12)+14)))
-        passage=passage.fuse(cq.Solid.makeCone(14.,0.,12.3,cq.Vector(x,y,43.5)))
-    else: passage=loft('passage')
-    if STEEP:
-        body=body.cut(loft('passage',-.3,12.2,'high')).cut(loft('passage',11.8,LENGTH+.3,'low')).clean()
-    else: body=body.cut(passage).clean()
+        # The fall chamber must be subtracted from the actual brick. Merely
+        # constructing/fusing a cutter without using it leaves a solid wall
+        # between the upper inlet and the lower outlet (CI sphere-path failure).
+        # Apply overlapping cuts separately; fusing the intersecting lofts,
+        # cylinder and cone into one BRep can create invalid seam topology.
+        high = loft('passage', -.3, 12.2, 'high')
+        low = loft('passage', 11.8, LENGTH + .3, 'low')
+        x, y, _, _ = xy(12)
+        chamber_bottom = height(12, 'low') - .5
+        chamber = cq.Solid.makeCylinder(
+            14., 43.5 - chamber_bottom, cq.Vector(x, y, chamber_bottom))
+        chamber_roof = cq.Solid.makeCone(
+            14., 0., 12.3, cq.Vector(x, y, 43.5))
+        body = body.cut(high).cut(low).clean()
+        body = body.cut(chamber).clean()
+        body = body.cut(chamber_roof).clean()
+    else:
+        body = body.cut(loft('passage')).clean()
     if STEEP: body=body.fix().clean()
     full=[]
     for x,y in p.tubes():
