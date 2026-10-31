@@ -98,18 +98,23 @@ def build_part(label=PART_ID):
     # Reject unsupported near-tangent tube slivers; use complete and useful clipped rings.
     body=body.intersect(mask).clean()
     if STEEP:
-        passage=loft('passage',-.3,12,'high').fuse(loft('passage',12,LENGTH+.3,'low'))
+        # Do not fuse intersecting ruled lofts, cylinder, and cone before
+        # subtraction: the fused cutting BRep caused invalid seam topology.
+        # The first two cuts reproduce the previously valid tunnel body.
+        high=loft('passage',-.3,12.2,'high')
+        low=loft('passage',11.8,LENGTH+.3,'low')
         x,y,_,_=xy(12)
-        passage=passage.fuse(cq.Solid.makeCylinder(14.,43.5-(height(12)+14),cq.Vector(x,y,height(12)+14)))
-        passage=passage.fuse(cq.Solid.makeCone(14.,0.,12.3,cq.Vector(x,y,43.5)))
-    else: passage=loft('passage')
-    # The falling ball must pass through the vertical transition between
-    # the high inlet and low curved exit.  Cut the complete union, including
-    # the vertical cylindrical chamber and its printable conical roof.
-    # Previously those two solids were constructed but never subtracted,
-    # leaving an apparently roofed yet internally blocked drop.
-    body=body.cut(passage).clean()
-    print('stage after chamber cut',body.isValid(),len(body.Solids()),flush=True)
+        chamber=cq.Solid.makeCylinder(14.,43.5-(height(12)+14),
+                                      cq.Vector(x,y,height(12)+14))
+        chamber_roof=cq.Solid.makeCone(14.,0.,12.3,cq.Vector(x,y,43.5))
+        body=body.cut(high).cut(low).clean()
+        print('stage after paired loft cuts',body.isValid(),len(body.Solids()),flush=True)
+        body=body.cut(chamber).clean()
+        print('stage after cylinder cut',body.isValid(),len(body.Solids()),flush=True)
+        body=body.cut(chamber_roof).clean()
+        print('stage after conical roof cut',body.isValid(),len(body.Solids()),flush=True)
+    else:
+        body=body.cut(loft('passage')).clean()
     if STEEP: body=body.fix().clean()
     print('stage after fix',body.isValid(),len(body.Solids()),flush=True)
     full=[]
