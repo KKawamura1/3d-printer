@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG02-V3'
+PART_ID = 'SG02-V4'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
@@ -36,16 +36,37 @@ def xy(s):
     return (-32+48*math.cos(a),32+48*math.sin(a),-math.sin(a),math.cos(a))
 
 
+# The ramp must have a continuous tangent at both ends. The original
+# 12-27mm linear ramp switched abruptly from -0.65 to zero at 27mm:
+# the physical ball envelope collided with the floor at that corner.
+# Ease in/out over 4mm, retaining a 9.75mm total ramp drop and a
+# ~31-degree peak slope (close to the previous ~33-degree profile).
+RAMP_START, RAMP_FULL, RAMP_EASE, RAMP_END = 12., 16., 28., 32.
+RAMP_DROP = 9.75
+RAMP_RATE = RAMP_DROP / 16.
+
+
 def height(s, branch='low'):
     t=max(0.,min(1.,s/LENGTH))
     if STEEP:
         if branch == 'high': return FLOOR+19.2
-        return FLOOR+.65*max(0.,min(15.,27-s))
+        if s <= RAMP_START: return FLOOR+RAMP_DROP
+        if s < RAMP_FULL:
+            return FLOOR+RAMP_DROP - RAMP_RATE*(s-RAMP_START)**2/8
+        if s < RAMP_EASE:
+            return FLOOR+RAMP_DROP - 2*RAMP_RATE - RAMP_RATE*(s-RAMP_FULL)
+        if s < RAMP_END:
+            return FLOOR+RAMP_RATE*(RAMP_END-s)**2/8
+        return FLOOR
     return FLOOR+DROP*(1-3*t*t+2*t*t*t)
 
 
 def slope(s, branch='low'):
-    if STEEP: return -.65 if branch=='low' and 12<s<27 else 0.
+    if STEEP:
+        if branch == 'high' or s <= RAMP_START or s >= RAMP_END: return 0.
+        if s < RAMP_FULL: return -RAMP_RATE*(s-RAMP_START)/4
+        if s < RAMP_EASE: return -RAMP_RATE
+        return -RAMP_RATE*(RAMP_END-s)/4
     t=max(0.,min(1.,s/LENGTH))
     return DROP*(-6*t+6*t*t)/LENGTH
 
@@ -64,7 +85,7 @@ def wire(s, role, branch='low'):
     # Exact endpoint radius, a wider interior for the inclined sphere envelope.
     distance=min(max(0,s),max(0,LENGTH-s))
     blend=min(1.,distance/5.)
-    rad=BALL_TRACK.radius+(14.-BALL_TRACK.radius)*blend
+    rad=BALL_TRACK.radius+(14.7-BALL_TRACK.radius)*blend
     c=f+rad
     a=rad/math.sqrt(2)
     if not TUNNEL:
@@ -79,7 +100,7 @@ def wire(s, role, branch='low'):
 def stations(a=-.3,b=None):
     if b is None: b=LENGTH+.3
     vals=[a,b]+[i*LENGTH/64 for i in range(65) if a<i*LENGTH/64<b]
-    vals += [v for v in (0,1,3,5,12,27,32,LENGTH-5,LENGTH-3,LENGTH-1,LENGTH) if a<v<b]
+    vals += [v for v in (0,1,3,5,12,16,27,28,32,LENGTH-5,LENGTH-3,LENGTH-1,LENGTH) if a<v<b]
     return sorted(set(vals))
 
 
