@@ -1,0 +1,15 @@
+{
+  "version": "SD04-V2",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.sharp_downhill_tunnel_left.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 2400
+}
