@@ -1,17 +1,17 @@
-# C02-V3 2×2×高さ2 急カーブトンネル（右90°）
+# C02-V4 2×2×高さ2 急カーブトンネル（右90°）
 
 ## 修正理由（2026-11-01の実物試験）
 
 **C02-V2 は実際の印刷品で球が曲がりの途中で止まったため、NGです。**
 公称球径24.26mmの静的なCAD干渉テストだけでは、R16急カーブを実際に転がれることを保証できませんでした。本版は**未印刷・未実物検証の改良候補**です。
 
-## V3の形状
+## V4の形状
 
 - 外形は**31.8×31.8×38.4mm**（スタッド込み高さ42.9mm）のまま。
 - 西から入って南へ出る右90°、入口・出口は従来の**円形口**（半径約12.87mm）と同じ位置・床高6.35mm。
 - 元のR16走路と中央の天井逃げを維持しつつ、**中央に直径26.5mmの広い転回室**を追加。床は6.35mmで水平、上半分を半球状の天井にする。曲率内側への干渉を減らし、球の向きが変わる余裕を増やす。
 - 転回室の側壁は公称最小2.65mm（外形幅31.8mmから計算）。下面受けの上には最小1.6mmの床を確保。既存ドーム最上部35.0mmに対し天面38.4mmで屋根厚3.4mm。
-- 上面4スタッド、E31-05下面受け、北側面の**C02-V3刻印**を維持。
+- 上面4スタッド、E31-05下面受け、北側面の**C02-V4刻印**を維持。
 - 依存する開放型カーブは現行のC01-V5に固定。ただし**C01-V5自体の形状は変更しない**。
 
 ## CADでの確認と限界
@@ -25,7 +25,7 @@ python -m parts.sharp_curve_tunnel.design --out build/sharp-curve-tunnel
 python -m unittest parts.sharp_curve_tunnel.test -v
 ```
 
-`cad-build.json` は **C02-V3**、auto:true。GitHub Actionsで対象版のSTLを生成し、`cad-verified-stl` Artifact内の `parts/sharp_curve_tunnel/C02-V3/brick.stl` から取得します。STLはgitにコミットしません。
+`cad-build.json` は **C02-V4**、auto:true。GitHub Actionsで対象版のSTLを生成し、`cad-verified-stl` Artifact内の `parts/sharp_curve_tunnel/C02-V4/brick.stl` から取得します。STLはgitにコミットしません。
 
 ## 次の実物検証
 

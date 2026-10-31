@@ -1,4 +1,4 @@
-"""C02-V3: 2x2x2 horizontal right-turn tunnel with a widened central chamber.
+"""C02-V4: 2x2x2 horizontal right-turn tunnel with a widened central chamber.
 
 C02-V2 passed nominal ball clearance but a real printed ball stalled in the bend.
 This revision retains circular ports and the original R16 groove while relieving
@@ -21,7 +21,7 @@ from brickcad.verify import exact_bounds, mesh_check, VOLUME_TOL
 from parts.sharp_curve.design import SharpCurve, _curve_cut, ball_intersections, ports
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "C02-V3"
+PART_ID = "C02-V4"
 SOURCE_CURVE_ID = "C01-V5"
 FIT_PROFILE_ID = "duplo-e27-play-v1"
 BODY_COURSES = 2
@@ -83,7 +83,7 @@ def build_tunnel(curve=SharpCurve(), *, label=PART_ID):
         raise ValueError("Turning chamber would break through an external wall")
     if CHAMBER_CAP_Z + CHAMBER_RADIUS > p.height - DUPLO.roof:
         raise ValueError("Turning chamber would leave an insufficient roof")
-    if curve.floor - curve.receiver_depth < DUPLO.roof:
+    if curve.floor - curve.receiver_depth < DUPLO.roof - 1e-6:
         raise ValueError("Turning chamber would remove the receiver floor")
     chamber_lower = cq.Solid.makeCylinder(
         CHAMBER_RADIUS, CHAMBER_CAP_Z - curve.floor,
@@ -190,7 +190,7 @@ def export(out=Path("build/sharp-curve-tunnel")):
         physical_rolling_validated=False,
         slicing_validated=False,
         limitations=[
-            "C02-V2 physically jammed in the bend; C02-V3 is an unprinted corrective prototype.",
+            "C02-V2 physically jammed in the bend; C02-V4 is an unprinted corrective prototype.",
             "A widened room improves geometric freedom, but impact/friction may still stop the ball.",
             "The 26.5 mm chamber is joined to circular mouths; inspect transitions for ledges.",
             "Hemispherical chamber roof and internal floor need support-free slicer inspection.",
