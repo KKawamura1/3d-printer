@@ -1,0 +1,153 @@
+{
+  "experiment": "E31-V2",
+  "date": "2026-10-31",
+  "metric": "Largest number of genuine bricks above second brick surviving manual shaking. Grip bottom. Evaluate joint B (bottom to second).",
+  "e30_07_to_e31": [
+    {
+      "id": "01",
+      "tests": [
+        {
+          "count": 1,
+          "orientation": "previous session, unspecified"
+        },
+        {
+          "count": 1,
+          "orientation": "markings aligned"
+        },
+        {
+          "count": 2,
+          "orientation": "one brick rotated 90 degrees"
+        }
+      ],
+      "failure_joint": "B"
+    },
+    {
+      "id": "05",
+      "tests": [
+        {
+          "count": 3,
+          "orientation": "previous session, unspecified"
+        },
+        {
+          "count": 2,
+          "orientation": "markings aligned"
+        },
+        {
+          "count": 3,
+          "orientation": "one brick rotated 90 degrees"
+        }
+      ],
+      "failure_joint": "B"
+    },
+    {
+      "id": "07",
+      "tests": [
+        {
+          "count": 4,
+          "orientation": "previous session, unspecified"
+        },
+        {
+          "count": 3,
+          "orientation": "markings aligned"
+        },
+        {
+          "count": 4,
+          "orientation": "one brick rotated 90 degrees"
+        }
+      ],
+      "failure_joint": "B"
+    },
+    {
+      "id": "08",
+      "tests": [
+        {
+          "count": 3,
+          "orientation": "previous session, unspecified"
+        },
+        {
+          "count": 1,
+          "orientation": "markings aligned"
+        },
+        {
+          "count": 3,
+          "orientation": "one brick rotated 90 degrees"
+        }
+      ],
+      "failure_joint": "B"
+    },
+    {
+      "id": "09",
+      "tests": [
+        {
+          "count": 2,
+          "orientation": "previous session, unspecified"
+        },
+        {
+          "count": 1,
+          "orientation": "markings aligned"
+        },
+        {
+          "count": 2,
+          "orientation": "one brick rotated 90 degrees"
+        }
+      ],
+      "failure_joint": "B"
+    }
+  ],
+  "e31_to_genuine": [
+    {
+      "id": "01",
+      "count": 6,
+      "failed_at": "B"
+    },
+    {
+      "id": "05",
+      "count": 5,
+      "failed_at": "B"
+    },
+    {
+      "id": "07",
+      "count": 6,
+      "failed_at": "B"
+    },
+    {
+      "id": "08",
+      "count": 7,
+      "failed_at": "B"
+    },
+    {
+      "id": "09",
+      "count": 5,
+      "failed_at": "B"
+    }
+  ],
+  "genuine_to_e31": [
+    {
+      "id": "01",
+      "count": 0,
+      "failed_at": "B"
+    },
+    {
+      "id": "05",
+      "count": 2,
+      "failed_at": "B"
+    },
+    {
+      "id": "07",
+      "count": 2,
+      "failed_at": "B"
+    },
+    {
+      "id": "08",
+      "count": 1,
+      "failed_at": "B"
+    },
+    {
+      "id": "09",
+      "count": 1,
+      "failed_at": "B"
+    }
+  ],
+  "mixed_orientation": "Engraved face forward, shake front-to-back",
+  "notes": "All reported failures at joint B. 0 is a floor count, not zero holding force. Rotation and test order confounded. Earlier session values retained; no calibrated shake force."
+}
