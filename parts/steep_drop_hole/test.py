@@ -1,4 +1,4 @@
-"""Targeted S01-V1 geometry tests; not a slicer or physical rolling test."""
+"""Targeted S01-V2 roofed steep-drop CAD tests; no slicing/dynamics guarantee."""
 import unittest
 import cadquery as cq
 from brickcad.ports import mate, straight_ports
@@ -6,6 +6,7 @@ from brickcad.standards import BALL_TRACK
 from brickcad.verify import VOLUME_TOL, intersection
 from parts.steep_drop_hole.design import (
     PART_ID, SteepDrop, build_steep_drop, ports, sampled_ball_collisions,
+    continuous_ball_path_intersections,
 )
 
 
@@ -15,17 +16,19 @@ class SteepDropHoleTests(unittest.TestCase):
         cls.d = SteepDrop()
         cls.shape, cls.p = build_steep_drop(cls.d)
 
-    def test_dimensions_and_exposed_top(self):
-        self.assertEqual(PART_ID, "S01-V1")
+    def test_dimensions_and_enclosed_roof(self):
+        self.assertEqual(PART_ID, "S01-V2")
         self.assertEqual((self.p.nx, self.p.ny), (2, 2))
-        self.assertAlmostEqual(self.p.height, 38.4)
+        self.assertAlmostEqual(self.p.height, 57.6)
         self.assertTrue(self.shape.isValid())
         self.assertEqual(len(self.shape.Solids()), 1)
-        self.assertFalse(self.shape.isInside(
+        self.assertTrue(self.shape.isInside(
             cq.Vector(self.d.shaft_x, 0, self.p.height - .1)))
-        self.assertAlmostEqual(self.d.high_centre_z +
-                               self.d.section_radius - self.p.height,
-                               12.8906338, delta=.05)
+        self.assertLess(self.d.high_centre_z + self.d.section_radius,
+                        self.p.height - self.d.roof_thickness)
+        self.assertTrue(all(self.shape.isInside(
+            cq.Vector(x + 3.9, y, self.p.height + 1.))
+            for x, y in self.p.studs()))
 
     def test_ports_match_horizontal_tracks_at_two_heights(self):
         high, low = ports(self.d)
@@ -45,6 +48,8 @@ class SteepDropHoleTests(unittest.TestCase):
         self.assertTrue(self.shape.isInside(cq.Vector(3.89, 3.89, 1.)))
         self.assertLess(max(sampled_ball_collisions(self.shape, self.d)),
                         VOLUME_TOL)
+        self.assertLess(max(continuous_ball_path_intersections(
+            self.shape, self.d)), VOLUME_TOL)
 
     def test_negative_control_oversized_ball(self):
         ball = cq.Solid.makeSphere(
