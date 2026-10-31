@@ -1,5 +1,19 @@
 name: CAD preview and print artifact
 on:
+  push:
+    branches:
+      - parts/weekend-play-set-v1
+    paths:
+      - '.github/workflows/cad-preview.yml'
+      - 'scripts/package_print_stl.py'
+      - 'scripts/test_package_print_stl.py'
+      - 'parts/play_set/**'
+      - 'experiments/pr20_comparison/**'
+      - 'parts/tunnel/**'
+      - 'parts/elbow/**'
+      - 'parts/sloped_curve/**'
+      - 'brickcad/**'
+      - 'requirements.txt'
   pull_request:
     paths:
       - '.github/workflows/cad-preview.yml'
@@ -40,10 +54,10 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - name: Verify artifact packaging without running CAD
-        if: github.event_name == 'pull_request' || inputs.target == 'play-set-8'
+        if: github.event_name != 'workflow_dispatch' || inputs.target == 'play-set-8'
         run: python -m unittest scripts.test_package_print_stl -v
       - name: Generate the PR20 print set on the runner (no browser)
-        if: github.event_name == 'pull_request' || inputs.target == 'play-set-8'
+        if: github.event_name != 'workflow_dispatch' || inputs.target == 'play-set-8'
         run: |
           python scripts/run-stage.py --name tunnel --timeout 900 --artifact build/print-source/tunnel/brick.stl -- python -m parts.tunnel.design --out build/print-source/tunnel
           python scripts/run-stage.py --name elbow --timeout 900 --artifact build/print-source/elbow/brick.stl -- python -m parts.elbow.design --out build/print-source/elbow
@@ -51,10 +65,10 @@ jobs:
           python scripts/run-stage.py --name comparison --timeout 1500 --artifact build/pr20-comparison/S02-V2/brick.stl -- python -m experiments.pr20_comparison.design
           python scripts/run-stage.py --name assemble-eight --timeout 900 --artifact build/print-source/batch/play-set-8.stl -- python -m parts.play_set.design --parts-root build/print-source --out build/print-source/batch --alternatives-root build/pr20-comparison
       - name: Check and package print-ready STL files
-        if: github.event_name == 'pull_request' || inputs.target == 'play-set-8'
+        if: github.event_name != 'workflow_dispatch' || inputs.target == 'play-set-8'
         run: python scripts/package_print_stl.py --parts-root build/print-source --comparison-root build/pr20-comparison --out build/print-ready
       - name: Upload print-ready STL artifact
-        if: github.event_name == 'pull_request' || inputs.target == 'play-set-8'
+        if: github.event_name != 'workflow_dispatch' || inputs.target == 'play-set-8'
         uses: actions/upload-artifact@v4
         with:
           name: print-ready-play-set-8
@@ -62,7 +76,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: Save stage logs if remote generation fails
-        if: failure() && (github.event_name == 'pull_request' || inputs.target == 'play-set-8')
+        if: failure() && (github.event_name != 'workflow_dispatch' || inputs.target == 'play-set-8')
         uses: actions/upload-artifact@v4
         with:
           name: failed-print-stages
