@@ -27,6 +27,9 @@ jobs:
           python-version: '3.11'
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Verify artifact packaging without running CAD
+        if: inputs.target == 'play-set-8'
+        run: python -m unittest scripts.test_package_print_stl -v
       - name: Generate the PR20 print set on the runner (no browser)
         if: inputs.target == 'play-set-8'
         run: |
