@@ -1,0 +1,20 @@
+{
+  "version": "E29-V1",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "experiments.dual_fit_e29.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "E29-01/brick.stl",
+    "E29-02/brick.stl",
+    "E29-03/brick.stl",
+    "E29-04/brick.stl",
+    "E29-05/brick.stl",
+    "E29-plate.stl"
+  ],
+  "timeout": 1800
+}
