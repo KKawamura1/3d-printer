@@ -1,0 +1,51 @@
+{
+  "schema": "physical-fit-observations-v1",
+  "experiment": "E30-V1",
+  "session": "E30-08/09 additional focused test before E31-V2",
+  "date_local": "2026-10-31",
+  "source": "User-reported physical results in ChatGPT",
+  "direction": "stud -> receiver",
+  "pairs": [
+    {
+      "stud": "E30-08",
+      "receiver": "E30-09",
+      "extraction": "適度",
+      "bending": "しっかり保持"
+    },
+    {
+      "stud": "E30-09",
+      "receiver": "E30-08",
+      "extraction": "やや緩い",
+      "bending": "多少弱いが実用的"
+    },
+    {
+      "stud": "E30-07",
+      "receiver": "E30-09",
+      "extraction": "適度",
+      "bending": "しっかり保持"
+    },
+    {
+      "stud": "genuine_duplo",
+      "receiver": "E30-08",
+      "extraction": "やや緩い",
+      "bending": "多少弱いが実用的"
+    },
+    {
+      "stud": "genuine_duplo",
+      "receiver": "E30-09",
+      "extraction": "やや緩い",
+      "bending": "しっかり保持"
+    }
+  ],
+  "supplementary_note": "なし",
+  "raw_submission": "E30-08/09の追加試験結果です。\n08凸→09凹：抜去=適度、曲げ=しっかり保持\n09凸→08凹：抜去=やや緩い、曲げ=多少弱いが実用的\n07凸→09凹：抜去=適度、曲げ=しっかり保持\n純正凸→08凹：抜去=やや緩い、曲げ=多少弱いが実用的\n純正凸→09凹：抜去=やや緩い、曲げ=しっかり保持\n補足：なし",
+  "metadata": {
+    "known_cad_equivalence": "E30-07/08/09 have identical CAD receiver geometry; E30-08/09 additionally have grooved studs.",
+    "prior_08_to_09": "Earlier reported extraction hard; this session extraction appropriate.",
+    "prior_09_to_08": "Earlier reported appropriate; this session extraction somewhat loose.",
+    "measured_force_newtons": null,
+    "controlled_orientation": null,
+    "usage_cycles": null,
+    "cannot_infer_design_causation": true
+  }
+}

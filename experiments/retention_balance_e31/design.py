@@ -1,6 +1,6 @@
 """E31-V1: balance printed-to-printed handling and genuine DUPLO retention.
 
-Nine adult-only coupons in one A1 mini plate. E30-07 mating geometry is
+Five adult-only coupons in one A1 mini plate. E30-07 mating geometry is
 preserved in two controls; candidate changes are receiver-only.
 CAD/slicing cannot validate clutch force or child safety.
 """
@@ -22,23 +22,21 @@ from experiments.dual_fit_e29.design import (
 )
 from experiments.unified_fit_e30.design import VERSION as E30_VERSION
 
-VERSION = "E31-V1"
+VERSION = "E31-V2"
 PROFILE = "duplo-e27-play-v1"
 SOURCE_VERSIONS = {"E29": "E29-V3", "E30": "E30-V1"}
-# 9 x 2x2 coupons, 45mm centres, no printable bed or support geometry.
+# Five 2x2 coupons in a compact 2x3 array. Keep original IDs for traceability.
+# E30-07-equivalent receiver appears only once; other four conditions each
+# probe a different receiver-side retention mechanism.
 SPECIMENS = (
-    dict(id="E31-01", kind="reference_A", xy=[45, 45]),
-    dict(id="E31-02", kind="reference_B", xy=[90, 45]),
-    dict(id="E31-03", kind="bead_014", xy=[135, 45]),
-    dict(id="E31-04", kind="bead_018", xy=[45, 90]),
-    dict(id="E31-05", kind="bead_020", xy=[90, 90]),
-    dict(id="E31-06", kind="tube_1324", xy=[135, 90]),
-    dict(id="E31-07", kind="tube_1328", xy=[45, 135]),
-    dict(id="E31-08", kind="short_slots", xy=[90, 135]),
-    dict(id="E31-09", kind="upper_contact", xy=[135, 135]),
+    dict(id="E31-01", kind="reference_A", xy=[45, 68]),
+    dict(id="E31-05", kind="bead_020", xy=[90, 68]),
+    dict(id="E31-07", kind="tube_1328", xy=[135, 68]),
+    dict(id="E31-08", kind="short_slots", xy=[45, 112]),
+    dict(id="E31-09", kind="upper_contact", xy=[90, 112]),
 )
-BEAD_RADII = {"bead_014": .14, "bead_018": .18, "bead_020": .20}
-TUBE_RADII = {"tube_1324": 6.62, "tube_1328": 6.64}
+BEAD_RADII = {"bead_020": .20}
+TUBE_RADII = {"tube_1328": 6.64}
 SHORT_SLOT_END_Z = 3.60  # E29 default: 4.40; root rounded R0.65
 UPPER_BEAD_Z = 3.55
 UPPER_BEAD_MINOR_R = .18
@@ -57,9 +55,8 @@ def parameters(record):
     kind = record["kind"]
     if kind in TUBE_RADII:
         p = replace(p, tube_radius=TUBE_RADII[kind])
-    elif kind not in (
-            "reference_A", "reference_B", "bead_014", "bead_018",
-            "bead_020", "short_slots", "upper_contact"):
+    elif kind not in ("reference_A", "bead_020", "short_slots",
+                      "upper_contact"):
         raise ValueError("Unknown E31 condition " + kind)
     return p
 
@@ -165,14 +162,14 @@ def generate(out=Path("build/e31-retention-balance")):
         placed.append(shape.translate((x-90, y-90, 0)))
     plate = cq.Compound.makeCompound(placed)
     if not plate.isValid() or len(plate.Solids()) != len(records):
-        raise ValueError("E31 plate must contain nine distinct solids")
+        raise ValueError("E31 plate must contain five distinct solids")
     for i,a in enumerate(placed):
         for b in placed[i+1:]:
             if a.intersect(b).Volume() > 1e-7:
                 raise ValueError("Overlapping E31 parts")
     bounds = exact_bounds(plate)
     if any(abs(a-b) > 1e-4 for a,b in
-           zip(bounds, (121.8, 121.8, 23.7))):
+           zip(bounds, (121.8, 75.8, 23.7))):
         raise ValueError("Unexpected E31 plate bounds " + str(bounds))
     mesh = export_stl(plate, out/"E31-plate.stl")
     report = dict(

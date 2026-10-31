@@ -1,4 +1,4 @@
-"""Targeted E31-V1 geometry tests; no physical-fit or safety claims."""
+"""Targeted E31-V2 geometry tests; no physical-fit or safety claims."""
 import unittest
 
 import cadquery as cq
@@ -17,15 +17,21 @@ class E31Tests(unittest.TestCase):
         cls.parts = {r["id"]: coupon(r) for r in SPECIMENS}
 
     def test_version_ids_bed_and_plate_layout(self):
-        self.assertEqual(VERSION, "E31-V1")
+        self.assertEqual(VERSION, "E31-V2")
         self.assertEqual(SOURCE_VERSIONS, {"E29":"E29-V3","E30":"E30-V1"})
-        self.assertEqual(len(plan()), 9)
-        self.assertEqual(len(self.parts), 9)
-        self.assertEqual(len({r["id"] for r in SPECIMENS}), 9)
-        self.assertEqual(len({tuple(r["xy"]) for r in SPECIMENS}), 9)
+        self.assertEqual(len(plan()), 5)
+        self.assertEqual(len(self.parts), 5)
+        self.assertEqual(len({r["id"] for r in SPECIMENS}), 5)
+        self.assertEqual(len({tuple(r["xy"]) for r in SPECIMENS}), 5)
+        self.assertEqual(
+            set(self.parts), {"E31-01","E31-05","E31-07","E31-08","E31-09"})
         for r in SPECIMENS:
             self.assertIn(r["xy"][0], (45,90,135))
-            self.assertIn(r["xy"][1], (45,90,135))
+            self.assertIn(r["xy"][1], (68,112))
+        self.assertEqual(
+            (max(r["xy"][0] for r in SPECIMENS)-min(r["xy"][0] for r in SPECIMENS)+31.8,
+             max(r["xy"][1] for r in SPECIMENS)-min(r["xy"][1] for r in SPECIMENS)+31.8),
+            (121.8,75.8))
 
     def test_single_valid_solid_and_unmodified_studs(self):
         for name,(p,shape) in self.parts.items():
@@ -45,7 +51,7 @@ class E31Tests(unittest.TestCase):
         mating_region=cq.Workplane("XY").box(
             27,27,23.7,centered=(True,True,False)).val()
         original=original.intersect(mating_region)
-        for label in ("E31-01","E31-02"):
+        for label in ("E31-01",):
             new=self.parts[label][1].intersect(mating_region)
             delta=original.cut(new).Volume()+new.cut(original).Volume()
             self.assertLess(delta,1e-5)
@@ -59,8 +65,13 @@ class E31Tests(unittest.TestCase):
                 self.assertEqual(p.tube_radius,TUBE_RADII[row["kind"]])
             else:
                 self.assertEqual(p,base)
-        self.assertEqual(BEAD_RADII,
-                         {"bead_014":.14,"bead_018":.18,"bead_020":.20})
+        self.assertEqual(BEAD_RADII, {"bead_020":.20})
+        self.assertEqual(TUBE_RADII, {"tube_1328":6.64})
+        # Equal maximum bead OD 13.60 mm, different mechanism.
+        self.assertAlmostEqual(
+            2 * (base.tube_radius + BEAD_RADII["bead_020"]), 13.60)
+        self.assertAlmostEqual(
+            2 * (TUBE_RADII["tube_1328"] + .16), 13.60)
         self.assertEqual(SHORT_SLOT_END_Z,3.60)
         upper=cq.Workplane("XY",origin=(0,0,19.2)).box(
             36,36,4.5,centered=(True,True,False)).val()
@@ -76,8 +87,7 @@ class E31Tests(unittest.TestCase):
         zone=cq.Workplane("XY").box(
             27,27,18,centered=(True,True,False)).val()
         baseline=self.parts["E31-01"][1].intersect(zone)
-        for name in ("E31-03","E31-04","E31-05","E31-06",
-                     "E31-07","E31-08","E31-09"):
+        for name in ("E31-05","E31-07","E31-08","E31-09"):
             with self.subTest(name=name):
                 altered=self.parts[name][1].intersect(zone)
                 delta=baseline.cut(altered).Volume()+altered.cut(baseline).Volume()

@@ -1,5 +1,5 @@
 {
-  "version": "E31-V1",
+  "version": "E31-V2",
   "auto": true,
   "command": [
     "python",
@@ -10,11 +10,7 @@
   ],
   "stl": [
     "E31-01/brick.stl",
-    "E31-02/brick.stl",
-    "E31-03/brick.stl",
-    "E31-04/brick.stl",
     "E31-05/brick.stl",
-    "E31-06/brick.stl",
     "E31-07/brick.stl",
     "E31-08/brick.stl",
     "E31-09/brick.stl",
