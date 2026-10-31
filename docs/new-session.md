@@ -31,6 +31,12 @@ python scripts/run-stage.py --name curve-browser --timeout 120 -- \
 
 前セッションのプロセス・依存・Chromium・build/の存在を前提にしない。現在の構成は [repository-layout.md](repository-layout.md) を参照。
 
+## 大きなSTLの生成・配布
+
+数MB以上のSTLをChatGPT WorkやGitHubコネクターでBase64転送しない。転送失敗を再現したため、設計の小さなソースファイルのみをpushする。PR #20の8個セットは既存の [CAD preview (manual)](../.github/workflows/cad-preview.yml) で `target=play-set-8` を選び、生成された `print-ready-play-set-8` Artifactから取得する。
+
+GitHub Actionsでは生成を個別工程に分け、イベント・ハッシュと各ログをrunner上に保存する。失敗すればログのみアップロードし、検証に失敗したSTLは成果物として配布しない。配布ArtifactはGitの履歴とは別物で、期限付きなので印刷に使うものは手元で保管する。
+
 ## CADの準備
 
 認証済みgitまたは接続済みGitHub経由でリポジトリを取得する。コネクターが使えてもシェルのgit認証が使えるとは限らない。Python 3.11を用意し、依存がまだなければ次を実行する。
