@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG02-V4'
+PART_ID = 'SG02-V5'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
@@ -92,7 +92,10 @@ def wire(s, role, branch='low'):
         return (w.moveTo(-rad,c).threePointArc((0,f),(rad,c))
                 .lineTo(rad,95).lineTo(-rad,95).close().val())
     # Printable pointed roof; circular upper half at the mouth transitions in 5mm.
-    roof=f+2*BALL_TRACK.radius+(30.3-2*BALL_TRACK.radius)*blend
+    # The steep landing needs headroom for an inclined full-size sphere;
+    # preserve the circular mouth and widen only the downstream tunnel roof.
+    roof_clearance=33.8 if STEEP and branch=='low' else 30.3
+    roof=f+2*BALL_TRACK.radius+(roof_clearance-2*BALL_TRACK.radius)*blend
     return (w.moveTo(-a,c+a).threePointArc((0,f),(a,c+a))
             .lineTo(.4,roof).lineTo(-.4,roof).close().val())
 
@@ -149,7 +152,9 @@ def build_part(label=PART_ID):
     x,y,_,_=xy(0)
     if MIRROR:
         body=body.mirror('XZ');y=-y
-    body=engrave_west(body,label,x=-p.width/2,y=y,z=5.55,size=1.1,depth=.3)
+    # Move the readable recess above the receiver contact band, still below
+    # the high inlet; engrave_west fails if the mark misses the actual wall.
+    body=engrave_west(body,label,x=-p.width/2,y=y,z=12.,size=2.,depth=.45)
     if not body.isValid() or len(body.Solids())!=1:raise ValueError('Expected one valid connected solid')
     return body,p
 
