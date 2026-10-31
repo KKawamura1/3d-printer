@@ -16,7 +16,7 @@ class DownhillTunnelTests(unittest.TestCase):
         cls.shape, cls.p = build_downhill(cls.d)
 
     def test_grid_height_and_ports(self):
-        self.assertEqual(PART_ID, "D01-V1")
+        self.assertEqual(PART_ID, "D01-V2")
         self.assertEqual((self.p.nx,self.p.ny),(4,2))
         self.assertAlmostEqual(self.p.height,57.6)
         high, low = ports(self.d)
