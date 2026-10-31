@@ -30,6 +30,17 @@ class StageTests(unittest.TestCase):
         self.assertEqual(artifact['sha256'], hashlib.sha256(RUNNER.read_bytes()).hexdigest())
         self.assertEqual(Path(events[0]['output_log']).read_text().strip(), 'child output')
 
+    def test_cwd_is_explicitly_supported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            result = subprocess.run(
+                [sys.executable, str(RUNNER), '--name', 'cwd', '--cwd', str(root),
+                 '--log-root', str(root / 'logs'), '--',
+                 sys.executable, '-c', 'import os; print(os.getcwd())'],
+                capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn(str(root), next((root / 'logs').glob('*.log')).read_text())
+
     def test_child_failure_is_not_completion(self):
         result, events = self.run_stage('raise SystemExit(7)')
         self.assertEqual(result.returncode, 7)
