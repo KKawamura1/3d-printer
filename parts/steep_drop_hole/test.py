@@ -1,4 +1,4 @@
-"""Targeted S01-V3 roofed steep-drop CAD tests; no slicing/dynamics guarantee."""
+"""Targeted S01-V4 roofed steep-drop CAD tests; no slicing/dynamics guarantee."""
 import unittest
 import cadquery as cq
 from brickcad.ports import mate, straight_ports
@@ -6,7 +6,7 @@ from brickcad.standards import BALL_TRACK
 from brickcad.verify import VOLUME_TOL, intersection
 from parts.steep_drop_hole.design import (
     PART_ID, SteepDrop, build_steep_drop, ports, sampled_ball_collisions,
-    continuous_ball_path_intersections,
+    continuous_ball_path_intersections, ramp_normal_clearance, rolling_ball_path,
 )
 
 
@@ -17,7 +17,7 @@ class SteepDropHoleTests(unittest.TestCase):
         cls.shape, cls.p = build_steep_drop(cls.d)
 
     def test_dimensions_and_enclosed_roof(self):
-        self.assertEqual(PART_ID, "S01-V3")
+        self.assertEqual(PART_ID, "S01-V4")
         self.assertEqual((self.p.nx, self.p.ny), (2, 2))
         self.assertAlmostEqual(self.p.height, 57.6)
         self.assertTrue(self.shape.isValid())
@@ -50,6 +50,26 @@ class SteepDropHoleTests(unittest.TestCase):
                         VOLUME_TOL)
         self.assertLess(max(continuous_ball_path_intersections(
             self.shape, self.d)), VOLUME_TOL)
+
+    def test_downhill_ramp_and_clearance_at_real_ball_size(self):
+        d = self.d
+        path = rolling_ball_path(d)
+        self.assertGreater(d.ramp_grade, 0)
+        self.assertAlmostEqual(d.ramp_grade, .25)
+        self.assertAlmostEqual(d.ramp_end_x, 13.)
+        self.assertAlmostEqual(path[2].z - path[3].z, 3.75)
+        self.assertAlmostEqual(path[-1].z, d.low_centre_z)
+        self.assertAlmostEqual(path[3].z, d.low_centre_z + ramp_normal_clearance(d))
+        # The landing zone is no longer a flat empty pit.
+        self.assertTrue(self.shape.isInside(cq.Vector(d.shaft_x, 0, d.low_floor + 1.)))
+        self.assertFalse(self.shape.isInside(cq.Vector(
+            d.shaft_x, 0, d.low_floor + 3.75 + 1.)))
+        self.assertFalse(self.shape.isInside(cq.Vector(
+            d.ramp_end_x, 0, d.low_floor + .2)))
+        # Whole-sphere tests along the ramp protect against overhead clipping.
+        self.assertLess(max(sampled_ball_collisions(self.shape, d)), VOLUME_TOL)
+        self.assertLess(max(continuous_ball_path_intersections(self.shape, d)),
+                        VOLUME_TOL)
 
     def test_negative_control_oversized_ball(self):
         ball = cq.Solid.makeSphere(
