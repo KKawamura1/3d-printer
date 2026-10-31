@@ -15,7 +15,18 @@ class SelectionTests(unittest.TestCase):
 
     def test_tunnel_selects_transitive_assembly_only(self):
         self.assertEqual(set(ci.select({'parts/tunnel/design.py'})), {
-            'parts/tunnel/test.py', 'parts/elbow/test.py', 'experiments/pitagora_m1/test.py'})
+            'parts/tunnel/test.py', 'parts/elbow/test.py',
+            'experiments/pitagora_m1/test.py',
+            'experiments/pr20_comparison/test.py'})
+
+    def test_ci_only_changes_do_not_run_all_historical_cad(self):
+        self.assertEqual(ci.select({'scripts/ci-tests.py'}),
+                         ['tests/test_ci_selection.py'])
+        self.assertEqual(ci.select({'.github/workflows/cad.yml'}),
+                         ['tests/test_ci_selection.py'])
+        self.assertEqual(ci.select({'.github/workflows/cad.yml',
+                                    'scripts/ci-tests.py'}),
+                         ['tests/test_ci_selection.py'])
 
     def test_experiment_does_not_select_unrelated_models(self):
         self.assertEqual(ci.select({'experiments/receiver_fit/design.py'}), ['experiments/receiver_fit/test.py'])

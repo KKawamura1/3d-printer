@@ -96,3 +96,9 @@ python scripts/ci-tests.py --base <base-sha>
 CAD変更時は対象モデルを生成し、そのviewerで形状を確認する。[環境構築・ブラウザ確認](docs/new-session.md) と [検証の範囲](docs/design.md) を参照。push時のCADワークフローは、版が更新された `auto:true` のパーツと実験のみ生成する。参照先の変更では依存する実験を再生成せず、`auto:false` の大きな組立セットは手動で生成する。
 
 CADの検証合格と、実物の嵌合・保持力の確認は区別する。過去の `examples/`・`prints/` はパーツ／実験へ統合した。旧ファイルと生成レポートはGit履歴に残る。[移行対応表](docs/repository-layout.md) を参照。
+
+## CADパイプラインの失敗復旧とレポート契約
+
+- push時は直前のコミットと差分を取り、新規追加・版更新された`auto:true`のパーツ／実験だけを生成する。force-push等で直前のSHAを参照できない場合は`origin/main`との共通祖先にフォールバックし、ログに理由を記録する。この場合は分岐以降の複数版が対象になり得るため、通常は履歴を書き換えず、同じPRに修正コミットを追加する。
+- 新しいCAD生成コードは`report.json`にトップレベルの`passed: true`（ジオメトリ検証合格）を出力する。`mesh`が未記載の場合、共通パイプラインが実際のSTLからメッシュを検証して`mesh.passed`と詳細を補完する。明示的な失敗は上書きせず拒否する。
+- 軽量の基盤テスト: `python -m unittest discover -s scripts -p test_cad_versions.py -v` と `python -m unittest discover -s scripts -p test_cad_report.py -v`。対象パーツのCADテスト・プレビュー・実スライスは別に確認する。
