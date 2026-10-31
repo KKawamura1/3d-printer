@@ -1,4 +1,4 @@
-"""S01-V4: enclosed 2x2x3 steep drop tunnel, high west inlet to low east outlet.
+"""S01-V5: enclosed 2x2x3 steep drop tunnel, high west inlet to low east outlet.
 
 The roofed vertical shaft has a printable tapered apex instead of an exposed
 opening or a broad horizontal bridge. This is a geometric prototype; ball
@@ -21,7 +21,7 @@ from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import VOLUME_TOL, exact_bounds, intersection, mesh_check
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "S01-V4"
+PART_ID = "S01-V5"
 
 
 @dataclass(frozen=True)
@@ -34,7 +34,8 @@ class SteepDrop:
     receiver_depth: float = 4.75
     taper_start_above_high_centre: float = 5.0
     roof_thickness: float = 1.8
-    ramp_grade: float = 0.25   # 14.0 degrees; a short downhill run-out
+    ramp_grade: float = 0.65  # 33 degrees, near max with upper inlet preserved
+    ramp_start_x: float = -15.0  # run-out shelf begins just inside high mouth
     ramp_end_x: float = 13.0  # 3 mm of level exit, unchanged outlet port
 
     @property
@@ -94,14 +95,17 @@ def build_steep_drop(d=SteepDrop()):
         raise ValueError("Need overhead clearance above the entrance ball")
     if d.roof_thickness < 1.6:
         raise ValueError("Keep at least 1.6 mm roof material")
-    if not 0. < d.ramp_grade <= .35:
-        raise ValueError("Run-out must have a practical downhill grade")
-    if not d.shaft_x < d.ramp_end_x <= 13.:
-        raise ValueError("The ramp must stop before the outlet face")
+    if not 0. < d.ramp_grade <= .7:
+        raise ValueError("Run-out grade outside supported steepness")
+    if not -15. <= d.ramp_start_x < d.shaft_x < d.ramp_end_x <= 13.:
+        raise ValueError("Ramp must start inside high entry and stop before exit")
     if d.ramp_grade * (d.ramp_end_x - d.shaft_x) < 2.:
         raise ValueError("Ramp must provide useful fall after landing")
-    if d.ramp_grade * (d.ramp_end_x + 15.) > 10.:
-        raise ValueError("Ramp must stay low enough to preserve the high passage")
+    # The inclined shelf near the west mouth must remain at least 1 mm
+    # BELOW the high entrance floor. A steeper full-length wedge otherwise
+    # creates an incoming step and can slow or jam the ball.
+    if d.ramp_grade * (d.ramp_end_x - d.ramp_start_x) > d.drop - 1. + 1e-9:
+        raise ValueError("Ramp would intrude into high inlet floor")
 
     outer = (cq.Workplane("XY")
              .box(p.width, p.depth, p.height, centered=(True, True, False))
@@ -136,7 +140,7 @@ def build_steep_drop(d=SteepDrop()):
     # Fused AFTER the sloped bore to retain the downhill running surface.
     # The wedge stays inside the rounded block exterior and above the
     # underside receiver's 1.6 mm roof.
-    left = -15.
+    left = d.ramp_start_x
     floor = d.low_floor
     ramp = (cq.Workplane("XZ")
             .polyline(((left, floor - .2),
@@ -152,7 +156,7 @@ def build_steep_drop(d=SteepDrop()):
         lip_radius=ROUNDED_EDGES.stud_lip_radius)
     shape = cq.Workplane("XY").newObject([shape]).union(studs).val().clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
-        raise ValueError("S01-V4 must be a single connected valid solid")
+        raise ValueError("S01-V5 must be a single connected valid solid")
     shape = engrave(shape, PART_ID, x=0., y=-p.depth / 2, z=12.)
     return shape, p
 
@@ -222,6 +226,8 @@ def export(out=Path("build/steep-drop-hole")):
             not shape.isInside(cq.Vector(
                 d.shaft_x, 0, d.low_floor +
                 d.ramp_grade * (d.ramp_end_x - d.shaft_x) + 1.))),
+        "inlet_floor_preserved": d.drop - d.ramp_grade * (
+            d.ramp_end_x - d.ramp_start_x) >= 1. - 1e-9,
         "ramp_reaches_exit_floor": not shape.isInside(cq.Vector(
             d.ramp_end_x, 0, d.low_floor + .2)),
         "enclosed_roof": shape.isInside(cq.Vector(
@@ -247,6 +253,8 @@ def export(out=Path("build/steep-drop-hole")):
         "ball_intersections_mm3": collisions,
         "continuous_path_intersections_mm3": sweeps,
         "ramp_rise_at_landing_mm": d.ramp_grade * (d.ramp_end_x - d.shaft_x),
+        "inlet_ramp_floor_margin_mm": d.drop - d.ramp_grade *
+                                     (d.ramp_end_x - d.ramp_start_x),
         "ramp_angle_deg": math.degrees(math.atan(d.ramp_grade)),
         "centreline_points_mm": [p.toTuple() for p in rolling_ball_path(d)],
         "taper_start_z_mm": d.high_centre_z + d.taper_start_above_high_centre,
@@ -274,7 +282,7 @@ def export(out=Path("build/steep-drop-hole")):
     print(PART_ID, "PASS" if report["passed"] else "FAIL",
           checks, flush=True)
     if not report["passed"]:
-        raise RuntimeError("S01-V4 geometry verification failed")
+        raise RuntimeError("S01-V5 geometry verification failed")
     return report
 
 
