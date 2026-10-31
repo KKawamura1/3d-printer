@@ -178,6 +178,11 @@ def verify(shape,p):
     for a,b in zip(pts,pts[1:]):
         v=b-a
         segment_errors.append(intersection(shape,cq.Solid.makeCylinder(r,v.Length,a,v.normalized())))
+    if max(sphere_errors+segment_errors) >= VOLUME_TOL:
+        worst_s=sorted(enumerate(sphere_errors),key=lambda it:it[1],reverse=True)[:6]
+        worst_e=sorted(enumerate(segment_errors),key=lambda it:it[1],reverse=True)[:6]
+        print('sphere collision idx/mm3/center',[(i,round(v,3),pts[i].toTuple()) for i,v in worst_s],flush=True)
+        print('segment collision idx/mm3/start/end',[(i,round(v,3),pts[i].toTuple(),pts[i+1].toTuple()) for i,v in worst_e],flush=True)
     mid=pts[len(pts)//2]
     negative=intersection(shape,cq.Solid.makeSphere(r,mid-cq.Vector(0,0,3),angleDegrees1=-90))
     checks=dict(valid_brep=shape.isValid(),one_solid=len(shape.Solids())==1,
