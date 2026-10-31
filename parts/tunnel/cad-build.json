@@ -9,5 +9,6 @@
   "stl": [
     "brick.stl"
   ],
-  "timeout": 1200
+  "timeout": 1200,
+  "description": "Maintained tunnel; targeted GitHub Actions build smoke test"
 }
