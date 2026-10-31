@@ -1,6 +1,6 @@
 name: CAD preview and print artifacts
 on:
-  pull_request:
+  push:
     paths:
       - 'parts/**/*.py'
       - 'parts/**/cad-build.json'
