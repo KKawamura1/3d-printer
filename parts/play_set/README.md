@@ -20,7 +20,7 @@ S02-V2は隅の床を増やさず、切れた円筒を切断面の壁で閉じ�
 
 ## GitHub Actionsで印刷用STLを生成する（推奨）
 
-[CAD preview and print artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) の **Run workflow** で、PRブランチを選び `targets=parts/play_set` を入力する。組立用パーツと各比較STLは同じGitHub runner上で再生成され、個別の検証を通った場合のみ `cad-verified-stl` Artifactへ出力される。通常のパーツ更新時に8個セットを再生成することはない。画像が必要なら `previews=true` を指定する。
+[CAD preview and print artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) の **Run workflow** で、PRブランチを選び `targets=parts/play_set` を入力する。組立用パーツと各比較STLは固定したバージョンで解決され、キャッシュがない場合のみrunner上で生成され、個別の検証を通った場合のみ `cad-verified-stl` Artifactへ出力される。通常のパーツ更新時に8個セットを再生成することはない。画像が必要なら `previews=true` を指定する。
 
 保存期間は14日。形状・STLメッシュの合格と、スライス・実際の嵌合の検証は別。コマンドとmanifest仕様は[ルートREADME](../../README.md)を参照。
 
