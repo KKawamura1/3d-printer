@@ -1,4 +1,4 @@
-# SD02-V1
+# SD02-V2
 
 Issue #37: sharp_downhill_open_left。独立した刻印・版付きパーツ。
 
@@ -11,3 +11,5 @@ Issue #37: sharp_downhill_open_left。独立した刻印・版付きパーツ。
 
 生成: `python -m parts.sharp_downhill_open_left.design --out build/sharp_downhill_open_left`。
 Actionsの`cad-verified-stl`にSTL/STEP/検証レポートを保存。
+
+STEP往復は適応型Gauss積分（相対誤差1e-9）による体積差0.01mm³未満とソリッド有効性を検査。
