@@ -29,8 +29,10 @@ class SteepDropHoleTests(unittest.TestCase):
 
     def test_ports_match_horizontal_tracks_at_two_heights(self):
         high, low = ports(self.d)
-        self.assertEqual(high.floor_xyz_mm, (-16., 0., 25.55))
-        self.assertEqual(low.floor_xyz_mm, (16., 0., 6.35))
+        for actual, expected in zip(high.floor_xyz_mm, (-16., 0., 25.55)):
+            self.assertAlmostEqual(actual, expected)
+        for actual, expected in zip(low.floor_xyz_mm, (16., 0., 6.35)):
+            self.assertAlmostEqual(actual, expected)
         left, right = straight_ports(2, BALL_TRACK.floor, BALL_TRACK.radius)
         self.assertTrue(mate(right.placed((-32., 0., 19.2)), high)["compatible"])
         self.assertTrue(mate(low, left.placed((32., 0., 0.)))["compatible"])
