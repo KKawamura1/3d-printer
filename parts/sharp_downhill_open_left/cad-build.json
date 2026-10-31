@@ -1,0 +1,15 @@
+{
+  "version": "SD02-V2",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.sharp_downhill_open_left.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 2400
+}
