@@ -1,4 +1,4 @@
-import cadquery as cq
+"""SG01 geometry regressions: real-ball path, landing support and roof.\n\nCAD geometry does not establish spontaneous rolling or print tolerance.\n"""\nimport cadquery as cq
 from brickcad.verify import intersection, VOLUME_TOL
 from parts.steep_gentle_tunnel_left.design import xy, height, MIRROR, path
 import unittest
