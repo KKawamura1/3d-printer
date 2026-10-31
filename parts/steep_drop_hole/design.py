@@ -135,7 +135,7 @@ def export(out=Path("build/steep-drop-hole")):
         "drop_shaft_open_at_top": not shape.isInside(cq.Vector(
             d.shaft_x, 0, p.height - .1)),
         "receiver_central_bore": not shape.isInside(cq.Vector(0, 0, 1.)),
-        "receiver_tube_wall": shape.isInside(cq.Vector(5.4, 0, 1.)),
+        "receiver_tube_wall": shape.isInside(cq.Vector(3.89, 3.89, 1.)),
         "high_mouth_overflows_top": d.high_centre_z + d.section_radius > p.height,
         "two_ports_one_course_apart": abs(
             ports(d)[0].floor_xyz_mm[2] - ports(d)[1].floor_xyz_mm[2] -
