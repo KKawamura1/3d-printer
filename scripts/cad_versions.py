@@ -92,6 +92,21 @@ def imports_for(file, root, seen=None):
     return seen
 
 
+def source_fingerprint(root, name):
+    """Fingerprint model source, transitive Python imports and shared CAD inputs."""
+    relevant = imports_for(name + '/design.py', root)
+    relevant.update(p.relative_to(root).as_posix() for p in (root / name).glob('*.py'))
+    relevant.add(name + '/cad-build.json')
+    relevant.add('requirements.txt')
+    relevant.update(p.relative_to(root).as_posix() for p in (root / 'profiles').glob('*.json'))
+    digest = hashlib.sha256()
+    for rel in sorted(relevant):
+        if (root / rel).is_file():
+            digest.update(rel.encode() + bytes([0]))
+            digest.update((root / rel).read_bytes())
+    return digest.hexdigest()
+
+
 def prior_version(root, base, name):
     try:
         old = json.loads(git(root, 'show', f'{base}:{name}/cad-build.json'))
@@ -198,6 +213,7 @@ def build(root, specs, requested, previews=False):
         shutil.rmtree(deps)
     deps.mkdir(parents=True)
     manifest = {'generated_utc': datetime.now(timezone.utc).isoformat(),
+                'source_commit': os.environ.get('GITHUB_SHA') or git(root, 'rev-parse', 'HEAD').decode().strip(),
                 'requested': requested, 'versions': {}, 'files': {},
                 'physical_fit_validated': False, 'slicing_validated': False,
                 'visual_review_performed': False}
@@ -208,17 +224,20 @@ def build(root, specs, requested, previews=False):
                for s in spec['command']]
         label = name.replace('/', '-') + '-' + version
         stamp = out / '.cad-version.json'
+        fingerprint = source_fingerprint(checkout, name)
         cached = False
         if stamp.exists():
             try:
                 identity = json.loads(stamp.read_text())
+                if identity.get('version') == version and identity.get('source_sha256') != fingerprint:
+                    raise ValueError(f'{name}@{version}: cached source fingerprint changed without version bump')
                 cached = identity.get('version') == version and all(
                     (out / rel).exists() and
                     json.loads((out / rel).parent.joinpath('report.json').read_text()).get('passed') is True and
                     json.loads((out / rel).parent.joinpath('report.json').read_text()).get('mesh', {}).get('passed') is True and
                     verify_stl(out / rel)['sha256'] == identity['sha256'][rel]
                     for rel in spec['stl'])
-            except (OSError, KeyError, ValueError, json.JSONDecodeError):
+            except (OSError, KeyError, json.JSONDecodeError):
                 cached = False
         # Only the affected model's tests; never replay unrelated models.
         if not cached and (checkout / name / 'test.py').exists():
@@ -238,7 +257,7 @@ def build(root, specs, requested, previews=False):
             link.unlink()
         link.symlink_to(out, target_is_directory=True)
         manifest['versions'][name] = {'version': version, 'source_commit': source_sha,
-                                      'cached': cached}
+                                      'source_sha256': fingerprint, 'cached': cached}
         for rel in spec['stl']:
             source = out / valid_path(rel)
             report = json.loads((source.parent / 'report.json').read_text())
@@ -258,7 +277,7 @@ def build(root, specs, requested, previews=False):
                                 str(source.parent), str(captured)], cwd=root, check=True)
                 shutil.copytree(captured, dst.parent / 'previews', dirs_exist_ok=True)
         if not cached:
-            stamp.write_text(json.dumps({'version': version, 'sha256': {
+            stamp.write_text(json.dumps({'version': version, 'source_sha256': fingerprint, 'sha256': {
                 rel: verify_stl(out / rel)['sha256'] for rel in spec['stl']
             }}, indent=2) + chr(10))
     output.mkdir(parents=True, exist_ok=True)
