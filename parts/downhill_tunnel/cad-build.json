@@ -1,0 +1,16 @@
+{
+  "version": "D01-V2",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.downhill_tunnel.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "DUPLO 2x4 three-course windowed one-course downhill tunnel; E31-05 split receiver"
+}
