@@ -1,4 +1,4 @@
-"""C01-V2: right-hand open 90-degree DUPLO curve, 2x2 by one course.
+"""C01-V3: right-hand open 90-degree DUPLO curve, 2x2 by one course.
 
 The rolling centreline is a R16 quarter-circle, west entry to south exit.
 Static sphere clearance does not establish reliable rolling at this tight radius.
@@ -12,7 +12,6 @@ import struct
 
 import cadquery as cq
 
-from brickcad.connections import make_studs
 from brickcad.model import brick_from_fit, receiver
 from brickcad.ports import Port
 from brickcad.provenance import design_manifest
@@ -20,7 +19,7 @@ from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "C01-V2"
+PART_ID = "C01-V3"
 FIT_PROFILE_ID = "duplo-e27-play-v1"
 
 
@@ -35,7 +34,7 @@ class SharpCurve:
 
     def __post_init__(self):
         if abs(self.turn_radius - DUPLO.pitch) > 1e-6:
-            raise ValueError("C01-V2 is a 2x2 R16 curve")
+            raise ValueError("C01-V3 is a 2x2 R16 curve")
         if self.section_radius >= self.turn_radius - 1.6:
             raise ValueError("No space remains for the inside corner")
         if self.floor - self.receiver_depth < 1.6 - 1e-6:
@@ -119,12 +118,10 @@ def build_curve(curve=SharpCurve(), *, label=PART_ID):
     # Build west -> north then reflect across XZ to give west -> south/right.
     body = body.cut(_curve_cut(curve)).clean()
 
-    # Only one stud remains outside the complete ball envelope. Do not populate
-    # the other three studs: doing so blocks a 24.26 mm ball in this footprint.
-    stud = make_studs([(8., -8.)], p.height, p.stud_radius,
-                      p.stud_inner_radius, p.stud_height,
-                      ROUNDED_EDGES.stud_lip_radius).val()
-    body = body.fuse(stud).clean().mirror("XZ")
+    # The open curve cannot support a block above it, so leave the entire
+    # running surface studless, including the previously retained corner stud.
+    # The underside E31-05 receiver and R16 channel remain unchanged.
+    body = body.mirror("XZ")
     if not body.isValid() or len(body.Solids()) != 1:
         raise ValueError("Sharp curve must be one connected valid solid")
     return _engrave_north(body, label, p.depth), p
@@ -158,15 +155,15 @@ def export(out=Path("build/sharp-curve")):
         valid_brep=shape.isValid(),
         one_solid=len(shape.Solids()) == 1,
         body_grid=all(abs(a-b)<1e-5 for a,b in
-                      zip(bounds, (31.8, 31.8, 23.7))),
+                      zip(bounds, (31.8, 31.8, 19.2))),
         mesh=mesh["passed"],
         mesh_volume=abs(mesh["signed_volume_mm3"]-shape.Volume())/shape.Volume() < .001,
         ball_path_clear=max(intersections) < VOLUME_TOL,
         oversized_ball_blocked=max(too_large) > VOLUME_TOL,
         receiver_tube_hole=not shape.isInside(cq.Vector(0,0,1)),
         receiver_tube_wall=shape.isInside(cq.Vector(4.,4.,1)),
-        stud_hollow=not shape.isInside(cq.Vector(8,8,22)),
-        stud_wall=shape.isInside(cq.Vector(12.,8,22)),
+        no_top_studs=all(not shape.isInside(cq.Vector(x,y,p.height+1.))
+                          for x,y in p.studs()),
         curve_floor=shape.isInside(cq.Vector(
             -16+curve.turn_radius/math.sqrt(2),
             -16+curve.turn_radius/math.sqrt(2), curve.floor-.15)),
@@ -178,7 +175,7 @@ def export(out=Path("build/sharp-curve")):
                                      volume_mm3=shape.Volume(),
                                      parameters=asdict(p)),
         curve=asdict(curve), ports=[asdict(x) for x in ports(curve)],
-        studs_retained=[(8.,8.)],
+        studs_retained=[],
         mesh=mesh,
         ball_intersections_mm3=intersections,
         oversized_ball_intersections_mm3=too_large,
@@ -188,7 +185,7 @@ def export(out=Path("build/sharp-curve")):
         physical_rolling_validated=False,
         limitations=[
             "R16 is a tight 90-degree turn: momentum/friction and ball exit speed are untested.",
-            "One upper stud only; the other three would obstruct the ball passage.",
+            "No top studs: open rail cannot carry a brick above it.",
             "E31-05 receiver is transferred from a 2x2 coupon, not tested on this curve.",
             "No slicer or bridge/overhang inspection has been performed.",
             "Static sphere samples and a manifold mesh do not prove physical rolling.",
