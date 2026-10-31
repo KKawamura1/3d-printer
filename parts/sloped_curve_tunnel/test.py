@@ -1,4 +1,4 @@
-"""Targeted geometry tests for SC02-V4 (Issue #37 M31-05)."""
+"""Targeted geometry tests for SC02-V5 (Issue #37 M31-05)."""
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,7 +8,8 @@ import cadquery as cq
 from brickcad.verify import intersection, VOLUME_TOL
 from parts.sloped_curve_tunnel.design import (
     PART_ID, BALL, DROP, RADIUS, RETAINED_TUBES,
-    CLIPPED_RECEIVER_TUBES, TOP_Z, _roof_probe, _stud_shell_present, ball_centre, export, ports,
+    CLIPPED_RECEIVER_TUBES, TOP_Z, MARK_Y, MARK_Z, MARK_DEPTH,
+    _roof_probe, _stud_shell_present, ball_centre, export, ports,
 )
 
 
@@ -36,6 +37,24 @@ class SlopedCurveTunnelTests(unittest.TestCase):
         self.assertAlmostEqual(self.report['curve']['drop_mm'], DROP)
         self.assertEqual(self.report['curve']['mouth'], 'circular')
         self.assertEqual(self.report['curve']['interior_roof'], 'teardrop')
+
+    def test_engraved_id_still_visible_after_cover_union(self):
+        self.assertEqual(self.report['marking']['text'], 'SC02-V5')
+        self.assertEqual(self.report['marking']['depth_mm'], MARK_DEPTH)
+        self.assertTrue(self.report['checks']['engraved_id_recess_remains_open'])
+
+        # The same text cutter must intersect a plain wall (negative control)
+        # but have zero volume overlap with the exported, engraved STEP solid.
+        width = self.report['geometry']['parameters']['width']
+        plane = cq.Plane(origin=(-width/2+MARK_DEPTH, MARK_Y, MARK_Z),
+                         xDir=(0,-1,0), normal=(-1,0,0))
+        glyphs = (cq.Workplane(plane).text(
+            PART_ID, 3., MARK_DEPTH+.05, font='DejaVu Sans',
+            kind='bold', combine=False).val())
+        unmarked_wall = cq.Solid.makeBox(
+            0.5, 20., 7., cq.Vector(-width/2, MARK_Y-10, MARK_Z-3.5))
+        self.assertGreater(intersection(unmarked_wall, glyphs), .2)
+        self.assertLess(intersection(self.shape, glyphs), VOLUME_TOL)
 
     def test_grid_ports_and_enclosed_roof(self):
         west,north = ports()
