@@ -1,4 +1,4 @@
-"""S01-V2: enclosed 2x2x3 steep drop tunnel, high west inlet to low east outlet.
+"""S01-V3: enclosed 2x2x3 steep drop tunnel, high west inlet to low east outlet.
 
 The roofed vertical shaft has a printable tapered apex instead of an exposed
 opening or a broad horizontal bridge. This is a geometric prototype; ball
@@ -20,7 +20,7 @@ from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import VOLUME_TOL, exact_bounds, intersection, mesh_check
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "S01-V2"
+PART_ID = "S01-V3"
 
 
 @dataclass(frozen=True)
@@ -100,7 +100,7 @@ def build_steep_drop(d=SteepDrop()):
         lip_radius=ROUNDED_EDGES.stud_lip_radius)
     shape = cq.Workplane("XY").newObject([shape]).union(studs).val().clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
-        raise ValueError("S01-V2 must be a single connected valid solid")
+        raise ValueError("S01-V3 must be a single connected valid solid")
     shape = engrave(shape, PART_ID, x=0., y=-p.depth / 2, z=12.)
     return shape, p
 

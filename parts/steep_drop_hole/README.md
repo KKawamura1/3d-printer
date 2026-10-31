@@ -1,6 +1,6 @@
-# S01-V2 — 2×2×高さ3 急落下トンネル（試作）
+# S01-V3 — 2×2×高さ3 急落下トンネル（試作）
 
-Issue #37 の仕様に従い、**非トンネル版 S01-V1 は設計対象から除外**。S01-V2 がこの形状の候補です。
+Issue #37 の仕様に従い、**非トンネル版 S01-V1 は設計対象から除外**。S01-V3 がこの形状の候補です。
 本体 31.8×31.8×57.6 mm（2×2スタッド、高さ3段）、上部スタッド付き。最終的な全高はスタッド 4.5mm 込みで62.1mmです。
 
 - 西側の入口：床Z25.55mm、球中心Z38.42mm
@@ -8,7 +8,7 @@ Issue #37 の仕様に従い、**非トンネル版 S01-V1 は設計対象から
 - **1段 = 19.2mm 落下**。参考球径24.26mm。
 - 円筒状の高入口と低出口を垂直落下室でつなぐ。垂直穴上部は先細りの円錐にして上面を完全に塞ぎ、天井なし・高壁だけの形状をなくす。
 - 下面E31-05由来のチューブ・ビード・4スリットと、上面デュプロスタッド4本を採用。上面積み重ねはCAD上の形状のみ、実物保持力は未検証。
-- 南側外壁に**S01-V2**の凹刻印。旧S01-V1（開放穴）とは別版。
+- 南側外壁に**S01-V3**の凹刻印。旧S01-V1（開放穴）とは別版。
 
 ## 物理挙動と造形の制約
 
@@ -21,9 +21,9 @@ Issue #37 の仕様に従い、**非トンネル版 S01-V1 は設計対象から
     python -m parts.steep_drop_hole.design --out build/steep-drop-hole
     python -m unittest parts.steep_drop_hole.test -v
 
-`parts/steep_drop_hole/cad-build.json` の **S01-V2** を新しいCAD版として登録。
+`parts/steep_drop_hole/cad-build.json` の **S01-V3** を新しいCAD版として登録。
 GitHub Actions の `cad-verified-stl` Artifactに
-`parts/steep_drop_hole/S01-V2/brick.stl` が生成される想定です。
+`parts/steep_drop_hole/S01-V3/brick.stl` が生成される想定です。
 報告書は閉メッシュ・外寸・上下口高さ・屋根／スタッド・連続掃引球の干渉をチェックします。
 
 ## 印刷後の確認（Bambu A1 mini / PLA Basic / 積層0.20mm想定）
