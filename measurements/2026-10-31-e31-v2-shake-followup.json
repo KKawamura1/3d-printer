@@ -1,0 +1,144 @@
+{
+  "schema": "physical-fit-observations-v1",
+  "experiment": "E31-V2",
+  "date_local": "2026-10-31",
+  "source": "User-reported firsthand physical tests in ChatGPT",
+  "report_kind": "shaking tests, earlier initial survey and corrected followup",
+  "protocol": {
+    "holding": "Hold the bottommost block and gently shake",
+    "measured_interface": "B, bottom-to-second",
+    "topology_top": "E31 stud(bottom) -> genuine DU PLO receiver(second) -> genuine DU PLO tower",
+    "topology_bottom": "E30-07 stud(bottom) -> E31 receiver(second) -> genuine DU PLO tower",
+    "count_definition": "Number of genuine DU PLO blocks placed ABOVE the second block that survived shaking; second block excluded",
+    "failure_location": "B for every latest observation, no A/upper failures",
+    "shaking_force_controlled": false,
+    "shaking_amplitude_controlled": false,
+    "same_operator_assumed": null,
+    "cycles_per_pair": 1,
+    "geometry_and_orientation_of_earlier_protocol": "Prior form text said hold topmost, user later explicitly corrected actual grip to bottommost",
+    "count_comparison_caveat": "Earlier bottom-pair values exactly exceed latest by 1 for all five variants; origin could be counting convention or stricter test, and is unresolved"
+  },
+  "e31_top": [
+    {
+      "id": "E31-01",
+      "max_surviving_genuine_above_second": 6,
+      "break_interface": "B"
+    },
+    {
+      "id": "E31-05",
+      "max_surviving_genuine_above_second": 5,
+      "break_interface": "B"
+    },
+    {
+      "id": "E31-07",
+      "max_surviving_genuine_above_second": 6,
+      "break_interface": "B"
+    },
+    {
+      "id": "E31-08",
+      "max_surviving_genuine_above_second": 7,
+      "break_interface": "B"
+    },
+    {
+      "id": "E31-09",
+      "max_surviving_genuine_above_second": 5,
+      "break_interface": "B"
+    }
+  ],
+  "e31_bottom": [
+    {
+      "id": "E31-01",
+      "max_surviving_genuine_above_second": 1,
+      "break_interface": "B"
+    },
+    {
+      "id": "E31-05",
+      "max_surviving_genuine_above_second": 3,
+      "break_interface": "B"
+    },
+    {
+      "id": "E31-07",
+      "max_surviving_genuine_above_second": 4,
+      "break_interface": "B"
+    },
+    {
+      "id": "E31-08",
+      "max_surviving_genuine_above_second": 3,
+      "break_interface": "B"
+    },
+    {
+      "id": "E31-09",
+      "max_surviving_genuine_above_second": 2,
+      "break_interface": "B"
+    }
+  ],
+  "historical_pairs": [
+    {
+      "stud": "E30-01",
+      "receiver": "E30-07",
+      "max_surviving_genuine_above_second": 1,
+      "break_interface": "B"
+    },
+    {
+      "stud": "E30-01",
+      "receiver": "E30-02",
+      "max_surviving_genuine_above_second": 3,
+      "break_interface": "B"
+    },
+    {
+      "stud": "genuine_duplo",
+      "receiver": "E30-06",
+      "max_surviving_genuine_above_second": 1,
+      "break_interface": "B"
+    },
+    {
+      "stud": "genuine_duplo",
+      "receiver": "E30-07",
+      "max_surviving_genuine_above_second": 2,
+      "break_interface": "B"
+    },
+    {
+      "stud": "E30-08",
+      "receiver": "E30-09",
+      "max_surviving_genuine_above_second": 2,
+      "break_interface": "B",
+      "note": "Corrected from initially entered 1"
+    },
+    {
+      "stud": "E30-09",
+      "receiver": "E30-08",
+      "max_surviving_genuine_above_second": 1,
+      "break_interface": "B",
+      "note": "Added in supplement"
+    }
+  ],
+  "previous_e31_bottom_shake": {
+    "ids": [
+      "01",
+      "05",
+      "07",
+      "08",
+      "09"
+    ],
+    "values": [
+      2,
+      4,
+      5,
+      4,
+      3
+    ],
+    "genuine_comparison": 7,
+    "interpretation": "Recorded previously; all five exactly one higher than current followup; do not overwrite either data series",
+    "raw_verbatim": "E31揺れ試験結果です。\n試験方向：E30-07凸→各E31凹。最上段を持って揺らし、下に連結して耐えた最大数を記録。\nE31-01：2\nE31-05：4\nE31-07：5\nE31-08：4\nE31-09：3\n純正対照：7\n補足：純正同士=e30-07の上に純正を一つ置き、その上に直接純正を積んだ場合。下から2番目の、本来実験対象がくるべき位置の純正は数えていない。\n全部純正の場合も7個まで（下部2つの純正を含めると9段になる）。"
+  },
+  "latest_note_verbatim": "さっきよりやや厳し目に評価してるかも",
+  "raw_verbatim": "揺れ試験・追加データ\n条件：最下段を持って揺らす。最大数は2段目を除く上部純正品数。Bのみ対象界面の脱落。A/上部脱落は対象界面の最大値としては無効。\n\nE31上面：E31凸→純正凹\nE31-01: 最大耐久数=6 脱落箇所=B 追加試行=なし\nE31-05: 最大耐久数=5 脱落箇所=B 追加試行=なし\nE31-07: 最大耐久数=6 脱落箇所=B 追加試行=なし\nE31-08: 最大耐久数=7 脱落箇所=B 追加試行=なし\nE31-09: 最大耐久数=5 脱落箇所=B 追加試行=なし\n\nE31下面：E30-07凸→E31凹\nE31-01: 最大耐久数=1 脱落箇所=B 追加試行=なし\nE31-05: 最大耐久数=3 脱落箇所=B 追加試行=なし\nE31-07: 最大耐久数=4 脱落箇所=B 追加試行=なし\nE31-08: 最大耐久数=3 脱落箇所=B 追加試行=なし\nE31-09: 最大耐久数=2 脱落箇所=B 追加試行=なし\n\n過去ペア\nE30-01→E30-07: 最大耐久数=1 脱落箇所=B 追加試行=なし\nE30-01→E30-02: 最大耐久数=3 脱落箇所=B 追加試行=なし\n純正→E30-06: 最大耐久数=1 脱落箇所=B 追加試行=なし\n純正→E30-07: 最大耐久数=2 脱落箇所=B 追加試行=なし\nE30-08→E30-09: 最大耐久数=1 脱落箇所=B 追加試行=なし\n補足=E30同士の09→08も最大1個\nE30同士の08→09は1個ではなく2個の誤り\nさっきよりやや厳し目に評価してるかも",
+  "statistical_notes": [
+    "All current trials report target interface B failure, with no competing-interface censoring.",
+    "One printed sample per E31 design, one latest trial each: do not infer force ratios or design causation.",
+    "Top-side E31 studs are identical CAD geometry; measured 5–7 inclusive, reflecting combined printed-unit and test variability.",
+    "Earlier and latest bottom-protocol differences may be explained by counting-convention change (uniform offset 1) and/or subjective shaking strength.",
+    "Maximum surviving count is a discrete ordinal test score, not force or directly comparable across different assembly geometries."
+  ],
+  "safety": "Adult-only trial coupons. Split tube, beads and failure debris require fatigue and child safety verification separately."
+}
