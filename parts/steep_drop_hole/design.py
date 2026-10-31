@@ -98,7 +98,7 @@ def build_steep_drop(d=SteepDrop()):
         p.studs(), p.height, p.stud_radius - p.clearance,
         p.stud_inner_radius, p.stud_height,
         lip_radius=ROUNDED_EDGES.stud_lip_radius)
-    shape = shape.fuse(studs).clean()
+    shape = cq.Workplane("XY").newObject([shape]).union(studs).val().clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError("S01-V2 must be a single connected valid solid")
     shape = engrave(shape, PART_ID, x=0., y=-p.depth / 2, z=12.)
