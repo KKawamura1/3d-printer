@@ -104,11 +104,11 @@ class VersionSelectionTests(unittest.TestCase):
             shared = root / 'brickcad'
             for directory in (alpha, beta, shared):
                 directory.mkdir(parents=True)
-            (alpha / 'design.py').write_text('def shape(): pass\\n')
+            (alpha / 'design.py').write_text('def shape(): pass\n')
             (beta / 'design.py').write_text(
-                'from parts.alpha.design import shape\\n'
-                'from brickcad.geometry import shared_shape\\n')
-            (shared / 'geometry.py').write_text('shared_shape = 1\\n')
+                'from parts.alpha.design import shape\n'
+                'from brickcad.geometry import shared_shape\n')
+            (shared / 'geometry.py').write_text('shared_shape = 1\n')
             self.specs['parts/beta'] = spec('B01-V1',
                 requires=[{'target':'parts/alpha','version':'A01-V1'}])
             self.prior['experiments/trial'] = 'X01-V1'
