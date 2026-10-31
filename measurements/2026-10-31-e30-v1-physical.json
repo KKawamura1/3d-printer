@@ -1,0 +1,182 @@
+{
+  "schema": "physical-fit-observations-v1",
+  "experiment": "E30-V1",
+  "date_local": "2026-10-31",
+  "date_precision": "day",
+  "source": "User-supplied firsthand observations in ChatGPT conversation",
+  "slicer_actual_settings": null,
+  "material_actual": null,
+  "printer_actual": null,
+  "individual_block_weight_g": null,
+  "applied_force_n": null,
+  "safety_note": "Adult-only test coupons; physical tests do not establish suitability or safety for children, fatigue life, or resistance to small-piece breakage.",
+  "initial_form": {
+    "print_condition_verbatim": "異常なし",
+    "print_note_verbatim": "なし",
+    "pairs": [
+      {
+        "stud": "E30-01",
+        "receiver": "E30-02",
+        "overall": "硬い",
+        "entry": "かなり硬い",
+        "seating": "力を入れれば着座",
+        "removal": "硬い",
+        "verbatim_note": null
+      },
+      {
+        "stud": "E30-01",
+        "receiver": "E30-03",
+        "overall": "硬い",
+        "entry": "かなり硬い",
+        "seating": "力を入れれば着座",
+        "removal": "硬い",
+        "verbatim_note": null
+      },
+      {
+        "stud": "E30-01",
+        "receiver": "E30-04",
+        "overall": "適度",
+        "entry": "スムーズ",
+        "seating": "容易に着座",
+        "removal": "適度",
+        "verbatim_note": null
+      },
+      {
+        "stud": "E30-01",
+        "receiver": "E30-06",
+        "overall": "適度",
+        "entry": "スムーズ",
+        "seating": "容易に着座",
+        "removal": "硬い",
+        "verbatim_note": null
+      },
+      {
+        "stud": "E30-01",
+        "receiver": "E30-07",
+        "overall": "適度",
+        "entry": "スムーズ",
+        "seating": "容易に着座",
+        "removal": "適度",
+        "verbatim_note": null
+      },
+      {
+        "stud": "E30-05",
+        "receiver": "E30-07",
+        "overall": "適度",
+        "entry": "スムーズ",
+        "seating": "容易に着座",
+        "removal": "軽い",
+        "verbatim_note": "抜き取りやすいのに取れない。いい感じだが曲がりには弱い"
+      },
+      {
+        "stud": "E30-08",
+        "receiver": "E30-09",
+        "overall": "硬い",
+        "entry": "スムーズ",
+        "seating": "容易に着座",
+        "removal": "硬い",
+        "verbatim_note": null
+      }
+    ],
+    "unreported_pairs": "not tested or not reported; do not impute"
+  },
+  "followup_form": {
+    "pairs": [
+      {
+        "stud": "E30-02",
+        "receiver": "E30-04",
+        "rating": "適度"
+      },
+      {
+        "stud": "E30-08",
+        "receiver": "E30-07",
+        "rating": "適度"
+      },
+      {
+        "stud": "E30-05",
+        "receiver": "E30-09",
+        "rating": "適度"
+      },
+      {
+        "stud": "E30-09",
+        "receiver": "E30-08",
+        "rating": "適度"
+      },
+      {
+        "stud": "genuine_duplo",
+        "receiver": "E30-04",
+        "rating": "緩い"
+      },
+      {
+        "stud": "E30-04",
+        "receiver": "genuine_duplo",
+        "rating": "適度"
+      },
+      {
+        "stud": "genuine_duplo",
+        "receiver": "E30-07",
+        "rating": "適度"
+      },
+      {
+        "stud": "E30-07",
+        "receiver": "genuine_duplo",
+        "rating": "適度"
+      },
+      {
+        "stud": "E30-05",
+        "receiver": "genuine_duplo",
+        "rating": "適度"
+      }
+    ],
+    "note_verbatim": "なし"
+  },
+  "specific_e30_06_followup": {
+    "genuine_stud_to_e30_06_receiver": {
+      "insertion_removal": "やや緩い",
+      "bending": "かなり弱い"
+    },
+    "e30_01_stud_to_e30_06_receiver": {
+      "bending": "やや弱いが実用的"
+    }
+  },
+  "subjective_reassessment": {
+    "e30_01_stud_to_e30_07_receiver": "1→7はやっぱりややゆるめですね。まげには弱いです。",
+    "genuine_stud_to_e30_07_receiver": "純正→7も、他の適正と比べるとかなり緩めで、一応叩いても重力では落ちないからギリセーフという感じです。"
+  },
+  "tower_test": {
+    "geometry": "Topmost block gripped and shaken; failure occurred at top-to-second connection in both E30-07 and genuine DU PLO comparisons.",
+    "e30_07_top_connection": {
+      "static_lift": {
+        "pass_at_attached_blocks": 12,
+        "user_description": "そーっとつければ、12個つけても耐えました。",
+        "failure_threshold_not_tested": true
+      },
+      "gentle_shaking": {
+        "max_passing_attached_blocks": 2,
+        "min_failing_attached_blocks": 3,
+        "user_description": "軽く揺らすと、3個で取れるようになってしまいました（2個なら揺らしても取れない）。"
+      }
+    },
+    "genuine_to_genuine_top_connection": {
+      "gentle_shaking": {
+        "max_passing_attached_blocks": 6,
+        "min_failing_attached_blocks": 7,
+        "user_description": "純正品は、7個つけて揺らすと取れました（6個なら揺らしても取れない）。"
+      },
+      "static_lift": null
+    },
+    "shaking_acceleration_measured": false,
+    "assembly_orientation_assumed": false,
+    "connection_failure_location": "一番上と二つ目の接合部",
+    "comparability_note": "Hand shaking not instrumented; counts are qualitative and not measured pull-off or bending-force ratios."
+  },
+  "requirements_verbatim": [
+    "純正品を超える必要はないし、引き続き生成品同士で子供がつけ外しできることが最重要です。",
+    "例えば縦に10個繋げたレゴがあったら、その中に生成品が混じっていたとして、どこを持っても落ちないでほしいです。"
+  ],
+  "interpretation_not_raw": {
+    "strongest_effect": "Relieving center tube OD from 13.50 to 13.30 improves printed-to-printed entry; outer wall relief 25.40→25.60 does not visibly improve this pair.",
+    "tradeoff": "E30-04 genuine stud fit loose; E30-06 and E30-07 genuine fit/bending weak. E30-07 static lift of 12 attached bricks passed, gentle-shake threshold at 2/3 versus genuine 6/7.",
+    "priority": "Child-friendly printed-to-printed insertion/removal first; both-direction genuine compatibility and enough normal handling retention; do not chase better-than-genuine shake strength."
+  }
+}
