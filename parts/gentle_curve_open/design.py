@@ -152,9 +152,22 @@ def verify(shape,p):
         segment_errors.append(intersection(shape,cq.Solid.makeCylinder(r,v.Length,a,v.normalized())))
     mid=pts[len(pts)//2]
     negative=intersection(shape,cq.Solid.makeSphere(r,mid-cq.Vector(0,0,3),angleDegrees1=-90))
+    # C01/C02 regression: a nominal ball fitting is not enough to prove a
+    # channel has the intended width or a floor. Test an oversized 28 mm ball
+    # and actual material just below the nominal guideway at interior points.
+    oversized=intersection(shape,cq.Solid.makeSphere(14.,mid,angleDegrees1=-90))
+    floor_probes=[]
+    if not STEEP:
+        for fraction in (.15,.35,.65,.85):
+            s=LENGTH*fraction
+            x,y,_,_=xy(s)
+            floor_probes.append(shape.isInside(
+                cq.Vector(x,-y if MIRROR else y,height(s)-.15)))
     checks=dict(valid_brep=shape.isValid(),one_solid=len(shape.Solids())==1,
         continuous_sphere_path_clear=max(sphere_errors+segment_errors)<VOLUME_TOL,
         lowered_ball_detected=negative>VOLUME_TOL,
+        oversized_ball_blocked=oversized>VOLUME_TOL,
+        guide_floor_supported=all(floor_probes),
         drop_matches_grid=abs(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2]-DROP)<1e-6,
         receiver_depth=abs(FLOOR-DEPTH-1.6)<1e-6,
         full_roof=(not TUNNEL or all(shape.isInside(cq.Vector(x,-y if MIRROR else y,57.5)) for x,y,_,_ in [xy(LENGTH*t) for t in (.1,.3,.5,.7,.9)])),
