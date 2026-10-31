@@ -1,4 +1,4 @@
-"""E29-V1: dual-fit DUPLO concepts; adult-only experimental coupons.
+"""E29-V2: dual-fit DUPLO concepts; adult-only experimental coupons.
 
 Only rounded/recessed contact features. Physical fit, fatigue and child safety
 are NOT validated by CAD, mesh or automated tests.
@@ -15,7 +15,7 @@ from brickcad.model import brick_from_fit, build as build_brick
 from brickcad.verify import exact_bounds
 from experiments.full_height_fit.design import export_stl
 
-VERSION = "E29-V1"
+VERSION = "E29-V2"
 PROFILE = "duplo-e27-play-v1"
 # Each coupon is 31.8 mm square. 2 rows x 3 columns, 45 mm spacing.
 SPECIMENS = (
@@ -32,7 +32,7 @@ GROOVE_PROFILE = (
 SLOT_WIDTH = 1.10
 SLOT_END_RADIUS = .55
 SLOT_END_Z = 4.40
-BEAD_MINOR_RADIUS = .20
+BEAD_MINOR_RADIUS = .16
 BEAD_Z = 2.25
 
 
