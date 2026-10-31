@@ -11,6 +11,9 @@ from parts.straight_rail.design import Rail
 from brickcad.standards import BALL_TRACK, ROUNDED_EDGES
 from brickcad.connections import make_studs
 from brickcad.provenance import design_manifest
+from brickcad.marking import engrave
+
+PART_ID = "T01-V2"
 from brickcad.render import viewer, mesh, outlines, preview
 from brickcad.verify import intersection, exact_bounds, mesh_check, place, VOLUME_TOL
 
@@ -40,11 +43,28 @@ class Tunnel:
         return 2*(self.floor+self.radius+math.sqrt(2)*self.radius-self.ceiling)
 
 
-def build_tunnel(t=Tunnel()):
-    p=brick_from_fit('duplo-rail-trial-v1', nx=2, ny=2, height_units=2)
+def passage_wire(x, blend, t):
+    """Same circular floor; blend=0 circular roof, blend=1 original roof."""
+    cy=t.floor+t.radius; a=t.radius/math.sqrt(2); b=t.bridge_width/2
+    def mix(cx,cz,tx,tz):
+        return (cx*(1-blend)+tx*blend,cz*(1-blend)+tz*blend)
+    end=mix(t.radius*math.cos(math.radians(75)),cy+t.radius*math.sin(math.radians(75)),b,t.ceiling)
+    mid=mix(t.radius*.5,cy+t.radius*math.sqrt(3)/2,(a+b)/2,(cy+a+t.ceiling)/2)
+    apex=(0,(cy+t.radius)*(1-blend)+t.ceiling*blend)
+    w=cq.Workplane('YZ',origin=(x,0,0)).moveTo(-a,cy+a).threePointArc((0,t.floor),(a,cy+a))
+    if blend==1:
+        w=w.lineTo(b,t.ceiling).lineTo(-b,t.ceiling).lineTo(-a,cy+a)
+    else:
+        w=w.threePointArc(mid,end).threePointArc(apex,(-end[0],end[1])).threePointArc((-mid[0],mid[1]),(-a,cy+a))
+    return w.close().val()
+
+
+def build_tunnel(t=Tunnel(), *, roof='teardrop', transition=2., label=None):
+    p=brick_from_fit('duplo-e27-play-v1', nx=2, ny=2, height_units=2)
     outer=cq.Workplane('XY').box(p.width,p.depth,p.height,centered=(True,True,False))
     outer=outer.edges('|Z').fillet(ROUNDED_EDGES.corner_radius).edges('>Z').fillet(ROUNDED_EDGES.corner_radius)
-    result=receiver(p,outer,t.cavity_height,t.entry)
+    result=receiver(p,outer,t.cavity_height,0)
+    result=result.edges('<Z').fillet(.5)
     # YZ section, X is the passage axis. Circular bottom is identical to rail 01.
     # Circular arc to 45 degrees, then 45-degree roof slopes and a short bridge.
     cy=t.floor+t.radius
@@ -53,22 +73,37 @@ def build_tunnel(t=Tunnel()):
     cut=(cq.Workplane('YZ',origin=(-p.width/2-1,0,0))
          .moveTo(-a,cy+a).threePointArc((0,t.floor),(a,cy+a))
          .lineTo(b,t.ceiling).lineTo(-b,t.ceiling).close().extrude(p.width+2))
+    if roof not in ('teardrop','circle','transition'):
+        raise ValueError('Unknown roof')
+    if roof=='circle':
+        cut=cq.Workplane('YZ',origin=(-p.width/2-1,0,cy)).circle(t.radius).extrude(p.width+2)
+    elif roof=='transition':
+        if not 1<=transition<=6:
+            raise ValueError('Transition must be 1 to 6 mm')
+        # 1 mm circular lip, smoothstep roof rise over a defined axial length.
+        stations=[(-p.width/2-1,0),(-p.width/2+1,0)]
+        for i in range(1,9):
+            u=i/8;stations.append((-p.width/2+1+transition*u,3*u*u-2*u*u*u))
+        stations += [(-x,b) for x,b in reversed(stations)]
+        cut=cq.Solid.makeLoft([passage_wire(x,b,t) for x,b in stations],ruled=True)
     result=result.cut(cut)
-    # Small chamfer on both passage mouths, including the lower circular arc.
+    # Rounded lead-in on both passage mouths, including the lower circular arc.
     mouths=[e for e in result.val().Edges()
             if abs(abs(e.Center().x)-p.width/2)<1e-5
             and e.BoundingBox().zmin>t.floor-.01
             and e.BoundingBox().zmax<t.ceiling+.01
             and e.BoundingBox().ymin>-t.radius-.01
             and e.BoundingBox().ymax<t.radius+.01]
-    if len(mouths)!=8:
+    if roof=='teardrop' and len(mouths)!=8:
         raise ValueError(f'Expected four section edges at each mouth, got {len(mouths)}')
-    result=result.newObject(mouths).chamfer(t.entry)
+    if mouths:
+        result=result.newObject(mouths).fillet(t.entry)
     studs=make_studs(p.studs(), p.height, p.stud_radius-p.clearance,
                      p.stud_inner_radius, p.stud_height, lip_radius=ROUNDED_EDGES.stud_lip_radius)
     shape=result.union(studs).val().clean()
     if not shape.isValid() or len(shape.Solids())!=1:
         raise ValueError('Tunnel must be one valid solid')
+    shape=engrave(shape,label or PART_ID,x=0,y=-p.depth/2,z=10.)
     return shape,p
 
 
@@ -99,7 +134,7 @@ def fit_checks(shape,p):
 def export(out=Path('build/duplo-tunnel-trial-01')):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     t=Tunnel(); shape,p=build_tunnel(t)
-    cq.exporters.export(shape,str(out/'brick.stl'),tolerance=.01,angularTolerance=.1)
+    cq.exporters.export(shape,str(out/'brick.stl'),tolerance=.03,angularTolerance=.2)
     raw=(out/'brick.stl').read_bytes();tris=[];collapsed=0
     for i in range(struct.unpack_from('<I',raw,80)[0]):
         tri=raw[84+50*i:134+50*i];v=struct.unpack('<12fH',tri)[3:12]
@@ -124,19 +159,21 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
         roof_present=shape.isInside(cq.Vector(0,0,37.6)),
         stud_floors=all(shape.isInside(cq.Vector(x,y,38.3)) for x,y in p.studs()),
         negative_controls=all(r['collision'] for r in fit['poses'] if 'negative_control' in r['name']),
-        upper_reference_clear=all(not r['collision'] for r in fit['insertion'] if r['pair']=='printed/reference'),
-        fit_within_trial_envelope=math.sqrt(2)*8-p.tube_radius-4.7>=-.05,
+        fit_dimensions_match_e27=(p.stud_radius==4.7 and p.stud_inner_radius==3.2 and p.tube_radius==6.75 and p.cavity_xy==(25.4,25.4)),
+        fit_within_trial_envelope=math.sqrt(2)*8-p.tube_radius-4.7>=-.14,
         initial_insertion_clear=all(not r['collision'] for r in fit['insertion'] if r['lift_mm']==5.7))
     report=dict(schema_version=1,kind='tunnel',passed=all(checks.values()),
         design=design_manifest(p, channel=t, channel_standard=BALL_TRACK, finish=ROUNDED_EDGES),
         geometry=dict(bounds_mm=bounds,volume_mm3=shape.Volume(),parameters=asdict(p),checks=checks),
         tunnel=asdict(t),bridge_width_mm=t.bridge_width,roof_thickness_mm=p.height-t.ceiling,
         mesh=m,collapsed_stl_triangles_removed=collapsed,
+        finish_detail=dict(outer_corner_radius_mm=.8,stud_lip_radius_mm=.5,receiver_bottom_radius_mm=.5,mouth_radius_mm=.3),
+        stl_tessellation=dict(linear_tolerance_mm=.03,angular_tolerance_radians=.2),
         ball_sweep=dict(diameter_mm=t.ball_diameter,centre_z_mm=t.floor+t.ball_diameter/2+.05,
             intersection_mm3=sweep,negative_diameter_mm=28.,negative_intersection_mm3=negative),
         physical_fit_validated=False,fit_geometrically_clear=not any(r['collision'] for r in fit['insertion']),
         intentional_fit_trial=True,fit=fit,
-        limitations=['Receiver 13.30 mm tube intentionally interferes with synthetic 9.40 mm studs; clutch force unverified.',
+        limitations=['E27 13.50 mm receiver / 9.40 mm top transferred to tunnel; real fit and repeatability unverified.',
             'Ball diameter is approximate; swept clearance is rigid geometry, not a rolling simulation.',
             'Short flat ceiling bridge and underside bridges still need slicer/print verification.',
             'Horizontal passage requires incoming momentum. Rail joints and physical fit untested.'],

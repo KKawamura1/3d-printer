@@ -1,0 +1,37 @@
+{
+  "auto": false,
+  "requires": [
+    {
+      "target": "parts/tunnel",
+      "version": "T01-V2"
+    },
+    {
+      "target": "parts/elbow",
+      "version": "E01-V2"
+    },
+    {
+      "target": "parts/sloped_curve",
+      "version": "S01-V2"
+    },
+    {
+      "target": "experiments/pr20_comparison",
+      "version": "C20-V1"
+    }
+  ],
+  "command": [
+    "python",
+    "-m",
+    "parts.play_set.design",
+    "--parts-root",
+    "{deps}/parts",
+    "--alternatives-root",
+    "{deps}/experiments/pr20_comparison",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "play-set-8.stl"
+  ],
+  "timeout": 1200,
+  "version": "P20-V2"
+}

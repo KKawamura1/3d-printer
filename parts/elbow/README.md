@@ -1,29 +1,12 @@
-# 90度トンネル
+# 水平90度トンネル
 
-継続開発する曲がり通路。実物の通過・保持力は個別に確認する。
+4×4、本体高さ38.40mm、スタッド込み42.90mm。R48の水平曲がり通路。
 
-印刷用: [model.stl](model.stl)。mm・100%で読み込み、スライスは手元で行う。
-
-## 生成
+[現在の印刷用STL](model.stl)。今回の嵌合条件・角処理・印刷手順・残る確認は [週末用コースセット](../play_set/README.md) に集約。旧試作品はGit履歴とdesign-notes.mdを参照。
 
 ```sh
 python -m parts.elbow.design --out build/elbow
-```
-
-生成時のSTEP・viewer・画像・検証JSON等は `build/elbow/` 内の中間生成物。採用するSTLだけを更新する。
-
-```sh
-cp build/elbow/brick.stl parts/elbow/model.stl
-```
-
-## 検証
-
-```sh
 python -m unittest parts.elbow.test -v
 ```
 
-[設計・実験の詳細記録](design-notes.md)
-
-`records/` は当時の条件・記入票・確認記録。新規の実測結果も設計入力や自動検証の出力と区別して保存する。
-
-既存STLをそのまま移動したもの。今回の構成整理では形状・寸法・印刷条件は変更していない。
+共通嵌合profileは duplo-e27-play-v1。保持力・実印刷・触感の新形状への転用は未検証。

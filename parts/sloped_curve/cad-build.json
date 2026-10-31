@@ -1,0 +1,15 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "parts.sloped_curve.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "version": "S01-V2",
+  "auto": true
+}

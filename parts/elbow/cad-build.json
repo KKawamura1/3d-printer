@@ -1,0 +1,15 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "parts.elbow.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "version": "E01-V2",
+  "auto": true
+}

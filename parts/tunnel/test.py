@@ -25,6 +25,16 @@ class TunnelTests(unittest.TestCase):
             ball=cq.Solid.makeSphere(12.13,cq.Vector(x,0,18.53),angleDegrees1=-90)
             self.assertLess(intersection(assembly,ball),VOLUME_TOL)
 
+    def test_adopted_e27_connection_geometry(self):
+        self.assertEqual((self.p.stud_radius,self.p.stud_inner_radius,self.p.tube_radius),(4.7,3.2,6.75))
+        self.assertEqual(self.p.cavity_xy,(25.4,25.4))
+        self.assertTrue(self.shape.isInside(cq.Vector(6.74,0,1)))
+        self.assertFalse(self.shape.isInside(cq.Vector(6.76,0,1)))
+        for x,y in self.p.studs():
+            self.assertTrue(self.shape.isInside(cq.Vector(x+4.69,y,39.5)))
+            self.assertFalse(self.shape.isInside(cq.Vector(x+4.71,y,39.5)))
+            self.assertFalse(self.shape.isInside(cq.Vector(x,y,39.5)))
+
     def test_receiver_separated_from_passage(self):
         # Full 1.6 mm floor above receiver at the lowest channel location.
         for z in (4.8,5.5,6.3):

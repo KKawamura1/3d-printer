@@ -1,0 +1,49 @@
+name: E27 archive manual preview
+on:
+  workflow_dispatch:
+    inputs:
+      screenshots:
+        description: Capture Chromium screenshots of E27-02
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: cad-e27-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  e27:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install CAD dependencies
+        run: pip install -r requirements.txt
+      - name: Generate E27 archive on explicit request
+        run: python -m experiments.tube_fit_e27.design --out build/tube-fit-e27
+      - uses: actions/setup-node@v4
+        if: inputs.screenshots
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Capture E27 screenshots
+        if: inputs.screenshots
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run browser:check -- build/tube-fit-e27/E27-02 build/browser-qa-e27
+          python scripts/review-sheet.py build/browser-qa-e27
+      - name: Upload E27 STL and optional screenshots
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e27-archive-stl
+          path: |
+            build/tube-fit-e27/
+            build/browser-qa-e27/
+          if-no-files-found: error
+          retention-days: 14

@@ -48,6 +48,8 @@ FIT_PROFILES = MappingProxyType({p.id: p for p in (
                'Historical straight rail: measured body width also changed X cavity; preserved'),
     FitProfile('duplo-curve-trial-v1', 'duplo', 4.6, 3.25, 6.75, 4.7, (3.3, 3.3),
                'PR14 ID03 receiver on the clipped curve; transfer unvalidated'),
+    FitProfile('duplo-e27-play-v1', 'duplo', 4.7, 3.2, 6.75, 4.7, (3.3, 3.3),
+               'E27-04 receiver selected 2026-10-30; E27-02 top target, process variation unresolved; transfer requires print'),
     FitProfile('duplo-xy-trial-v1', 'duplo', 4.7, 3.2, 6.75, 4.7, (3.3, 3.3),
                'PR14 ID03 receiver + stud trial; combined transfer unvalidated'),
 )})

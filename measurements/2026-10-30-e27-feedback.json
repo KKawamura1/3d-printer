@@ -1,0 +1,36 @@
+{
+  "report_date": "2026-10-30",
+  "source_issue": "https://github.com/KKawamura1/3d-printer/issues/1#issuecomment-6525080864",
+  "source_pr": "https://github.com/KKawamura1/3d-printer/pull/18#issuecomment-6525078808",
+  "genuine_male_into_printed_female": {
+    "E27-01": "緩い、振ると落ちる",
+    "E27-02": "緩め、曲げると取れる",
+    "E27-03": "緩め、曲げると取れる",
+    "E27-04": "緩め〜ぴったり、純正同士より先に外れる"
+  },
+  "historical_printed_male": "03シリーズ3個中、凸が一番大きい／きついとユーザーが判断した個体。実験ID未確定",
+  "historical_male_into_printed_female": {
+    "E27-01": "緩め",
+    "E27-02": "緩め",
+    "E27-03": "ぴったり",
+    "E27-04": "ぴったり"
+  },
+  "e27_02_male_into_printed_female": {
+    "E27-01": "緩め",
+    "E27-02": null,
+    "E27-03": "ぴったり",
+    "E27-04": "ややきつめ"
+  },
+  "relative_ease_of_separation": [
+    "E27-04 male into genuine female",
+    "genuine male into E27-04 female",
+    "genuine into genuine"
+  ],
+  "extra_top_comparison": "E27-02 male into same genuine female holds more firmly than E27-04 male",
+  "preferred_receiver": "E27-04",
+  "conclusion": "Adopt 13.50mm receiver as provisional transfer candidate; keep top 9.40/6.40. Reproducibility remains unresolved.",
+  "actual_job_settings": null,
+  "actual_slice_inner_wall_check": null,
+  "measured_diameters": null,
+  "ten_cycle_evaluation": null
+}

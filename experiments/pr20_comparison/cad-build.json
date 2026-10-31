@@ -1,0 +1,18 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "experiments.pr20_comparison.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "S02-V2/brick.stl",
+    "T02-V1/brick.stl",
+    "T03-V1/brick.stl",
+    "T04-V1/brick.stl"
+  ],
+  "timeout": 1800,
+  "version": "C20-V1",
+  "auto": false
+}

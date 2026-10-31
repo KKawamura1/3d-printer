@@ -6,7 +6,12 @@ import json
 import math
 import struct
 import cadquery as cq
-from brickcad.model import receiver
+from brickcad.model import receiver, brick_from_fit
+from brickcad.connections import make_studs
+from brickcad.provenance import design_manifest
+from brickcad.marking import engrave
+
+PART_ID = "E01-V2"
 from parts.straight_rail.design import fit_profile, build_rail
 from parts.tunnel.design import Tunnel
 from brickcad.ports import Port, straight_ports, mate
@@ -49,10 +54,11 @@ def ball_sweep(diameter=BALL_DIAMETER, t=Tunnel()):
 
 
 def build_elbow(t=Tunnel()):
-    p = replace(fit_profile(4), ny=4, height=38.4)
+    p = brick_from_fit('duplo-e27-play-v1', nx=4, ny=4, height_units=2)
     outer = cq.Workplane('XY').box(p.width, p.depth, p.height, centered=(True, True, False))
     outer = outer.edges('|Z').fillet(.8).edges('>Z').fillet(.8)
-    result = receiver(p, outer, t.cavity_height, t.entry)
+    result = receiver(p, outer, t.cavity_height, 0)
+    result = result.edges('<Z').fillet(.5)
     # Same circular floor and self-supporting 45-degree roof as straight tunnel.
     a, b = t.radius/math.sqrt(2), t.bridge_width/2
     cy = t.floor+t.radius
@@ -68,14 +74,12 @@ def build_elbow(t=Tunnel()):
               and e.BoundingBox().zmax<t.ceiling+.01]
     if len(mouths) != 8:
         raise ValueError(f'Expected eight mouth edges, got {len(mouths)}')
-    result = result.newObject(mouths).chamfer(t.entry)
-    studs = (cq.Workplane('XY', origin=(0, 0, p.height)).pushPoints(p.studs())
-             .circle(p.stud_radius).circle(p.stud_inner_radius).extrude(p.stud_height)
-             .edges('>Z').fillet(.5))
+    result = result.newObject(mouths).fillet(t.entry)
+    studs = make_studs(p.studs(), p.height, p.stud_radius, p.stud_inner_radius, p.stud_height, .5)
     shape = result.union(studs).val().clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError('Elbow must be one valid solid')
-    return shape, p
+    return engrave(shape,PART_ID,x=0,y=-p.depth/2,z=10.), p
 
 
 def assembly(shape):
@@ -155,10 +159,12 @@ def export(out=Path('build/duplo-elbow-trial-01')):
         step_volume_relative_tolerance=1e-7,
         collapsed_stl_triangles_removed=removed,
         physical_fit_validated=False, physical_rolling_validated=False,
-        receiver_profile='Existing fit trial: OD 13.30, ID 9.40, wall 3.16; not newly calibrated',
+        design=design_manifest(p, channel=t),
+        finish_detail=dict(outer_corner_radius_mm=.8,stud_lip_radius_mm=.5,receiver_bottom_radius_mm=.5,mouth_radius_mm=.3),
+        receiver_profile='duplo-e27-play-v1: E27-04 receiver, top 9.40/6.40; transfer not physically validated',
         limitations=['Horizontal bend requires incoming momentum; no dynamics/friction model.',
                      'Curvature may lose speed or cause wall contact; test both directions in real print.',
-                     'Existing receiver is loose in reported rail trial; no fit correction inferred.',
+                     'E27 fit transferred to 4x4; larger structure and top process variation remain unverified.',
                      'Internal roof bridge and overhangs need slicer/physical inspection.',
                      '0.05 mm lift is numerical, not a measured trajectory; CAD PASS is not physical PASS.'],
         source_files={n:hashlib.sha256((Path(__file__).resolve().parents[2]/n).read_bytes()).hexdigest()

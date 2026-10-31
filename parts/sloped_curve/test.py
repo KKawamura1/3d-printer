@@ -28,7 +28,7 @@ class SlopedCurveTests(unittest.TestCase):
         self.assertFalse(self.shape.isInside(cq.Vector(-28.68,-16,1)))
         calibration = self.report['receiver_audit']['calibration']
         self.assertAlmostEqual(calibration['equivalent_2x2_cavity_mm'],25.40)
-        self.assertEqual(calibration['source_coupon'],'PR14 ID03 C-tube')
+        self.assertEqual(calibration['source_coupon'],'E27-04 receiver; 2026-10-30 feedback')
         self.assertFalse(calibration['transfer_validated'])
         for size in self.report['geometry']['bounds_mm'][:2]:
             self.assertAlmostEqual(size,63.8,delta=.02)  # .01 mm STL tessellation tolerance
@@ -58,16 +58,15 @@ class SlopedCurveTests(unittest.TestCase):
         self.assertTrue(all(j['compatible'] for j in self.report['joints']))
         self.assertGreater(self.report['low_ball_negative_control_mm3'],VOLUME_TOL)
 
-    def test_bottom_only_rounding_keeps_receiver_contact_and_track(self):
+    def test_rounding_keeps_complete_tube_contact_and_track(self):
         old,_ = build_curve(softened=False)
         tips = cut_receiver_edges(old)
-        self.assertEqual(len(tips),20)
-        # The 20 vertical cut corners deliberately remain unfilleted in F:
-        # their R0.70 treatment caused Bambu Studio's floating cantilever warning.
+        self.assertEqual(len(tips),4)
+        # Only four wall ends remain; clipped tube fragments are omitted.
         finish = self.report['receiver_finish']
-        self.assertAlmostEqual(finish['cut_edge_radius_mm'],0.0)
+        self.assertAlmostEqual(finish['cut_edge_radius_mm'],.5)
         self.assertAlmostEqual(finish['bottom_edge_radius_mm'],.5)
-        self.assertEqual(finish['clipped_vertical_corners'],20)
+        self.assertEqual(finish['clipped_vertical_corners'],4)
         self.assertGreater(finish['removed_volume_mm3'],1)
         self.assertLess(finish['removed_contact_above_entry_mm3'],VOLUME_TOL)
         self.assertLess(finish['added_contact_above_entry_mm3'],VOLUME_TOL)
@@ -85,6 +84,14 @@ class SlopedCurveTests(unittest.TestCase):
         self.assertTrue(self.shape.isInside(cq.Vector(6.5,0,.2)))
         self.assertFalse(self.shape.isInside(cq.Vector(4.9,0,.01)))
         self.assertTrue(self.shape.isInside(cq.Vector(4.9,0,.2)))
+
+    def test_no_clipped_tube_fragments(self):
+        from parts.sloped_curve.design import RETAINED_TUBES
+        for x in (-16.,0.,16.):
+            for y in (-16.,0.,16.):
+                if (x,y) not in RETAINED_TUBES:
+                    ring=cq.Workplane('XY',origin=(x,y,.6)).circle(6.75).circle(4.7).extrude(3.4).val()
+                    self.assertLess(intersection(self.shape,ring),VOLUME_TOL)
 
     def test_removed_corner_floors_and_retained_connection(self):
         for x,y in [(-16,16),(-24,24),(24,-24)]:
