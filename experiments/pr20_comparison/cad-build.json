@@ -12,5 +12,7 @@
     "T03-V1/brick.stl",
     "T04-V1/brick.stl"
   ],
-  "timeout": 1800
+  "timeout": 1800,
+  "version": "C20-V1",
+  "auto": false
 }
