@@ -14,7 +14,7 @@ from parts.tunnel.e31_fit import add_e31_05_receiver_features
 from brickcad.provenance import design_manifest
 from brickcad.marking import engrave
 
-PART_ID = "T01-V3"
+PART_ID = "T01-V4"
 from brickcad.render import viewer, mesh, outlines, preview
 from brickcad.verify import intersection, exact_bounds, mesh_check, place, VOLUME_TOL
 
@@ -139,7 +139,7 @@ def fit_checks(shape,p):
 def export(out=Path('build/duplo-tunnel-trial-01')):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     t=Tunnel(); shape,p=build_tunnel(t)
-    cq.exporters.export(shape,str(out/'brick.stl'),tolerance=.03,angularTolerance=.2)
+    cq.exporters.export(shape,str(out/'brick.stl'),tolerance=.008,angularTolerance=.10)
     raw=(out/'brick.stl').read_bytes();tris=[];collapsed=0
     for i in range(struct.unpack_from('<I',raw,80)[0]):
         tri=raw[84+50*i:134+50*i];v=struct.unpack('<12fH',tri)[3:12]
@@ -160,7 +160,7 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
         floor_present=shape.isInside(cq.Vector(0,0,t.floor-.1)),
         floor_open=not shape.isInside(cq.Vector(0,0,t.floor+.1)),
         bottom_open=not shape.isInside(cq.Vector(4,0,.5)),
-        tube_hole=not shape.isInside(cq.Vector(0,0,1)),tube_wall=shape.isInside(cq.Vector(5.5,0,1)),
+        tube_hole=not shape.isInside(cq.Vector(0,0,1)),tube_wall=shape.isInside(cq.Vector(3.89,3.89,1)),
         roof_present=shape.isInside(cq.Vector(0,0,37.6)),
         stud_floors=all(shape.isInside(cq.Vector(x,y,38.3)) for x,y in p.studs()),
         negative_controls=all(r['collision'] for r in fit['poses'] if 'negative_control' in r['name']),
@@ -211,7 +211,8 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
     html=html.replace("section:[0,.15]","section:[-Math.PI/2,0]")
     html=html.replace("'Brick CAD inspector · '","'DUPLO tunnel trial 01 · '")
     (out/'viewer.html').write_text(html)
-    print('TUNNEL', 'PASS' if report['passed'] else 'FAIL',bounds,'bridge',t.bridge_width,checks,flush=True)
+    print('TUNNEL', 'PASS' if report['passed'] else 'FAIL',bounds,'bridge',t.bridge_width,
+          'brep_volume',shape.Volume(),'mesh_volume',m['signed_volume_mm3'],checks,flush=True)
     if not report['passed']:raise RuntimeError('Tunnel verification failed')
     return report
 

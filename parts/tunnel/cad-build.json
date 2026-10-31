@@ -2,7 +2,7 @@
   "command": [
     "python",
     "-m",
-    "parts.tunnel.v3_design",
+    "parts.tunnel.design_e31",
     "--out",
     "{out}"
   ],
@@ -11,6 +11,6 @@
   ],
   "timeout": 1200,
   "description": "E31-05 receiver + T04 circular mouth/high interior roof; single model, duplicate in slicer as needed.",
-  "version": "T01-V3",
+  "version": "T01-V4",
   "auto": true
 }

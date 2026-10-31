@@ -1,6 +1,6 @@
 import unittest
 import cadquery as cq
-from parts.tunnel.v3_design import Tunnel, build_tunnel, ball_sweep
+from parts.tunnel.design_e31 import Tunnel, build_tunnel, ball_sweep
 from parts.straight_rail.design import Rail, build_rail
 from brickcad.verify import intersection, VOLUME_TOL
 
@@ -37,8 +37,8 @@ class TunnelTests(unittest.TestCase):
             self.assertFalse(self.shape.isInside(cq.Vector(x,y,39.5)))
 
     def test_round_entry_high_ceiling_style(self):
-        from parts.tunnel.v3_design import PART_ID
-        self.assertEqual(PART_ID, 'T01-V3')
+        from parts.tunnel.design_e31 import PART_ID
+        self.assertEqual(PART_ID, 'T01-V4')
         # Internal roof is higher than the circular entrance at this position.
         z_circle=self.t.floor+2*self.t.radius
         self.assertFalse(self.shape.isInside(cq.Vector(0,0,z_circle+0.2)))
