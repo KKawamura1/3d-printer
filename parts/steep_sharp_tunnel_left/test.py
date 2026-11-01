@@ -1,4 +1,4 @@
-"""S03-V2: regression checks based on verified S01-V5 / S02-V8 datums.
+"""S03-V3: regression checks based on verified S01-V5 / S02-V8 datums.
 
 CAD clearance is geometric only; this does not validate real rolling or slicing.
 """
@@ -23,7 +23,7 @@ class Geometry(unittest.TestCase):
 
     def test_revision_enclosed_top_and_studs(self):
         self.assertEqual((PART_ID, SOURCE_CURVE_ID, SOURCE_DROP_ID),
-                         ("S03-V2", "C01-V5", "S01-V5"))
+                         ("S03-V3", "C01-V5", "S01-V5"))
         self.assertTrue(self.shape.isValid())
         self.assertEqual(len(self.shape.Solids()), 1)
         self.assertEqual((self.p.nx, self.p.ny), (2, 2))

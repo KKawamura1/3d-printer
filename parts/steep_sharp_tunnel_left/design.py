@@ -1,4 +1,4 @@
-"""S02-V8: enclosed 2x2x3 sharp-right-turn steep drop tunnel.
+"""S03-V3: enclosed 2x2x3 sharp-left-turn steep drop tunnel.
 
 Uses PR36's west-to-south port arrangement and PR38 S01-V5's roofed steep
 drop with a 0.65 southward exit ramp. Because a complete R16 arc cannot
@@ -55,7 +55,7 @@ def ramp_normal_clearance(d=SteepDrop()):
 
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "S03-V2"
+PART_ID = "S03-V3"
 SOURCE_CURVE_ID = "C01-V5"
 SOURCE_DROP_ID = "S01-V5"
 SHAFT_X = 0.0
@@ -71,17 +71,17 @@ def ports(d=SteepDrop(shaft_x=SHAFT_X)):
     )
 
 
-def _engrave_north(shape, label, width):
-    plane = cq.Plane(origin=(0., -width / 2 + .4, 18.),
+def _engrave_south(shape, label, width):
+    plane = cq.Plane(origin=(0., -width / 2 + .65, 18.),
                      xDir=(1, 0, 0), normal=(0, -1, 0))
     text_tool = cq.Workplane(plane).text(
-        label, 2.7, .45, font="DejaVu Sans",
+        label, 2.7, 1.05, font="DejaVu Sans",
         kind="bold", combine=False).val()
     result = shape.cut(text_tool).clean()
     if not result.isValid() or len(result.Solids()) != 1:
-        raise ValueError("Engraving invalidated S02")
-    if shape.Volume() - result.Volume() < .2:
-        raise ValueError("S02 revision did not intersect north face")
+        raise ValueError("Engraving invalidated S03")
+    if shape.Volume() - result.Volume() < 1.:
+        raise ValueError("S03 engraving too shallow on south face")
     return result
 
 
@@ -166,7 +166,7 @@ def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), curve=SharpCurve(),
     shape = shape.fuse(studs).clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError("S02 needs one connected, valid solid")
-    return _engrave_north(shape.mirror("XZ"), label, p.depth), p
+    return _engrave_south(shape.mirror("XZ"), label, p.depth), p
 
 
 def _path_centres(d):
@@ -236,7 +236,7 @@ def export(out=Path("build/steep-sharp-curve-tunnel")):
                         angularTolerance=.1)
     removed = _remove_collapsed_triangles(stl)
     mesh = mesh_check(stl)
-    print("S02 STL mesh:", mesh, flush=True)
+    print("S03 STL mesh:", mesh, flush=True)
     samples = ball_path_collisions(shape, d)
     sweeps = swept_ball_path_collisions(shape, d)
     bounds = exact_bounds(shape)
@@ -285,7 +285,7 @@ def export(out=Path("build/steep-sharp-curve-tunnel")):
                         landing_to_runout_drop_mm=d.ramp_grade * (d.ramp_end_x - d.shaft_x),
                         inlet_floor_margin_mm=d.drop - d.ramp_grade * (
                             d.ramp_end_x - d.ramp_start_x),
-                        ramp_end_south_mm=d.ramp_end_x),
+                        ramp_end_north_mm=d.ramp_end_x),
         mesh=mesh, collapsed_facets_removed=removed,
         ball_samples_mm3=samples, ball_sweep_mm3=sweeps,
         sha256_stl=hashlib.sha256(stl.read_bytes()).hexdigest(),
@@ -313,7 +313,7 @@ def export(out=Path("build/steep-sharp-curve-tunnel")):
     cq.exporters.export(shape,str(out/'brick.step'))
     print(PART_ID, "PASS" if report["passed"] else "FAIL", checks, flush=True)
     if not report["passed"]:
-        raise RuntimeError("S02 CAD verification failed")
+        raise RuntimeError("S03 CAD verification failed")
     return report
 
 
