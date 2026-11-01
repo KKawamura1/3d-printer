@@ -1,0 +1,15 @@
+{
+  "version": "SG02-V7",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.steep_gentle_tunnel_right.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 2400
+}
