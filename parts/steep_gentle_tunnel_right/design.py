@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG02-V6'
+PART_ID = 'SG02-V7'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
@@ -41,9 +41,9 @@ def xy(s):
 # the physical ball envelope collided with the floor at that corner.
 # Ease in/out over 4mm, retaining a 9.75mm total ramp drop and a
 # ~31-degree peak slope (close to the previous ~33-degree profile).
-RAMP_START, RAMP_FULL, RAMP_EASE, RAMP_END = 10., 12., 24., 28.
+RAMP_START, RAMP_FULL, RAMP_EASE, RAMP_END = 12., 16., 28., 32.
 RAMP_DROP = 9.75
-RAMP_RATE = RAMP_DROP / ((RAMP_FULL-RAMP_START)/2 + (RAMP_EASE-RAMP_FULL) + (RAMP_END-RAMP_EASE)/2)
+RAMP_RATE = RAMP_DROP / 16.
 
 
 def height(s, branch='low'):
@@ -162,10 +162,23 @@ def build_part(label=PART_ID):
 def path():
     def point(s,branch='low'):
         x,y,_,_=xy(s)
-        z=height(s,branch)+BALL/2*math.sqrt(1+slope(s,branch)**2)+.5
-        return cq.Vector(x,-y if MIRROR else y,z)
+        radius=BALL/2
+        # The exit ramp is curved, so a local slanted-plane tangent cannot
+        # model clearance against the upstream floor under the same sphere.
+        z=height(s,branch)+radius*math.sqrt(1+slope(s,branch)**2)
+        if STEEP and branch=='low':
+            a=max(12.,s-radius-1.)
+            b=min(LENGTH,s+radius+1.)
+            if b>a:
+                for i in range(129):
+                    t=a+(b-a)*i/128
+                    xx,yy,_,_=xy(t)
+                    span2=(xx-x)**2+(yy-y)**2
+                    if span2<radius*radius:
+                        z=max(z,height(t,'low')+math.sqrt(radius*radius-span2))
+        return cq.Vector(x,-y if MIRROR else y,z+.5)
     if not STEEP:return [point(s) for s in stations(0,LENGTH)]
-    return [point(s,'high') for s in stations(0,12)]+[point(s) for s in stations(12,LENGTH)]
+    return [point(s,'high') for s in stations(0,12)] + [point(s) for s in stations(12,LENGTH)]
 
 
 def ports():
