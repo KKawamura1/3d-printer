@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "bed_mm": 180,
+  "minimum_gap_mm": 4,
+  "items": [
+    {
+      "id": "GC01-V3",
+      "pr": 43,
+      "run": 41255635299,
+      "artifact": 13062654849,
+      "path": "parts/gentle_curve_open/GC01-V3/brick.stl",
+      "sha256": "220060eaebcda978613ca8141885fc2b9f39617bd44d6f821989f3311a9f66f8",
+      "plate": 1,
+      "slot": "big-00"
+    },
+    {
+      "id": "SC03-V3",
+      "pr": 46,
+      "run": 41255727701,
+      "artifact": 13063600953,
+      "path": "parts/sloped_curve_open_right/SC03-V3/brick.stl",
+      "sha256": "d4edf8cf630bad7dae844c631c19b36cd48a147a2c4ef75e48e07a3c47e4327a",
+      "plate": 1,
+      "slot": "big-10"
+    },
+    {
+      "id": "SG01-V6",
+      "pr": 52,
+      "run": 41255797508,
+      "artifact": 13063291698,
+      "path": "parts/steep_gentle_tunnel_left/SG01-V6/brick.stl",
+      "sha256": "0b4aa0b9213cde1cc3ae1e7aa15423700e724f0d027f06e22881df6b6cba8b32",
+      "plate": 1,
+      "slot": "big-01"
+    },
+    {
+      "id": "SG02-V7",
+      "pr": 53,
+      "run": 41255314402,
+      "artifact": 13062803880,
+      "path": "parts/steep_gentle_tunnel_right/SG02-V7/brick.stl",
+      "sha256": "47b97e0c8b6b82d93039d506d62192fbefe5543eff93f179c3838eecaf74738a",
+      "plate": 1,
+      "slot": "big-11"
+    },
+    {
+      "id": "SD01-V1",
+      "pr": 48,
+      "run": 41250071355,
+      "artifact": 13061011650,
+      "path": "parts/sharp_downhill_open_right/SD01-V1/brick.stl",
+      "sha256": "c5dba3cb4883dd7482df681d90abb6e758e20980e0f17d5ddaa442312df7b015",
+      "plate": 1,
+      "slot": "medium-bottom-0"
+    },
+    {
+      "id": "SD02-V2",
+      "pr": 49,
+      "run": 41250290195,
+      "artifact": 13061505051,
+      "path": "parts/sharp_downhill_open_left/SD02-V2/brick.stl",
+      "sha256": "a94913410aef6612e90bbfaa94814bfd0d2ad2fdf9151f93c179fd22cbc864f2",
+      "plate": 1,
+      "slot": "medium-bottom-1"
+    },
+    {
+      "id": "SD03-V3",
+      "pr": 50,
+      "run": 41256358398,
+      "artifact": 13063447527,
+      "path": "parts/sharp_downhill_tunnel_right/SD03-V3/brick.stl",
+      "sha256": "1659d7b8a1c1dfce2de20d137042cc4ca3342b718b1d01e4d32aa219ae9b532a",
+      "plate": 1,
+      "slot": "medium-right-0"
+    },
+    {
+      "id": "SD04-V2",
+      "pr": 51,
+      "run": 41250294129,
+      "artifact": 13060418956,
+      "path": "parts/sharp_downhill_tunnel_left/SD04-V2/brick.stl",
+      "sha256": "c7febcbf1613f6986e315206eb8f7a866a36faf4e2368a951055a5aa71c80656",
+      "plate": 1,
+      "slot": "medium-right-1"
+    },
+    {
+      "id": "C02-V5",
+      "pr": 36,
+      "run": 41262527797,
+      "artifact": 13065743063,
+      "path": "parts/sharp_curve_tunnel/C02-V5/brick.stl",
+      "sha256": "3a1738962d236606898113ddc50cd140eb63bd1a5606b84ed594ea82676c708a",
+      "plate": 1,
+      "slot": "small-corner"
+    },
+    {
+      "id": "D02-V2",
+      "pr": 44,
+      "run": 41250046417,
+      "artifact": 13060877412,
+      "path": "parts/downhill_open/D02-V2/brick.stl",
+      "sha256": "13892ed1cb81339ba71fe975434c93f13603c429a58604112a632d489ad21f77",
+      "plate": 2,
+      "slot": "p2-medium"
+    },
+    {
+      "id": "S01-V5",
+      "pr": 38,
+      "run": 41213676978,
+      "artifact": 13047640714,
+      "path": "parts/steep_drop_hole/S01-V5/brick.stl",
+      "sha256": "90aebfde3cec54cb227d029fb4158bac0d4adba5a76716633ff775dd6706ea28",
+      "plate": 2,
+      "slot": "p2-small-0"
+    },
+    {
+      "id": "S02-V8",
+      "pr": 41,
+      "run": 41214266812,
+      "artifact": 13046649215,
+      "path": "parts/steep_sharp_curve_tunnel/S02-V8/brick.stl",
+      "sha256": "f196d1f05683da563ee978baaaf939daec9ee686adadbd3e72c42ab270a72ac4",
+      "plate": 2,
+      "slot": "p2-small-1"
+    },
+    {
+      "id": "S03-V3",
+      "pr": 45,
+      "run": 41255683071,
+      "artifact": 13062084746,
+      "path": "parts/steep_sharp_tunnel_left/S03-V3/brick.stl",
+      "sha256": "34a9b772276a0cfc7465abfda40db4760f7a0dad92f08ff232727d8baf373b7e",
+      "plate": 2,
+      "slot": "p2-small-2"
+    }
+  ]
+}
