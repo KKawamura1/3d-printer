@@ -1,0 +1,15 @@
+{
+  "version": "C01-V5",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.sharp_curve.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200
+}

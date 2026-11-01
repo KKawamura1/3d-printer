@@ -1,0 +1,21 @@
+{
+  "version": "C02R-V1",
+  "auto": false,
+  "requires": [
+    {
+      "target": "parts/sharp_curve",
+      "version": "C01-V5"
+    }
+  ],
+  "command": [
+    "python",
+    "-m",
+    "experiments.c02_upper_relief.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200
+}
