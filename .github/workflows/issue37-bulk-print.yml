@@ -1,0 +1,51 @@
+name: Issue 37 multi-part A1 mini print plates
+on:
+  push:
+    paths:
+      - 'experiments/issue37_bulk_print/**'
+      - '.github/workflows/issue37-bulk-print.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  build-print-plates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install mesh library
+        run: python -m pip install numpy==2.3.5
+      - name: Fetch pinned successful STL artifacts (fail closed)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          while read -r pr run artifact; do
+            echo "Downloading PR #${pr} run ${run}, artifact ${artifact}"
+            actual=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}/artifacts" --jq ".artifacts[] | select(.name==\"cad-verified-stl\") | .id")
+            if [[ "${actual}" != "${artifact}" ]]; then
+              echo "Missing or changed pinned artifact for PR #${pr}: ${actual}" >&2
+              exit 1
+            fi
+            mkdir -p "build/issue37-sources/pr${pr}"
+            gh run download "${run}" --name cad-verified-stl --dir "build/issue37-sources/pr${pr}"
+          done < <(python - <<'PY'
+          import json
+          for it in json.load(open('experiments/issue37_bulk_print/sources.json'))['items']:
+              print(it['pr'], it['run'], it['artifact'])
+          PY
+          )
+      - name: Verify source reports/SHA-256 and produce plates
+        run: python experiments/issue37_bulk_print/assemble.py
+      - name: Publish printable plates and originals
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue37-a1mini-print-plates
+          path: build/issue37-print-plates/
+          retention-days: 14
+          if-no-files-found: error
