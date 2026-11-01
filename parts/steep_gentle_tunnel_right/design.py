@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG02-V5'
+PART_ID = 'SG02-V6'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
@@ -41,9 +41,9 @@ def xy(s):
 # the physical ball envelope collided with the floor at that corner.
 # Ease in/out over 4mm, retaining a 9.75mm total ramp drop and a
 # ~31-degree peak slope (close to the previous ~33-degree profile).
-RAMP_START, RAMP_FULL, RAMP_EASE, RAMP_END = 12., 16., 28., 32.
+RAMP_START, RAMP_FULL, RAMP_EASE, RAMP_END = 10., 12., 24., 28.
 RAMP_DROP = 9.75
-RAMP_RATE = RAMP_DROP / 16.
+RAMP_RATE = RAMP_DROP / ((RAMP_FULL-RAMP_START)/2 + (RAMP_EASE-RAMP_FULL) + (RAMP_END-RAMP_EASE)/2)
 
 
 def height(s, branch='low'):
@@ -52,11 +52,11 @@ def height(s, branch='low'):
         if branch == 'high': return FLOOR+19.2
         if s <= RAMP_START: return FLOOR+RAMP_DROP
         if s < RAMP_FULL:
-            return FLOOR+RAMP_DROP - RAMP_RATE*(s-RAMP_START)**2/8
+            return FLOOR+RAMP_DROP - RAMP_RATE*(s-RAMP_START)**2/(2*(RAMP_FULL-RAMP_START))
         if s < RAMP_EASE:
-            return FLOOR+RAMP_DROP - 2*RAMP_RATE - RAMP_RATE*(s-RAMP_FULL)
+            return FLOOR+RAMP_DROP - RAMP_RATE*(RAMP_FULL-RAMP_START)/2 - RAMP_RATE*(s-RAMP_FULL)
         if s < RAMP_END:
-            return FLOOR+RAMP_RATE*(RAMP_END-s)**2/8
+            return FLOOR+RAMP_RATE*(RAMP_END-s)**2/(2*(RAMP_END-RAMP_EASE))
         return FLOOR
     return FLOOR+DROP*(1-3*t*t+2*t*t*t)
 
@@ -64,9 +64,9 @@ def height(s, branch='low'):
 def slope(s, branch='low'):
     if STEEP:
         if branch == 'high' or s <= RAMP_START or s >= RAMP_END: return 0.
-        if s < RAMP_FULL: return -RAMP_RATE*(s-RAMP_START)/4
+        if s < RAMP_FULL: return -RAMP_RATE*(s-RAMP_START)/(RAMP_FULL-RAMP_START)
         if s < RAMP_EASE: return -RAMP_RATE
-        return -RAMP_RATE*(RAMP_END-s)/4
+        return -RAMP_RATE*(RAMP_END-s)/(RAMP_END-RAMP_EASE)
     t=max(0.,min(1.,s/LENGTH))
     return DROP*(-6*t+6*t*t)/LENGTH
 
@@ -103,7 +103,7 @@ def wire(s, role, branch='low'):
 def stations(a=-.3,b=None):
     if b is None: b=LENGTH+.3
     vals=[a,b]+[i*LENGTH/64 for i in range(65) if a<i*LENGTH/64<b]
-    vals += [v for v in (0,1,3,5,12,16,27,28,32,LENGTH-5,LENGTH-3,LENGTH-1,LENGTH) if a<v<b]
+    vals += [v for v in (0,1,3,5,RAMP_START,RAMP_FULL,RAMP_EASE,RAMP_END,LENGTH-5,LENGTH-3,LENGTH-1,LENGTH) if a<v<b]
     return sorted(set(vals))
 
 
