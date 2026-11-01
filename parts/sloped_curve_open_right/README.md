@@ -1,4 +1,4 @@
-# SC03-V2
+# SC03-V3
 
 Issue #37: sloped_curve_open_right。独立した刻印・版付きパーツ。
 
