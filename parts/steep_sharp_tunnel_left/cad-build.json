@@ -1,0 +1,15 @@
+{
+  "version": "S03-V3",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.steep_sharp_tunnel_left.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1800
+}
