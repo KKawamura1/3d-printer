@@ -2,6 +2,8 @@ import cadquery as cq
 from brickcad.verify import intersection, VOLUME_TOL
 from parts.sharp_downhill_tunnel_right.design import path, xy, height, LENGTH, MIRROR
 import unittest
+import json
+from pathlib import Path
 from parts.sharp_downhill_tunnel_right.design import build_part, verify, ports, DROP
 class Geometry(unittest.TestCase):
     def test_continuous_clearance_and_structure(self):
@@ -20,6 +22,11 @@ class Geometry(unittest.TestCase):
             self.assertTrue(shape.isInside(
                 cq.Vector(x,-y if MIRROR else y,height(s)-.15)),
                 "missing rolling floor at s="+str(s))
+
+    def test_version_matches_geometry_label(self):
+        spec = json.loads((Path(__file__).parent / 'cad-build.json').read_text())
+        from parts.sharp_downhill_tunnel_right.design import PART_ID
+        self.assertEqual(spec['version'], PART_ID)
 
     def test_port_drop(self):
         self.assertAlmostEqual(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2],DROP)

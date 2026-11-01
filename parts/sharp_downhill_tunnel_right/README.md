@@ -1,4 +1,4 @@
-# SD03-V1
+# SD03-V2
 
 Issue #37: sharp_downhill_tunnel_right。独立した刻印・版付きパーツ。
 
@@ -11,3 +11,7 @@ Issue #37: sharp_downhill_tunnel_right。独立した刻印・版付きパーツ
 
 生成: `python -m parts.sharp_downhill_tunnel_right.design --out build/sharp_downhill_tunnel_right`。
 Actionsの`cad-verified-stl`にSTL/STEP/検証レポートを保存。
+
+## 生成物の確認
+
+V2はV1ソース変更後のバージョン更新。V1の既存STLではなく、V2に対するActionsの`cad-verified-stl`成功結果を印刷対象とする。R16急カーブの自然転がり、Bambu Studioでのサポートなしスライス、実物の保持力は未検証のため、量産前に小数のテスト印刷を行う。
