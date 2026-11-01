@@ -16,7 +16,7 @@ A, B = START, START + 63.8 + GAP
 C = B + 63.8 + GAP
 SLOTS = {
     # Plate 01 prioritizes high-risk tunnel designs.  Two 4x4, two 2x4,
-    # four 2x2 tunnel parts, plus one complex open sloped curve as control.
+    # four 2x2 tunnel parts, plus one open sharp-turn downhill control.
     'big-00': (A, A, 0), 'big-10': (B, A, 0),
     'big-01': (A, B, 0),
     'medium-right-0': (C, A, 90), 'medium-right-1': (B, B, 90),
@@ -26,9 +26,9 @@ SLOTS = {
     'small-bottom-3': (A + 3 * (31.8 + GAP), C, 0),
     # Plate 02 contains the simpler, mostly dominated open-track variants.
     'p2-big': (8, 8, 0),
-    'p2-medium-0': (78, 8, 0),
-    'p2-medium-1': (78, 45, 0),
-    'p2-medium-2': (8, 78, 0)
+    'p2-big-01': (78, 8, 0),
+    'p2-medium-1': (78, 80, 0),
+    'p2-medium-2': (8, 80, 0)
 }
 
 def read_stl(path):

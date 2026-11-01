@@ -90,8 +90,8 @@
       "artifact": 13063600953,
       "path": "parts/sloped_curve_open_right/SC03-V3/brick.stl",
       "sha256": "d4edf8cf630bad7dae844c631c19b36cd48a147a2c4ef75e48e07a3c47e4327a",
-      "plate": 1,
-      "slot": "big-01"
+      "plate": 2,
+      "slot": "p2-big-01"
     },
     {
       "id": "GC01-V3",
@@ -110,8 +110,8 @@
       "artifact": 13061011650,
       "path": "parts/sharp_downhill_open_right/SD01-V1/brick.stl",
       "sha256": "c5dba3cb4883dd7482df681d90abb6e758e20980e0f17d5ddaa442312df7b015",
-      "plate": 2,
-      "slot": "p2-medium-0"
+      "plate": 1,
+      "slot": "big-01"
     },
     {
       "id": "SD02-V2",
