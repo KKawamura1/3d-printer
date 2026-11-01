@@ -1,5 +1,5 @@
 {
-  "version": "GC01-V2",
+  "version": "GC01-V3",
   "auto": true,
   "command": [
     "python",
