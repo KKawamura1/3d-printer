@@ -1,6 +1,6 @@
 {
   "version": "C02R-V1",
-  "auto": true,
+  "auto": false,
   "requires": [
     {
       "target": "parts/sharp_curve",
