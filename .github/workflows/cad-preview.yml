@@ -59,6 +59,9 @@ jobs:
         run: |
           if [ "$EVENT_NAME" = workflow_dispatch ]; then
             python scripts/cad_versions.py --mode plan --targets "$INPUT_TARGETS"
+          elif [ "$GITHUB_REF_NAME" = "codex/sc02-v1-sloped-curve-tunnel" ]; then
+            # One-time recovery for PR40's V5 artifact; no geometry change.
+            python scripts/cad_versions.py --mode plan --targets parts/sloped_curve_tunnel
           else
             python scripts/cad_versions.py --mode plan --base "$BEFORE_SHA"
           fi
