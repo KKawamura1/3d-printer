@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SD03-V3'
+PART_ID = 'SD03-V4'
 KIND = 'sharp'
 DROP = 19.2
 TUNNEL = True
@@ -111,20 +111,27 @@ def build_part(label=PART_ID):
         if all(mask.isInside(cq.Vector(x+6.85*math.cos(a),y+6.85*math.sin(a),2)) for a in [i*math.pi/4 for i in range(8)]):full.append((x,y))
     if full: body=add_e31_05_receiver_features(body,full,p.tube_radius)
     if TUNNEL:
-        # Curved exterior clips the outermost corner stud to a fragile sliver.
-        # Omit any stud whose entire footprint (with a 0.15 mm margin) is not
-        # supported by the roof. Do not rely on boolean clipping of half-studs.
-        stud_centres = [
-            (x, y) for x, y in p.studs()
-            if all(mask.isInside(cq.Vector(
-                x + (p.stud_radius + .15) * math.cos(2*math.pi*i/16),
-                y + (p.stud_radius + .15) * math.sin(2*math.pi*i/16),
-                57.45)) for i in range(16))
-        ]
-        if not stud_centres: raise ValueError('No supported top studs')
-        studs=make_studs(stud_centres,57.45,p.stud_radius,p.stud_inner_radius,4.65,.5).val()
-        body=body.fuse(studs).clean()
-        if STEEP: print('stud body valid',body.isValid(),flush=True)
+        # Preserve footprint-clipped hollow studs (SC02-V5 approach), including
+        # useful partial studs. The stud root overlaps the roof by 0.15 mm.
+        # Reject only isolated thin slivers or fragments without a rooted
+        # contact patch; do not remove every clipped stud.
+        raw_studs = make_studs(
+            p.studs(), 57.45, p.stud_radius, p.stud_inner_radius, 4.65, .5
+        ).val().intersect(mask)
+        attached = []
+        for fragment in raw_studs.Solids():
+            if fragment.Volume() < 3.0:
+                continue
+            contact = body.intersect(fragment).Volume()
+            if contact < .20:
+                continue
+            attached.append(fragment)
+        if not attached:
+            raise ValueError('No footprint-clipped studs supported by roof')
+        for fragment in attached:
+            body = body.fuse(fragment).clean()
+        if not body.isValid() or len(body.Solids()) != 1:
+            raise ValueError('Clipped studs must remain one rooted solid')
     # Mark below the running floor, on the inlet face; avoids mating contact below 4.75.
     x,y,_,_=xy(0)
     if MIRROR:
