@@ -96,7 +96,7 @@ def build_course(spec):
     shaft_u = exit_parameters(direction)
     if d.shaft_radius <= BALL_TRACK.ball_diameter/2 or d.shaft_radius >= 15.9-1.6:
         raise ValueError("Vertical shaft has insufficient ball clearance or wall")
-    if d.low_floor-d.receiver_depth < 1.6:
+    if d.low_floor-d.receiver_depth < 1.6-1e-6:
         raise ValueError("Underside receiver must retain 1.6 mm floor")
     if not 0 < d.ramp_grade <= .7:
         raise ValueError("Unsafe ramp grade")
