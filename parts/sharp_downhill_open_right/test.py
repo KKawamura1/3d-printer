@@ -2,7 +2,7 @@ import cadquery as cq
 from brickcad.verify import intersection, VOLUME_TOL
 from parts.sharp_downhill_open_right.design import path, xy, height, LENGTH, MIRROR
 import unittest
-from parts.sharp_downhill_open_right.design import build_part, verify, ports, DROP
+from parts.sharp_downhill_open_right.design import build_part, verify, ports, DROP, PART_ID, LABEL_X, LABEL_Z
 class Geometry(unittest.TestCase):
     def test_continuous_clearance_and_structure(self):
         shape,p=build_part()
@@ -39,16 +39,29 @@ class Geometry(unittest.TestCase):
             if 1.<trimmed.Volume()<ring.Volume()-1.:
                 self.assertGreater(intersection(shape,trimmed),
                                    .85*trimmed.Volume(),(x,y))
-        # Reconstruct the original label cutter; a later fuse must never
-        # refill the recessed text (the SC02-V4 regression).
-        _,y,_,_=xy(0)
-        if MIRROR: y=-y
-        plane=cq.Plane(origin=(-p.width/2+.3,y,5.55),
-                       xDir=(0,-1,0),normal=(-1,0,0))
-        label=(cq.Workplane(plane).text(
-            PART_ID,1.1,.35,font='DejaVu Sans',
-            kind='bold',combine=False).val())
-        self.assertLess(intersection(shape,label),.10)
+        # The shared engraving helper defines the only accepted size/depth.
+        # Rebuild its tool to ensure the full 3mm label is actually cut on
+        # the exterior straight side, not refilled by later geometry unions.
+        import inspect
+        from pathlib import Path
+        import json
+        from brickcad.marking import engrave
+        params=inspect.signature(engrave).parameters
+        self.assertEqual(params['size'].default,3.)
+        self.assertEqual(params['depth'].default,.4)
+        spec=json.loads((Path(__file__).parent/'cad-build.json').read_text())
+        self.assertEqual(PART_ID,spec['version'])
+        size=params['size'].default
+        depth=params['depth'].default
+        self.assertGreater(LABEL_Z-size/2,6.35)
+        tool=(cq.Workplane('XZ',origin=(LABEL_X,-p.depth/2+depth,LABEL_Z))
+              .text(PART_ID,size,depth+.05,font='DejaVu Sans',
+                    kind='bold',combine=False).val())
+        bb=tool.BoundingBox()
+        self.assertGreater(bb.xmin,-p.width/2+2)
+        self.assertLess(bb.xmax,-2)
+        self.assertGreater(tool.Volume(),1.)
+        self.assertLess(intersection(shape,tool),.10)
 
     def test_port_drop(self):
         self.assertAlmostEqual(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2],DROP)
