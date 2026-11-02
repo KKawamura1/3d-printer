@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG01-V7'
+PART_ID = 'SG01-V8'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
