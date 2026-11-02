@@ -21,5 +21,27 @@ class Geometry(unittest.TestCase):
                 cq.Vector(x,-y if MIRROR else y,height(s)-.15)),
                 "missing rolling floor at s="+str(s))
 
+    def test_versioned_footprint_clipped_receiver_supports(self):
+        from parts.sharp_downhill_tunnel_left.design import PART_ID, loft
+        from brickcad.model import receiver
+        from brickcad.verify import intersection
+        import json
+        from pathlib import Path
+        spec = json.loads((Path(__file__).parent / 'cad-build.json').read_text())
+        self.assertEqual(spec['version'], PART_ID)
+        shape, p = build_part()
+        mask = loft('mask').intersect(
+            cq.Workplane('XY').box(p.width, p.depth, 100,
+                                   centered=(True, True, False)).val())
+        # These are pre-E31 supports: clipped receiver rings must not disappear.
+        for x, y in p.tubes():
+            ring = (cq.Workplane('XY', origin=(x, y, .8))
+                    .circle(p.tube_radius).circle(p.tube_inner_radius)
+                    .extrude(.5).val())
+            clipped = ring.intersect(mask)
+            if clipped.Volume() > 1. and clipped.Volume() < ring.Volume() - 1.:
+                self.assertGreater(intersection(shape, clipped),
+                                   .85 * clipped.Volume(), (x, y))
+
     def test_port_drop(self):
         self.assertAlmostEqual(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2],DROP)
