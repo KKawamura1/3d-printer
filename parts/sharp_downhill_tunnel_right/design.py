@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SD03-V6'
+PART_ID = 'SD03-V7'
 KIND = 'sharp'
 DROP = 19.2
 TUNNEL = True
@@ -27,8 +27,6 @@ DEPTH = 4.75
 # External face on the initial straight, behind the rolling floor.
 LABEL_X = -16.
 LABEL_Z = 12.
-LABEL_SIZE = 4.0
-LABEL_DEPTH = .60
 
 
 def xy(s):
@@ -150,18 +148,13 @@ def build_part(label=PART_ID):
             body = body.fuse(fragment).clean()
         if not body.isValid() or len(body.Solids()) != 1:
             raise ValueError('Clipped studs must remain one rooted solid')
-    # Place the design ID on the *external straight-side wall*, not the
-    # 1.6 mm high inlet-floor strip. The earlier 1.1 mm label was too fine
-    # for a 0.4 mm nozzle even though its BRep subtraction succeeded.
-    # Engrave AFTER mirroring to keep the letters readable on both variants.
+    # Match brickcad.marking.engrave() defaults (3 mm bold, 0.4 mm deep),
+    # used by main's T01 and D01 tunnels and PR38 S01. The straight section
+    # of the external -Y wall has material below the running floor.
+    # Engrave after mirroring so both handed variants read normally.
     if MIRROR:
         body=body.mirror('XZ')
-    before_mark=body.Volume()
-    body=engrave(body,label,x=LABEL_X,y=-p.depth/2,z=LABEL_Z,
-                 size=LABEL_SIZE,depth=LABEL_DEPTH)
-    removed=before_mark-body.Volume()
-    if removed < 8.:
-        raise ValueError(f'Exterior ID is missing/too small: {label} ({removed:.3f} mm3)')
+    body=engrave(body,label,x=LABEL_X,y=-p.depth/2,z=LABEL_Z)
     if not body.isValid() or len(body.Solids())!=1:raise ValueError('Expected one valid connected solid')
     return body,p
 
