@@ -93,5 +93,19 @@ class Geometry(unittest.TestCase):
         self.assertLess(intersection(shape,tool),.10)
 
 
+    def test_reflection_of_route_and_connection_ports(self):
+        from parts.sharp_downhill_tunnel_right.design import path, ports
+        right, left = path(), path(mirror=True)
+        self.assertEqual(len(right),len(left))
+        for a,b in zip(right,left):
+            self.assertAlmostEqual(a.x,b.x)
+            self.assertAlmostEqual(a.y,-b.y)
+            self.assertAlmostEqual(a.z,b.z)
+        right_ports,left_ports=ports(),ports(mirror=True)
+        for a,b in zip(right_ports,left_ports):
+            self.assertAlmostEqual(a.floor_xyz_mm[0],b.floor_xyz_mm[0])
+            self.assertAlmostEqual(a.floor_xyz_mm[1],-b.floor_xyz_mm[1])
+            self.assertAlmostEqual(a.floor_xyz_mm[2],b.floor_xyz_mm[2])
+
     def test_port_drop(self):
         self.assertAlmostEqual(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2],DROP)

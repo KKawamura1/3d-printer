@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SD03-V7'
+PART_ID = 'SD03-V8'
 KIND = 'sharp'
 DROP = 19.2
 TUNNEL = True
@@ -103,7 +103,7 @@ def loft(role,a=-.3,b=None,branch='low'):
     return cq.Solid.makeLoft([wire(s,role,branch) for s in stations(a,b)],ruled=True)
 
 
-def build_part(label=PART_ID):
+def build_part(label=PART_ID, *, mirror=False):
     ny=4 if KIND=='gentle' else 2
     p=replace(brick_from_fit('duplo-e27-play-v1',nx=4,ny=ny,height_units=3 if TUNNEL else (2 if DROP else 1)),tube_radius=6.6)
     clip=cq.Workplane('XY').box(p.width,p.depth,100,centered=(True,True,False)).val()
@@ -152,33 +152,36 @@ def build_part(label=PART_ID):
     # used by main's T01 and D01 tunnels and PR38 S01. The straight section
     # of the external -Y wall has material below the running floor.
     # Engrave after mirroring so both handed variants read normally.
-    if MIRROR:
+    if mirror:
         body=body.mirror('XZ')
-    body=engrave(body,label,x=LABEL_X,y=-p.depth/2,z=LABEL_Z)
+    # Handedness changes geometry first; mark each final exterior face with
+    # the shared 3mm / 0.4mm engraving defaults, never mirror the letters.
+    if label is not None:
+        body=engrave(body,label,x=LABEL_X,y=-p.depth/2,z=LABEL_Z)
     if not body.isValid() or len(body.Solids())!=1:raise ValueError('Expected one valid connected solid')
     return body,p
 
 
-def path():
+def path(*, mirror=False):
     def point(s,branch='low'):
         x,y,_,_=xy(s)
         z=height(s,branch)+BALL/2*math.sqrt(1+slope(s,branch)**2)+.5
-        return cq.Vector(x,-y if MIRROR else y,z)
+        return cq.Vector(x,-y if mirror else y,z)
     if not STEEP:return [point(s) for s in stations(0,LENGTH)]
     return [point(s,'high') for s in stations(0,12)]+[point(s) for s in stations(12,LENGTH)]
 
 
-def ports():
+def ports(*, mirror=False):
     out=[]
     for s,name,sign in [(0,'inlet',-1),(LENGTH,'outlet',1)]:
         x,y,tx,ty=xy(s)
-        if MIRROR:y=-y;ty=-ty
+        if mirror:y=-y;ty=-ty
         out.append(Port(name,(x,y,FLOOR+(DROP if s==0 else 0)),(sign*tx,sign*ty,0.),BALL_TRACK.radius))
     return out
 
 
-def verify(shape,p):
-    pts=path();r=BALL/2
+def verify(shape,p,*,mirror=False):
+    pts=path(mirror=mirror);r=BALL/2
     # Union of endpoint spheres and cylinders is the EXACT sweep of a sphere
     # along this explicitly defined continuous polyline (not just samples).
     sphere_errors=[intersection(shape,cq.Solid.makeSphere(r,c,angleDegrees1=-90)) for c in pts]
@@ -191,17 +194,17 @@ def verify(shape,p):
     checks=dict(valid_brep=shape.isValid(),one_solid=len(shape.Solids())==1,
         continuous_sphere_path_clear=max(sphere_errors+segment_errors)<VOLUME_TOL,
         lowered_ball_detected=negative>VOLUME_TOL,
-        drop_matches_grid=abs(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2]-DROP)<1e-6,
+        drop_matches_grid=abs(ports(mirror=mirror)[0].floor_xyz_mm[2]-ports(mirror=mirror)[1].floor_xyz_mm[2]-DROP)<1e-6,
         receiver_depth=abs(FLOOR-DEPTH-1.6)<1e-6,
-        full_roof=(not TUNNEL or all(shape.isInside(cq.Vector(x,-y if MIRROR else y,57.5)) for x,y,_,_ in [xy(LENGTH*t) for t in (.1,.3,.5,.7,.9)])),
+        full_roof=(not TUNNEL or all(shape.isInside(cq.Vector(x,-y if mirror else y,57.5)) for x,y,_,_ in [xy(LENGTH*t) for t in (.1,.3,.5,.7,.9)])),
         maximum_height=abs(shape.BoundingBox().zmax-(62.1 if TUNNEL else FLOOR+DROP+12.85))<.1)
 
     return checks,dict(sphere_intersections_mm3=sphere_errors,segment_intersections_mm3=segment_errors,lowered_ball_mm3=negative,centres_mm=[c.toTuple() for c in pts],definition='Exact continuous capsule sweep along the reported polyline; not a solved gravity trajectory')
 
 
-def export(out):
+def export(out,*,mirror=False,part_id=PART_ID):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
-    shape,p=build_part();checks,clearance=verify(shape,p)
+    shape,p=build_part(label=part_id,mirror=mirror);checks,clearance=verify(shape,p,mirror=mirror)
     stl=out/'brick.stl';shape.exportStl(str(stl),tolerance=.03,angularTolerance=.2,relative=False)
     raw=stl.read_bytes();triangles=[]
     for i in range(struct.unpack_from('<I',raw,80)[0]):
@@ -213,7 +216,7 @@ def export(out):
     m=mesh_check(stl);checks['mesh_closed']=m['passed']
     delta=shape.cut(restored).Volume()+restored.cut(shape).Volume()
     checks['step_roundtrip']=restored.isValid() and len(restored.Solids())==1 and abs(delta)<.01
-    report=dict(part_id=PART_ID,passed=all(checks.values()),checks=checks,mesh=m,clearance=clearance,ports=[asdict(v) for v in ports()],design=design_manifest(p),bounds_mm=exact_bounds(shape),physical_fit_validated=False,physical_rolling_validated=False,slicer_support_free_validated=False,sha256_stl=hashlib.sha256(stl.read_bytes()).hexdigest())
+    report=dict(part_id=part_id,passed=all(checks.values()),checks=checks,mesh=m,clearance=clearance,ports=[asdict(v) for v in ports(mirror=mirror)],design=design_manifest(p),bounds_mm=exact_bounds(shape),physical_fit_validated=False,physical_rolling_validated=False,slicer_support_free_validated=False,sha256_stl=hashlib.sha256(stl.read_bytes()).hexdigest())
     (out/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     viewer_report={**report,'geometry':dict(bounds_mm=exact_bounds(shape),parameters=asdict(p)),
                    'fit':dict(insertion=[],poses=[])}
@@ -224,7 +227,7 @@ def export(out):
         if name=='aligned':viewer_report['fit']['insertion'].append(dict(row,pair='printed/printed',lift_mm=0))
         else:viewer_report['fit']['poses'].append(row)
     viewer(shape.copy(mesh=False),p,viewer_report,out)
-    print(PART_ID,checks,flush=True)
+    print(part_id,checks,flush=True)
     if not report['passed']:raise ValueError('CAD verification failed')
     return report
 
