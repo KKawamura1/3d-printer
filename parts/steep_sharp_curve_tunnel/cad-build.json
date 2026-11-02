@@ -1,5 +1,5 @@
 {
-  "version": "S02-V9",
+  "version": "S02-V10",
   "auto": true,
   "requires": [
     {
@@ -22,5 +22,5 @@
     "brick.stl"
   ],
   "timeout": 1200,
-  "description": "2x2x3 roofed west-high to south-low right turn; S01-V6 1:4 (14deg) ramp, circular mouths, standard 3mm engraving"
+  "description": "2x2x3 roofed west-high to south-low right turn; S01-V6 1:4 (14deg) ramp, circular mouths, standard 3mm engraving; shared unmarked BRep used by mirrored S03-V4"
 }
