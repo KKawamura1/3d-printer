@@ -5,7 +5,7 @@ import json, math, struct, hashlib
 import cadquery as cq
 from brickcad.model import brick_from_fit, receiver
 from brickcad.connections import make_studs
-from brickcad.marking import engrave_west
+from brickcad.marking import engrave
 from brickcad.standards import BALL_TRACK
 from brickcad.ports import Port
 from brickcad.provenance import design_manifest
@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SD01-V1'
+PART_ID = 'SD01-V2'
 KIND = 'sharp'
 DROP = 19.2
 TUNNEL = False
@@ -24,6 +24,9 @@ LENGTH = 64. if KIND == 'straight' else (math.pi*R/2 + (32. if KIND == 'sharp' e
 FLOOR = BALL_TRACK.floor
 BALL = BALL_TRACK.ball_diameter
 DEPTH = 4.75
+# Outer -Y face on the straight inlet section; matches PR50's standard marking.
+LABEL_X = -16.
+LABEL_Z = 12.
 
 
 def xy(s):
@@ -114,11 +117,13 @@ def build_part(label=PART_ID):
         studs=make_studs(p.studs(),57.45,p.stud_radius,p.stud_inner_radius,4.65,.5).val().intersect(mask)
         body=body.fuse(studs).clean()
         if STEEP: print('stud body valid',body.isValid(),flush=True)
-    # Mark below the running floor, on the inlet face; avoids mating contact below 4.75.
-    x,y,_,_=xy(0)
+    # Engrave the visible, solid outside wall below the running track.
+    # Use brickcad.marking.engrave() defaults: 3mm bold text / 0.4mm recess.
+    # Mirror geometry first, then add human-readable (not mirrored) lettering.
     if MIRROR:
-        body=body.mirror('XZ');y=-y
-    body=engrave_west(body,label,x=-p.width/2,y=y,z=5.55,size=1.1,depth=.3)
+        body=body.mirror('XZ')
+    if label is not None:
+        body=engrave(body,label,x=LABEL_X,y=-p.depth/2,z=LABEL_Z)
     if not body.isValid() or len(body.Solids())!=1:raise ValueError('Expected one valid connected solid')
     return body,p
 
