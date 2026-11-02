@@ -34,6 +34,15 @@ class Geometry(unittest.TestCase):
             self.assertTrue(self.shape.isInside(
                 cq.Vector(x + 3.9, y, self.p.height + 1)))
 
+    def test_final_recessed_id_survives_boolean_fusions(self):
+        # The S03 engraving is made last, on the actual south-facing wall.
+        plane=cq.Plane(origin=(0.,-self.p.depth/2+.65,18.),
+                       xDir=(1,0,0),normal=(0,-1,0))
+        cutter=cq.Workplane(plane).text(
+            PART_ID,2.7,1.05,font='DejaVu Sans',
+            kind='bold',combine=False).val()
+        self.assertLess(intersection(self.shape,cutter),.10)
+
     def test_left_turn_ports_mate_and_height(self):
         high, low = ports(self.d)
         for actual, expected in zip(high.floor_xyz_mm, (-16., 0., 25.55)):
