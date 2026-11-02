@@ -92,9 +92,18 @@ def imports_for(file, root, seen=None):
     return seen
 
 
+def model_sources(root, name):
+    """Old CAD entrypoints and new declarative course recipes share immutability rules."""
+    sources = imports_for(name + '/design.py', root)
+    if (root / name / 'course.json').is_file():
+        sources |= imports_for('brickcad/course_generator.py', root)
+        sources.add(name + '/course.json')
+    return sources
+
+
 def source_fingerprint(root, name, *, auto_override=None):
-    """Fingerprint model source, transitive Python imports and shared CAD inputs."""
-    relevant = imports_for(name + '/design.py', root)
+    """Fingerprint model source, declarative recipe, transitive imports and shared inputs."""
+    relevant = model_sources(root, name)
     # Test-only fixes must not invalidate an immutable geometry cache entry.
     # Verification still runs in the independent CAD tests workflow.
     relevant.update(p.relative_to(root).as_posix() for p in (root / name).glob('*.py')
@@ -174,10 +183,11 @@ def select(specs, target, *, changed=(), prior=None, root=None, prior_specs=None
         old = prior.get(name)
         bumped = old != spec['version']
         # A geometry source edit must be accompanied by a new revision.
-        local_code = any(p.startswith(name + '/') and p.endswith('.py') and
-                         not p.endswith('/test.py') and not p.endswith('/__init__.py')
-                         for p in changed)
-        imported = changed.intersection(imports_for(name + '/design.py', root) - {name + '/design.py'}) if root else set()
+        local_code = (name + '/course.json' in changed or any(
+            p.startswith(name + '/') and p.endswith('.py')
+            and not p.endswith('/test.py') and not p.endswith('/__init__.py')
+            for p in changed))
+        imported = changed.intersection(model_sources(root, name) - {name + '/design.py', name + '/course.json'}) if root else set()
         config_changed = name + '/cad-build.json' in changed
         previous_spec = (prior_specs or {}).get(name)
         # auto controls scheduling, not geometry or a CAD revision.

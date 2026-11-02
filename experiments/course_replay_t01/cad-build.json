@@ -1,0 +1,18 @@
+{
+  "version": "T01-V4",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "brickcad.course_generator",
+    "--config",
+    "experiments/course_replay_t01/course.json",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "Issue #39 config-driven legacy CAD geometry replay (not new physical verification)"
+}

@@ -1,0 +1,24 @@
+{
+  "id": "T01",
+  "version": "V4",
+  "geometry": {
+    "kind": "straight_tunnel",
+    "size": [
+      2,
+      2,
+      2
+    ],
+    "height_change": 0
+  },
+  "enclosure": {
+    "kind": "tunnel",
+    "windows": []
+  },
+  "connection": {
+    "profile": "E31-05"
+  },
+  "legacy": {
+    "module": "parts.tunnel.design_e31",
+    "part_id": "T01-V4"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "D01",
+  "version": "V2",
+  "geometry": {
+    "kind": "windowed_downhill_tunnel",
+    "size": [
+      4,
+      2,
+      3
+    ],
+    "height_change": -1
+  },
+  "enclosure": {
+    "kind": "tunnel",
+    "windows": [
+      {
+        "side": "south",
+        "x_mm": -16,
+        "width_mm": 8
+      },
+      {
+        "side": "south",
+        "x_mm": 0,
+        "width_mm": 8
+      },
+      {
+        "side": "south",
+        "x_mm": 16,
+        "width_mm": 8
+      }
+    ]
+  },
+  "connection": {
+    "profile": "E31-05"
+  },
+  "legacy": {
+    "module": "parts.downhill_tunnel.design",
+    "part_id": "D01-V2"
+  }
+}

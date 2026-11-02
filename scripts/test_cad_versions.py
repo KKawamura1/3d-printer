@@ -179,6 +179,39 @@ class VersionSelectionTests(unittest.TestCase):
 
 
 
+
+class DeclarativeCourseVersionTests(unittest.TestCase):
+    def test_course_recipe_changes_are_versioned_and_fingerprinted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            recipe = root / "experiments/course_test"
+            engine = root / "brickcad"
+            recipe.mkdir(parents=True)
+            engine.mkdir(parents=True)
+            name = "experiments/course_test"
+            spec_dict = spec("G01-V1")
+            (recipe / "cad-build.json").write_text(json.dumps(spec_dict))
+            (recipe / "course.json").write_text('{"id":"G01"}\n')
+            (engine / "course_generator.py").write_text("SOURCE = 1\n")
+            original = cad.source_fingerprint(root, name)
+            self.assertIn("brickcad/course_generator.py", cad.model_sources(root, name))
+            (recipe / "course.json").write_text('{"id":"G02"}\n')
+            self.assertNotEqual(original, cad.source_fingerprint(root, name))
+            with self.assertRaisesRegex(ValueError, "experiments/course_test"):
+                cad.select({name: spec_dict}, 'changed', prior={name: 'G01-V1'},
+                           changed=[name + '/course.json'], root=root)
+            (recipe / "course.json").write_text('{"id":"G01"}\n')
+            (engine / "course_generator.py").write_text("SOURCE = 2\n")
+            self.assertNotEqual(original, cad.source_fingerprint(root, name))
+            with self.assertRaisesRegex(ValueError, "experiments/course_test"):
+                cad.select({name: spec_dict}, 'changed', prior={name: 'G01-V1'},
+                           changed=["brickcad/course_generator.py"], root=root)
+            spec_dict["version"] = "G02-V1"
+            self.assertEqual(cad.select({name: spec_dict}, 'changed',
+                                        prior={name: 'G01-V1'},
+                                        changed=[name + '/course.json'], root=root), [name])
+
+
 class SnapshotArtifactTests(unittest.TestCase):
     def test_preview_created_once_and_reused_for_cached_stl(self):
         with tempfile.TemporaryDirectory() as tmp:
