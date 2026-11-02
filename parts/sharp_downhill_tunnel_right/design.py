@@ -5,7 +5,7 @@ import json, math, struct, hashlib
 import cadquery as cq
 from brickcad.model import brick_from_fit, receiver
 from brickcad.connections import make_studs
-from brickcad.marking import engrave_west
+from brickcad.marking import engrave
 from brickcad.standards import BALL_TRACK
 from brickcad.ports import Port
 from brickcad.provenance import design_manifest
@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SD03-V5'
+PART_ID = 'SD03-V6'
 KIND = 'sharp'
 DROP = 19.2
 TUNNEL = True
@@ -24,6 +24,11 @@ LENGTH = 64. if KIND == 'straight' else (math.pi*R/2 + (32. if KIND == 'sharp' e
 FLOOR = BALL_TRACK.floor
 BALL = BALL_TRACK.ball_diameter
 DEPTH = 4.75
+# External face on the initial straight, behind the rolling floor.
+LABEL_X = -16.
+LABEL_Z = 12.
+LABEL_SIZE = 4.0
+LABEL_DEPTH = .60
 
 
 def xy(s):
@@ -145,11 +150,18 @@ def build_part(label=PART_ID):
             body = body.fuse(fragment).clean()
         if not body.isValid() or len(body.Solids()) != 1:
             raise ValueError('Clipped studs must remain one rooted solid')
-    # Mark below the running floor, on the inlet face; avoids mating contact below 4.75.
-    x,y,_,_=xy(0)
+    # Place the design ID on the *external straight-side wall*, not the
+    # 1.6 mm high inlet-floor strip. The earlier 1.1 mm label was too fine
+    # for a 0.4 mm nozzle even though its BRep subtraction succeeded.
+    # Engrave AFTER mirroring to keep the letters readable on both variants.
     if MIRROR:
-        body=body.mirror('XZ');y=-y
-    body=engrave_west(body,label,x=-p.width/2,y=y,z=5.55,size=1.1,depth=.3)
+        body=body.mirror('XZ')
+    before_mark=body.Volume()
+    body=engrave(body,label,x=LABEL_X,y=-p.depth/2,z=LABEL_Z,
+                 size=LABEL_SIZE,depth=LABEL_DEPTH)
+    removed=before_mark-body.Volume()
+    if removed < 8.:
+        raise ValueError(f'Exterior ID is missing/too small: {label} ({removed:.3f} mm3)')
     if not body.isValid() or len(body.Solids())!=1:raise ValueError('Expected one valid connected solid')
     return body,p
 
