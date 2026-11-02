@@ -1,0 +1,24 @@
+{
+  "id": "Y02",
+  "version": "V1",
+  "geometry": {
+    "kind": "sharp_curve_R16",
+    "size": [
+      2,
+      2,
+      2
+    ],
+    "height_change": 0,
+    "entry": "west",
+    "exit": "south",
+    "radius_mm": 16
+  },
+  "enclosure": {
+    "kind": "tunnel",
+    "windows": []
+  },
+  "connection": {
+    "profile": "E31-05",
+    "studs": "roof_four"
+  }
+}
