@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG01-V6'
+PART_ID = 'SG01-V7'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
@@ -36,16 +36,37 @@ def xy(s):
     return (-32+48*math.cos(a),32+48*math.sin(a),-math.sin(a),math.cos(a))
 
 
+# The ramp must have a continuous tangent at both ends. The original
+# 12-27mm linear ramp switched abruptly from -0.65 to zero at 27mm:
+# the physical ball envelope collided with the floor at that corner.
+# Ease in/out over 4mm, retaining a 9.75mm total ramp drop and a
+# ~31-degree peak slope (close to the previous ~33-degree profile).
+RAMP_START, RAMP_FULL, RAMP_EASE, RAMP_END = 12., 16., 28., 32.
+RAMP_DROP = 9.75
+RAMP_RATE = RAMP_DROP / 16.
+
+
 def height(s, branch='low'):
     t=max(0.,min(1.,s/LENGTH))
     if STEEP:
         if branch == 'high': return FLOOR+19.2
-        return FLOOR+.65*max(0.,min(15.,27-s))
+        if s <= RAMP_START: return FLOOR+RAMP_DROP
+        if s < RAMP_FULL:
+            return FLOOR+RAMP_DROP - RAMP_RATE*(s-RAMP_START)**2/(2*(RAMP_FULL-RAMP_START))
+        if s < RAMP_EASE:
+            return FLOOR+RAMP_DROP - RAMP_RATE*(RAMP_FULL-RAMP_START)/2 - RAMP_RATE*(s-RAMP_FULL)
+        if s < RAMP_END:
+            return FLOOR+RAMP_RATE*(RAMP_END-s)**2/(2*(RAMP_END-RAMP_EASE))
+        return FLOOR
     return FLOOR+DROP*(1-3*t*t+2*t*t*t)
 
 
 def slope(s, branch='low'):
-    if STEEP: return -.65 if branch=='low' and 12<s<27 else 0.
+    if STEEP:
+        if branch == 'high' or s <= RAMP_START or s >= RAMP_END: return 0.
+        if s < RAMP_FULL: return -RAMP_RATE*(s-RAMP_START)/(RAMP_FULL-RAMP_START)
+        if s < RAMP_EASE: return -RAMP_RATE
+        return -RAMP_RATE*(RAMP_END-s)/(RAMP_END-RAMP_EASE)
     t=max(0.,min(1.,s/LENGTH))
     return DROP*(-6*t+6*t*t)/LENGTH
 
@@ -61,21 +82,18 @@ def wire(s, role, branch='low'):
     if role in ('outer','mask'):
         top=90 if role=='mask' else (57.6 if TUNNEL else f+12.85)
         return w.polyline([(-15.9,0),(15.9,0),(15.9,top),(-15.9,top)]).close().val()
-    # Preserve standard mouth size; add running clearance inside the curved, inclined path.
-    # A ball on the 0.65 ramp sits above the nominal floor-based centre and
-    # sweeps across several curved cross sections. R=14 caused 22.8 mm3
-    # of collision near s=20; keep at least 1.1 mm side wall (outer half-width 15.9).
+    # Exact endpoint radius, a wider interior for the inclined sphere envelope.
     distance=min(max(0,s),max(0,LENGTH-s))
     blend=min(1.,distance/5.)
-    rad=BALL_TRACK.radius+(14.8-BALL_TRACK.radius)*blend
+    rad=BALL_TRACK.radius+(14.7-BALL_TRACK.radius)*blend
     c=f+rad
     a=rad/math.sqrt(2)
     if not TUNNEL:
         return (w.moveTo(-rad,c).threePointArc((0,f),(rad,c))
                 .lineTo(rad,95).lineTo(-rad,95).close().val())
-    # Keep the inlet's original roof so it fits beneath the top plate.
-    # Increase only the low ramp roof: its rising sphere envelope touched
-    # the steeply tapering upper walls even though the section at the floor fit.
+    # Printable pointed roof; circular upper half at the mouth transitions in 5mm.
+    # The steep landing needs headroom for an inclined full-size sphere;
+    # preserve the circular mouth and widen only the downstream tunnel roof.
     roof_clearance=33.8 if STEEP and branch=='low' else 30.3
     roof=f+2*BALL_TRACK.radius+(roof_clearance-2*BALL_TRACK.radius)*blend
     return (w.moveTo(-a,c+a).threePointArc((0,f),(a,c+a))
@@ -85,7 +103,7 @@ def wire(s, role, branch='low'):
 def stations(a=-.3,b=None):
     if b is None: b=LENGTH+.3
     vals=[a,b]+[i*LENGTH/64 for i in range(65) if a<i*LENGTH/64<b]
-    vals += [v for v in (0,1,3,5,12,27,32,LENGTH-5,LENGTH-3,LENGTH-1,LENGTH) if a<v<b]
+    vals += [v for v in (0,1,3,5,RAMP_START,RAMP_FULL,RAMP_EASE,RAMP_END,LENGTH-5,LENGTH-3,LENGTH-1,LENGTH) if a<v<b]
     return sorted(set(vals))
 
 
@@ -100,63 +118,55 @@ def build_part(label=PART_ID):
     mask=loft('mask').intersect(clip)
     outer=loft('outer').intersect(clip)
     body=receiver(p,cq.Workplane(obj=outer),DEPTH,0).val().clean()
-    print('stage receiver', body.isValid(),len(body.Solids()),flush=True)
     # Reject unsupported near-tangent tube slivers; use complete and useful clipped rings.
     body=body.intersect(mask).clean()
     if STEEP:
-        # Do not fuse intersecting ruled lofts, cylinder, and cone before
-        # subtraction: the fused cutting BRep caused invalid seam topology.
-        # The first two cuts reproduce the previously valid tunnel body.
-        high=loft('passage',-.3,12.2,'high')
-        low=loft('passage',11.8,LENGTH+.3,'low')
-        x,y,_,_=xy(12)
-        # A falling sphere also occupies the LOWER half of the chamber.
-        # Starting the cylinder at floor+14 left a solid obstruction beneath
-        # the ball immediately after the drop (CI collision >1400 mm^3).
-        chamber_bottom=height(12,'low')-.5
-        chamber=cq.Solid.makeCylinder(14.,43.5-chamber_bottom,
-                                      cq.Vector(x,y,chamber_bottom))
-        chamber_roof=cq.Solid.makeCone(14.,0.,12.3,cq.Vector(x,y,43.5))
-        body=body.cut(high).cut(low).clean()
-        print('stage after paired loft cuts',body.isValid(),len(body.Solids()),flush=True)
-        body=body.cut(chamber).clean()
-        print('stage after cylinder cut',body.isValid(),len(body.Solids()),flush=True)
-        body=body.cut(chamber_roof).clean()
-        print('stage after conical roof cut',body.isValid(),len(body.Solids()),flush=True)
+        # The fall chamber must be subtracted from the actual brick. Merely
+        # constructing/fusing a cutter without using it leaves a solid wall
+        # between the upper inlet and the lower outlet (CI sphere-path failure).
+        # Apply overlapping cuts separately; fusing the intersecting lofts,
+        # cylinder and cone into one BRep can create invalid seam topology.
+        high = loft('passage', -.3, 12.2, 'high')
+        low = loft('passage', 11.8, LENGTH + .3, 'low')
+        x, y, _, _ = xy(12)
+        chamber_bottom = height(12, 'low') - .5
+        chamber = cq.Solid.makeCylinder(
+            14., 43.5 - chamber_bottom, cq.Vector(x, y, chamber_bottom))
+        chamber_roof = cq.Solid.makeCone(
+            14., 0., 12.3, cq.Vector(x, y, 43.5))
+        body = body.cut(high).cut(low).clean()
+        body = body.cut(chamber).clean()
+        body = body.cut(chamber_roof).clean()
     else:
-        body=body.cut(loft('passage')).clean()
+        body = body.cut(loft('passage')).clean()
     if STEEP: body=body.fix().clean()
-    print('stage after fix',body.isValid(),len(body.Solids()),flush=True)
     full=[]
     for x,y in p.tubes():
         if all(mask.isInside(cq.Vector(x+6.85*math.cos(a),y+6.85*math.sin(a),2)) for a in [i*math.pi/4 for i in range(8)]):full.append((x,y))
     if full: body=add_e31_05_receiver_features(body,full,p.tube_radius)
-    print('stage after E31',body.isValid(),len(body.Solids()),flush=True)
     if TUNNEL:
-        studs=make_studs(p.studs(),57.45,p.stud_radius,p.stud_inner_radius,4.65,.5).val().intersect(mask)
-        body=body.fuse(studs).clean()
-        print('stage after studs',body.isValid(),len(body.Solids()),flush=True)
+        # Preserve trimmed hollow studs and their 0.15 mm rooted overlap.
+        # Only omit tiny disconnected fragments or floating cantilevers.
+        candidates = make_studs(
+            p.studs(), 57.45, p.stud_radius, p.stud_inner_radius, 4.65, .5
+        ).val().intersect(mask)
+        rooted = []
+        for fragment in candidates.Solids():
+            if fragment.Volume() >= 3.0 and body.intersect(fragment).Volume() >= .20:
+                rooted.append(fragment)
+        if not rooted:
+            raise ValueError('No rooted footprint-clipped studs')
+        for fragment in rooted:
+            body = body.fuse(fragment).clean()
+        if not body.isValid() or len(body.Solids()) != 1:
+            raise ValueError('Footprint-clipped studs disconnected from roof')
     # Mark below the running floor, on the inlet face; avoids mating contact below 4.75.
     x,y,_,_=xy(0)
     if MIRROR:
         body=body.mirror('XZ');y=-y
-    # Keep the mark on the solid west inlet wall, not in the shallow
-    # underside receiver band (the tiny V3 letters did not create enough
-    # valid recessed volume after the chamber was opened).
-    # Diagnose a rejected engraving without confusing a bad BRep with a
-    # placement or letter-size issue.
-    try:
-        body=engrave_west(body,label,x=-p.width/2,y=y,z=12.,size=2.,depth=.45)
-    except ValueError as exc:
-        pl=cq.Plane(origin=(-p.width/2+.45,y,12.),xDir=(0,-1,0),normal=(-1,0,0))
-        cutter=(cq.Workplane(pl).text(label,2.,.50,
-                  font='DejaVu Sans',kind='bold',combine=False).val())
-        cut=body.cut(cutter).clean()
-        raise ValueError(
-            f'{exc}; pre=(valid={body.isValid()},solids={len(body.Solids())},'
-            f'volume={body.Volume():.3f}); post=(valid={cut.isValid()},'
-            f'solids={len(cut.Solids())},delta={body.Volume()-cut.Volume():.3f})'
-        ) from exc
+    # Move the readable recess above the receiver contact band, still below
+    # the high inlet; engrave_west fails if the mark misses the actual wall.
+    body=engrave_west(body,label,x=-p.width/2,y=y,z=12.,size=2.,depth=.45)
     if not body.isValid() or len(body.Solids())!=1:raise ValueError('Expected one valid connected solid')
     return body,p
 
@@ -164,18 +174,23 @@ def build_part(label=PART_ID):
 def path():
     def point(s,branch='low'):
         x,y,_,_=xy(s)
+        radius=BALL/2
+        # The exit ramp is curved, so a local slanted-plane tangent cannot
+        # model clearance against the upstream floor under the same sphere.
+        z=height(s,branch)+radius*math.sqrt(1+slope(s,branch)**2)
         if STEEP and branch=='low':
-            # A ball cannot jump down by 2.3mm at the sharp ramp-to-flat
-            # corner: its trailing contact remains on the inclined floor.
-            # Envelope of contact with the extended 0.65 slope and flat exit.
-            ramp_contact=FLOOR+.65*(27-s)+(BALL/2)*math.sqrt(1+.65**2)
-            flat_contact=FLOOR+BALL/2
-            z=max(ramp_contact,flat_contact)+.5
-        else:
-            z=height(s,branch)+BALL/2+.5
-        return cq.Vector(x,-y if MIRROR else y,z)
+            a=max(12.,s-radius-1.)
+            b=min(LENGTH,s+radius+1.)
+            if b>a:
+                for i in range(129):
+                    t=a+(b-a)*i/128
+                    xx,yy,_,_=xy(t)
+                    span2=(xx-x)**2+(yy-y)**2
+                    if span2<radius*radius:
+                        z=max(z,height(t,'low')+math.sqrt(radius*radius-span2))
+        return cq.Vector(x,-y if MIRROR else y,z+.5)
     if not STEEP:return [point(s) for s in stations(0,LENGTH)]
-    return [point(s,'high') for s in stations(0,12)]+[point(s) for s in stations(12,LENGTH)]
+    return [point(s,'high') for s in stations(0,12)] + [point(s) for s in stations(12,LENGTH)]
 
 
 def ports():
@@ -196,23 +211,20 @@ def verify(shape,p):
     for a,b in zip(pts,pts[1:]):
         v=b-a
         segment_errors.append(intersection(shape,cq.Solid.makeCylinder(r,v.Length,a,v.normalized())))
-    if max(sphere_errors+segment_errors) >= VOLUME_TOL:
-        worst_s=sorted(enumerate(sphere_errors),key=lambda it:it[1],reverse=True)[:6]
-        worst_e=sorted(enumerate(segment_errors),key=lambda it:it[1],reverse=True)[:6]
-        print('sphere collision idx/mm3/center',[(i,round(v,3),pts[i].toTuple()) for i,v in worst_s],flush=True)
-        print('segment collision idx/mm3/start/end',[(i,round(v,3),pts[i].toTuple(),pts[i+1].toTuple()) for i,v in worst_e],flush=True)
-        for i,v in worst_s[:3]:
-            overlap=shape.intersect(cq.Solid.makeSphere(r,pts[i],angleDegrees1=-90))
-            bb=overlap.BoundingBox()
-            print('overlap bounding mm',i,'vol',round(v,3),
-                  'x',round(bb.xmin,3),round(bb.xmax,3),
-                  'y',round(bb.ymin,3),round(bb.ymax,3),
-                  'z',round(bb.zmin,3),round(bb.zmax,3),flush=True)
     mid=pts[len(pts)//2]
     negative=intersection(shape,cq.Solid.makeSphere(r,mid-cq.Vector(0,0,3),angleDegrees1=-90))
+    # S01/S02 regression: explicitly inspect the landing floor under the
+    # fall chamber, not just the nominal ball-path intersection.
+    chamber_x,chamber_y,_,_=xy(12.)
+    landing_floor=shape.isInside(cq.Vector(
+        chamber_x,-chamber_y if MIRROR else chamber_y,
+        height(12.,'low')-1.))
+    oversized=intersection(shape,cq.Solid.makeSphere(14.,mid,angleDegrees1=-90))
     checks=dict(valid_brep=shape.isValid(),one_solid=len(shape.Solids())==1,
         continuous_sphere_path_clear=max(sphere_errors+segment_errors)<VOLUME_TOL,
         lowered_ball_detected=negative>VOLUME_TOL,
+        oversized_ball_blocked=oversized>VOLUME_TOL,
+        landing_floor_present=landing_floor,
         drop_matches_grid=abs(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2]-DROP)<1e-6,
         receiver_depth=abs(FLOOR-DEPTH-1.6)<1e-6,
         full_roof=(not TUNNEL or all(shape.isInside(cq.Vector(x,-y if MIRROR else y,57.5)) for x,y,_,_ in [xy(LENGTH*t) for t in (.1,.3,.5,.7,.9)])),
