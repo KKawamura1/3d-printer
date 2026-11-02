@@ -190,6 +190,7 @@ class DeclarativeCourseVersionTests(unittest.TestCase):
             engine.mkdir(parents=True)
             name = "experiments/course_test"
             spec_dict = spec("G01-V1")
+            spec_dict["command"] = ["python", "-m", "brickcad.course_generator"]
             (recipe / "cad-build.json").write_text(json.dumps(spec_dict))
             (recipe / "course.json").write_text('{"id":"G01"}\n')
             (engine / "course_generator.py").write_text("SOURCE = 1\n")
