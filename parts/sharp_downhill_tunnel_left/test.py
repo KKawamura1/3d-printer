@@ -55,19 +55,31 @@ class Geometry(unittest.TestCase):
                 self.assertGreater(intersection(shape, clipped),
                                    .85 * clipped.Volume(), (x, y))
 
-    def test_recessed_version_id_survives_all_unions(self):
-        from parts.sharp_downhill_tunnel_left.design import PART_ID, xy, MIRROR
-        from brickcad.verify import intersection
+    def test_visible_side_engraving_is_print_sized(self):
+        # A successful microscopic CAD cut does not imply a printable label.
+        from parts.sharp_downhill_tunnel_left.design import (
+            PART_ID, LABEL_X, LABEL_Z, LABEL_SIZE, LABEL_DEPTH
+        )
+        from pathlib import Path
+        import json
+        spec = json.loads((Path(__file__).parent / 'cad-build.json').read_text())
+        self.assertEqual(PART_ID,spec['version'])
+        self.assertGreaterEqual(LABEL_SIZE,4.0)
+        self.assertGreaterEqual(LABEL_DEPTH,.5)
+        self.assertGreater(LABEL_Z-LABEL_SIZE/2,6.35)
         shape,p=build_part()
-        _,y,_,_=xy(0)
-        if MIRROR:
-            y=-y
-        plane=cq.Plane(origin=(-p.width/2+0.3,y,5.55),
-                       xDir=(0,-1,0),normal=(-1,0,0))
-        cutter=(cq.Workplane(plane).text(
-            PART_ID,1.1,0.35,font='DejaVu Sans',
-            kind='bold',combine=False).val())
-        self.assertLess(intersection(shape,cutter),.10)
+        # XZ's normal faces -Y, so the cutter must cross the outside wall.
+        tool=(cq.Workplane('XZ',origin=(LABEL_X,-p.depth/2+LABEL_DEPTH,LABEL_Z))
+              .text(PART_ID,LABEL_SIZE,LABEL_DEPTH+.05,
+                    font='DejaVu Sans',kind='bold',combine=False).val())
+        bb=tool.BoundingBox()
+        self.assertGreater(bb.xmin,-p.width/2+2)
+        self.assertLess(bb.xmax,-2)
+        self.assertLessEqual(bb.ymin,-p.depth/2)
+        self.assertGreater(bb.ymax,-p.depth/2)
+        self.assertGreater(tool.Volume(),12.)
+        self.assertLess(intersection(shape,tool),.10)
+
 
     def test_port_drop(self):
         self.assertAlmostEqual(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2],DROP)
