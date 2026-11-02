@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SG02-V7'
+PART_ID = 'SG02-V8'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = True
@@ -145,9 +145,21 @@ def build_part(label=PART_ID):
         if all(mask.isInside(cq.Vector(x+6.85*math.cos(a),y+6.85*math.sin(a),2)) for a in [i*math.pi/4 for i in range(8)]):full.append((x,y))
     if full: body=add_e31_05_receiver_features(body,full,p.tube_radius)
     if TUNNEL:
-        studs=make_studs(p.studs(),57.45,p.stud_radius,p.stud_inner_radius,4.65,.5).val().intersect(mask)
-        body=body.fuse(studs).clean()
-        if STEEP: print('stud body valid',body.isValid(),flush=True)
+        # Preserve trimmed hollow studs and their 0.15 mm rooted overlap.
+        # Only omit tiny disconnected fragments or floating cantilevers.
+        candidates = make_studs(
+            p.studs(), 57.45, p.stud_radius, p.stud_inner_radius, 4.65, .5
+        ).val().intersect(mask)
+        rooted = []
+        for fragment in candidates.Solids():
+            if fragment.Volume() >= 3.0 and body.intersect(fragment).Volume() >= .20:
+                rooted.append(fragment)
+        if not rooted:
+            raise ValueError('No rooted footprint-clipped studs')
+        for fragment in rooted:
+            body = body.fuse(fragment).clean()
+        if not body.isValid() or len(body.Solids()) != 1:
+            raise ValueError('Footprint-clipped studs disconnected from roof')
     # Mark below the running floor, on the inlet face; avoids mating contact below 4.75.
     x,y,_,_=xy(0)
     if MIRROR:
