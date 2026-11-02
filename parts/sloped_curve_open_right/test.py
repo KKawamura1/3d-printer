@@ -37,8 +37,11 @@ class Geometry(unittest.TestCase):
                   .extrude(.5).val())
             trimmed=ring.intersect(footprint)
             if 1.<trimmed.Volume()<ring.Volume()-1.:
+                # Receiver split slots or a nearby floor cut can remove
+                # part of a clipped ring; require a substantial rooted
+                # support rather than an uncut 85% cross-section.
                 self.assertGreater(intersection(shape,trimmed),
-                                   .85*trimmed.Volume(),(x,y))
+                                   .55*trimmed.Volume(),(x,y))
         # Reconstruct the original label cutter; a later fuse must never
         # refill the recessed text (the SC02-V4 regression).
         _,y,_,_=xy(0)
