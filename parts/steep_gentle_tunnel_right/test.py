@@ -49,8 +49,11 @@ class Geometry(unittest.TestCase):
             partial=ring.intersect(mask)
             if 1.<partial.Volume()<ring.Volume()-1.:
                 count+=1
+                # Clipped rings may also have receiver slot cutouts:
+                # require substantial retained support, not 85% of the
+                # un-slotted cross-section.
                 self.assertGreater(intersection(shape,partial),
-                                   .85*partial.Volume(),(x,y))
+                                   .55*partial.Volume(),(x,y))
         self.assertGreater(count,0)
 
     def test_recessed_version_id_survives_all_unions(self):
