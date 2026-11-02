@@ -12,7 +12,7 @@ from pathlib import Path
 
 from brickcad.course_downhill import build_course, export_course
 
-_ID = re.compile(r"^D[0-9]{2}$")
+_ID = re.compile(r"^[DW][0-9]{2}$")
 _VERSION = re.compile(r"^V[1-9][0-9]*$")
 
 
@@ -21,7 +21,7 @@ def validate_spec(spec):
             "id", "version", "geometry", "enclosure", "connection"}:
         raise ValueError("Expected id, version, geometry, enclosure and connection")
     if not isinstance(spec["id"], str) or not _ID.fullmatch(spec["id"]):
-        raise ValueError("Course ID must be D followed by two digits")
+        raise ValueError("Course ID must be D or W followed by two digits")
     if not isinstance(spec["version"], str) or not _VERSION.fullmatch(spec["version"]):
         raise ValueError("Course version must be V followed by positive integer")
     if spec["geometry"] != {

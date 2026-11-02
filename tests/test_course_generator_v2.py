@@ -5,13 +5,13 @@ from pathlib import Path
 import unittest
 from brickcad.course_generator_v2 import validate_spec, load_spec
 
-PATH = Path(__file__).resolve().parents[1]/"experiments/course_windows_d02/course.json"
+PATH = Path(__file__).resolve().parents[1]/"experiments/course_windows_w01/course.json"
 
 
 class ConfigurableDownhillSchemaTests(unittest.TestCase):
     def test_valid_recipe(self):
         spec = load_spec(PATH)
-        self.assertEqual(spec["id"]+"-"+spec["version"], "D02-V1")
+        self.assertEqual(spec["id"]+"-"+spec["version"], "W01-V1")
         self.assertEqual(len(spec["enclosure"]["windows"]), 2)
 
     def test_window_variations_supported(self):

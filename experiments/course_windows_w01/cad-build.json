@@ -1,12 +1,12 @@
 {
-  "version": "D02-V1",
+  "version": "W01-V1",
   "auto": true,
   "command": [
     "python",
     "-m",
     "brickcad.course_generator_v2",
     "--config",
-    "experiments/course_windows_d02/course.json",
+    "experiments/course_windows_w01/course.json",
     "--out",
     "{out}"
   ],

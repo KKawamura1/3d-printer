@@ -386,6 +386,13 @@ def build(root, specs, requested, previews=False):
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, dst)
             shutil.copyfile(source.parent / 'report.json', dst.parent / 'report.json')
+            # The per-recipe provenance manifest must ship with its STL;
+            # it was previously left only in the runner's build directory.
+            course_meta = source.parent / 'course-manifest.json'
+            if course_meta.is_file():
+                shutil.copyfile(course_meta, dst.parent / 'course-manifest.json')
+                manifest['versions'][name]['course_manifest_sha256'] = (
+                    hashlib.sha256(course_meta.read_bytes()).hexdigest())
             key = str(Path(name) / version / rel)
             manifest['files'][key] = verify_stl(dst)
             snapshot_rel = Path(rel).with_suffix('.preview.png')

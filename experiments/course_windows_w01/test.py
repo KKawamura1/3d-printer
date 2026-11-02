@@ -1,4 +1,4 @@
-"""Validate configurable D02, and compare old D01 to its new CAD composition."""
+"""Validate configurable W01, and compare old D01 to its new CAD composition."""
 import copy
 import unittest
 
