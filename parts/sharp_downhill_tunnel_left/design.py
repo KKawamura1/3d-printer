@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SD04-V3'
+PART_ID = 'SD04-V4'
 KIND = 'sharp'
 DROP = 19.2
 TUNNEL = True
@@ -61,19 +61,32 @@ def wire(s, role, branch='low'):
     if role in ('outer','mask'):
         top=90 if role=='mask' else (57.6 if TUNNEL else f+12.85)
         return w.polyline([(-15.9,0),(15.9,0),(15.9,top),(-15.9,top)]).close().val()
-    # Exact endpoint radius, a wider interior for the inclined sphere envelope.
-    distance=min(max(0,s),max(0,LENGTH-s))
-    blend=min(1.,distance/5.)
+    # Match main's T01/D01 circular mouths: a 1 mm circular lip followed
+    # by a smooth four-millimetre transition to a printable raised roof.
+    # Both entry and exit must remain genuinely circular, not just a
+    # semicircular floor under two straight, pointed roof edges.
+    distance=min(max(0.,s),max(0.,LENGTH-s))
+    u=max(0.,min(1.,(distance-1.)/4.))
+    blend=min(.995,3*u*u-2*u*u*u)
     rad=BALL_TRACK.radius+(14.-BALL_TRACK.radius)*blend
     c=f+rad
     a=rad/math.sqrt(2)
     if not TUNNEL:
         return (w.moveTo(-rad,c).threePointArc((0,f),(rad,c))
                 .lineTo(rad,95).lineTo(-rad,95).close().val())
-    # Printable pointed roof; circular upper half at the mouth transitions in 5mm.
     roof=f+2*BALL_TRACK.radius+(30.3-2*BALL_TRACK.radius)*blend
+    bridge=c+math.sqrt(2)*rad-roof
+    def mix(circle,teardrop):
+        return circle*(1-blend)+teardrop*blend
+    end=(mix(rad*math.cos(math.radians(75)),bridge),
+         mix(c+rad*math.sin(math.radians(75)),roof))
+    mid=(mix(rad*.5,(a+bridge)/2),
+         mix(c+rad*math.sqrt(3)/2,(c+a+roof)/2))
+    apex=(0,mix(c+rad,roof))
     return (w.moveTo(-a,c+a).threePointArc((0,f),(a,c+a))
-            .lineTo(.4,roof).lineTo(-.4,roof).close().val())
+            .threePointArc(mid,end)
+            .threePointArc(apex,(-end[0],end[1]))
+            .threePointArc((-mid[0],mid[1]),(-a,c+a)).close().val())
 
 
 def stations(a=-.3,b=None):
