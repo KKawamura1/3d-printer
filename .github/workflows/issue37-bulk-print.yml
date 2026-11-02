@@ -19,6 +19,27 @@ jobs:
           python-version: '3.11'
       - name: Install mesh library
         run: python -m pip install numpy==2.3.5
+      - name: Reject pinned artifacts from superseded PR versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          while read -r pr part_id part_dir; do
+            current_sha=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr}" --jq '.head.sha')
+            current_version=$(gh api "repos/${GITHUB_REPOSITORY}/contents/${part_dir}/cad-build.json?ref=${current_sha}" --jq '.content' | base64 --decode | python -c 'import sys,json; print(json.load(sys.stdin)["version"])')
+            if [[ "${current_version}" != "${part_id}" ]]; then
+              echo "STALE: PR #${pr} is ${current_version}; plate pinned ${part_id}. Update sources.json and regenerate." >&2
+              exit 1
+            fi
+          done < <(python - <<'PY'
+          import json
+          from pathlib import PurePosixPath
+          for it in json.load(open('experiments/issue37_bulk_print/sources.json'))['items']:
+              path = PurePosixPath(it['path'])
+              print(it['pr'], it['id'], path.parent.parent)
+          PY
+          )
       - name: Fetch pinned successful STL artifacts (fail closed)
         env:
           GH_TOKEN: ${{ github.token }}
