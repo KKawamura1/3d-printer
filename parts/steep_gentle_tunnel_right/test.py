@@ -35,6 +35,7 @@ class Geometry(unittest.TestCase):
             self.assertAlmostEqual(slope(s-1e-6),slope(s+1e-6),delta=1e-5)
 
     def test_partial_lower_tubes_remain(self):
+        from brickcad.verify import intersection
         from parts.steep_gentle_tunnel_right.design import loft
         shape,p=build_part()
         clip=cq.Workplane('XY').box(p.width,p.depth,100,
