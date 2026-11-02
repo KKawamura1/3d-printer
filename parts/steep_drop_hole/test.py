@@ -1,4 +1,4 @@
-"""Targeted S01-V4 roofed steep-drop CAD tests; no slicing/dynamics guarantee."""
+"""Targeted S01-V6 roofed steep-drop CAD tests; no slicing/dynamics guarantee."""
 import unittest
 import cadquery as cq
 from brickcad.ports import mate, straight_ports
@@ -17,7 +17,7 @@ class SteepDropHoleTests(unittest.TestCase):
         cls.shape, cls.p = build_steep_drop(cls.d)
 
     def test_dimensions_and_enclosed_roof(self):
-        self.assertEqual(PART_ID, "S01-V4")
+        self.assertEqual(PART_ID, "S01-V6")
         self.assertEqual((self.p.nx, self.p.ny), (2, 2))
         self.assertAlmostEqual(self.p.height, 57.6)
         self.assertTrue(self.shape.isValid())
