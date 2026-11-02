@@ -1,0 +1,23 @@
+{
+  "id": "X01",
+  "version": "V1",
+  "geometry": {
+    "kind": "roofed_steep_drop",
+    "size": [
+      2,
+      2,
+      3
+    ],
+    "height_change": -1,
+    "entry": "west",
+    "exit": "east",
+    "ramp_grade": 0.65
+  },
+  "enclosure": {
+    "kind": "tunnel",
+    "windows": []
+  },
+  "connection": {
+    "profile": "E31-05"
+  }
+}

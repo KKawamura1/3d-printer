@@ -100,10 +100,14 @@ def model_sources(root, name):
         # historical replays immutable when the v2 engine grows new features.
         cfg = root / name / 'cad-build.json'
         cmd = json.loads(cfg.read_text()).get('command', []) if cfg.is_file() else []
-        module = ('brickcad.course_generator_v2'
-                  if 'brickcad.course_generator_v2' in cmd
-                  else 'brickcad.course_generator')
-        sources |= imports_for(module.replace('.', '/') + '.py', root)
+        engines = [c for c in cmd if isinstance(c, str) and
+                   c.startswith('brickcad.course_')]
+        if len(engines) != 1:
+            raise ValueError(f'{name}: exactly one supported course engine required')
+        engine = engines[0].replace('.', '/') + '.py'
+        if not (root / engine).is_file():
+            raise ValueError(f'{name}: missing course generator {engine}')
+        sources |= imports_for(engine, root)
         sources.add(name + '/course.json')
     return sources
 
