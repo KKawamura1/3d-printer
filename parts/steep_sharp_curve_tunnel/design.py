@@ -1,4 +1,4 @@
-"""S02-V10: enclosed 2x2x3 right-turn drop tunnel with a gentle exit.
+"""S02-V11: enclosed 2x2x3 right-turn drop tunnel with a gentle exit.
 
 Uses PR36's west-to-south ports and PR38 S01-V6's roofed shaft with a
 1:4 (~14-degree) southward exit ramp. A complete R16 arc does not coexist
@@ -23,7 +23,7 @@ from parts.sharp_curve.design import SharpCurve
 from parts.steep_drop_hole.design import SteepDrop, ramp_normal_clearance
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "S02-V10"
+PART_ID = "S02-V11"
 SOURCE_CURVE_ID = "C01-V5"
 SOURCE_DROP_ID = "S01-V6"
 SHAFT_X = 0.0
@@ -64,9 +64,9 @@ def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), curve=SharpCurve(),
     if abs(d.shaft_x - SHAFT_X) > 1e-8:
         raise ValueError("S02 must use its central landing shaft")
     if not 0. < d.ramp_grade <= .35 or d.ramp_end_x != 13.:
-        raise ValueError("S02-V10 requires the gentle S01-V6 exit")
+        raise ValueError("S02-V11 requires the gentle S01-V6 exit")
     if abs(d.ramp_grade - .25) > 1e-8:
-        raise ValueError("S02-V10 uses the S01-V6 1:4 (14-degree) ramp")
+        raise ValueError("S02-V11 uses the S01-V6 1:4 (14-degree) ramp")
     if d.ramp_grade * (d.ramp_end_x + 15.) > 10.:
         raise ValueError("Run-out would approach the high entrance floor")
     if d.low_floor - d.receiver_depth < 1.6 - 1e-6:
