@@ -96,7 +96,14 @@ def model_sources(root, name):
     """Old CAD entrypoints and new declarative course recipes share immutability rules."""
     sources = imports_for(name + '/design.py', root)
     if (root / name / 'course.json').is_file():
-        sources |= imports_for('brickcad/course_generator.py', root)
+        # An engine revision is part of CAD geometry provenance. Keep v1
+        # historical replays immutable when the v2 engine grows new features.
+        cfg = root / name / 'cad-build.json'
+        cmd = json.loads(cfg.read_text()).get('command', []) if cfg.is_file() else []
+        module = ('brickcad.course_generator_v2'
+                  if 'brickcad.course_generator_v2' in cmd
+                  else 'brickcad.course_generator')
+        sources |= imports_for(module.replace('.', '/') + '.py', root)
         sources.add(name + '/course.json')
     return sources
 

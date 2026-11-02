@@ -212,6 +212,31 @@ class DeclarativeCourseVersionTests(unittest.TestCase):
                                         changed=[name + '/course.json'], root=root), [name])
 
 
+
+class MultipleCourseEngineFingerprintTests(unittest.TestCase):
+    def test_v2_changes_do_not_invalidate_v1_geometry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            engine = root / 'brickcad'
+            engine.mkdir()
+            (engine / 'course_generator.py').write_text('OLD = 1\n')
+            (engine / 'course_generator_v2.py').write_text('NEW = 1\n')
+            for name, engine_name in (
+                    ('experiments/old', 'brickcad.course_generator'),
+                    ('experiments/new', 'brickcad.course_generator_v2')):
+                part = root / name
+                part.mkdir(parents=True)
+                (part / 'course.json').write_text('{"id":"D01"}\n')
+                (part / 'cad-build.json').write_text(json.dumps({
+                    'version':'D01-V1', 'command':['python','-m',engine_name],
+                    'stl':['brick.stl']}))
+            old = cad.source_fingerprint(root,'experiments/old')
+            new = cad.source_fingerprint(root,'experiments/new')
+            (engine/'course_generator_v2.py').write_text('NEW = 2\n')
+            self.assertEqual(old,cad.source_fingerprint(root,'experiments/old'))
+            self.assertNotEqual(new,cad.source_fingerprint(root,'experiments/new'))
+
+
 class SnapshotArtifactTests(unittest.TestCase):
     def test_preview_created_once_and_reused_for_cached_stl(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -1,0 +1,33 @@
+{
+  "id": "D02",
+  "version": "V1",
+  "geometry": {
+    "kind": "straight_downhill_tunnel",
+    "size": [
+      4,
+      2,
+      3
+    ],
+    "height_change": -1,
+    "entry": "west",
+    "exit": "east"
+  },
+  "enclosure": {
+    "kind": "tunnel",
+    "windows": [
+      {
+        "side": "south",
+        "x_mm": -12,
+        "width_mm": 8
+      },
+      {
+        "side": "south",
+        "x_mm": 12,
+        "width_mm": 8
+      }
+    ]
+  },
+  "connection": {
+    "profile": "E31-05"
+  }
+}

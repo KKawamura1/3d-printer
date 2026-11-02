@@ -1,0 +1,18 @@
+{
+  "version": "D02-V1",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "brickcad.course_generator_v2",
+    "--config",
+    "experiments/course_windows_d02/course.json",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "Issue #39 phase 2: parametrized D01-derived windowed downhill tunnel; physical print unverified"
+}
