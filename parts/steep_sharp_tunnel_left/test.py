@@ -40,8 +40,10 @@ class MirroredSteepSharpTunnelTests(unittest.TestCase):
 
     def test_ports_connect_and_hole_stays_circular(self):
         high, low = ports(self.d)
-        self.assertEqual(high.floor_xyz_mm, (-16., 0., 25.55))
-        self.assertEqual(low.floor_xyz_mm, (0., 16., 6.35))
+        for observed, expected in zip(high.floor_xyz_mm, (-16., 0., 25.55)):
+            self.assertAlmostEqual(observed, expected)
+        for observed, expected in zip(low.floor_xyz_mm, (0., 16., 6.35)):
+            self.assertAlmostEqual(observed, expected)
         self.assertEqual(low.outward, (0., 1., 0.))
         west, east = straight_ports(2, BALL_TRACK.floor, BALL_TRACK.radius)
         self.assertTrue(mate(east.placed((-32., 0., DUPLO.height)),
