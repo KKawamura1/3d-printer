@@ -1,4 +1,4 @@
-"""S02-V8: check the two-source 90-degree steep drop tunnel."""
+"""S02-V9: check the right-turn gentle exit from S01-V6."""
 import unittest
 import cadquery as cq
 
@@ -8,6 +8,7 @@ from brickcad.verify import VOLUME_TOL, intersection
 from parts.steep_sharp_curve_tunnel.design import (
     PART_ID, SOURCE_CURVE_ID, SOURCE_DROP_ID, SHAFT_X,
     build_tunnel, ball_path_collisions, swept_ball_path_collisions, ports,
+    circular_mouth_checks,
 )
 from parts.steep_drop_hole.design import SteepDrop
 
@@ -20,7 +21,7 @@ class SteepSharpCurveTunnelTests(unittest.TestCase):
 
     def test_grid_roof_studs_and_revision(self):
         self.assertEqual((PART_ID, SOURCE_CURVE_ID, SOURCE_DROP_ID),
-                         ("S02-V8", "C01-V5", "S01-V5"))
+                         ("S02-V9", "C01-V5", "S01-V6"))
         self.assertEqual((self.p.nx, self.p.ny), (2, 2))
         self.assertAlmostEqual(self.p.height, 3 * DUPLO.height)
         self.assertTrue(self.shape.isValid())
@@ -61,23 +62,23 @@ class SteepSharpCurveTunnelTests(unittest.TestCase):
         self.assertLess(max(swept_ball_path_collisions(self.shape, self.d)),
                         VOLUME_TOL)
 
-    def test_steep_ramp_matches_s01_v5(self):
-        # The source part is 33 degrees; the 2x2 rotated exit has a
-        # 13mm run-out from the centered shaft (8.45mm vertical change).
+    def test_gentle_ramp_matches_s01_v6(self):
         d = self.d
-        self.assertAlmostEqual(d.ramp_grade, .65)
-        self.assertAlmostEqual(d.ramp_grade * (d.ramp_end_x - SHAFT_X), 8.45)
-        self.assertAlmostEqual(
-            d.drop - d.ramp_grade * (d.ramp_end_x - d.ramp_start_x), 1.)
-        self.assertTrue(self.shape.isInside(
-            cq.Vector(0, 0, d.low_floor + 1.)))
+        self.assertAlmostEqual(d.ramp_grade, .25)
+        self.assertAlmostEqual(d.ramp_end_x, 13.)
+        self.assertAlmostEqual(d.ramp_grade * (d.ramp_end_x - SHAFT_X), 3.25)
+        self.assertAlmostEqual(d.drop - d.ramp_grade * (d.ramp_end_x + 15.), 12.2)
+        self.assertTrue(self.shape.isInside(cq.Vector(0., 0., d.low_floor + 1.)))
         self.assertFalse(self.shape.isInside(
-            cq.Vector(0, 0, d.low_floor + 8.45 + 1.)))
+            cq.Vector(0., 0., d.low_floor + 3.25 + 1.)))
         self.assertFalse(self.shape.isInside(
-            cq.Vector(0, -d.ramp_end_x, d.low_floor + .2)))
-        # Validate the whole ball on both the steep slope and its transition.
+            cq.Vector(0., -d.ramp_end_x, d.low_floor + .2)))
         self.assertLess(max(swept_ball_path_collisions(self.shape, d)),
                         VOLUME_TOL)
+
+    def test_both_connecting_mouths_stay_circular(self):
+        # 33-degree S01-V5 broke the visible opening and adjacent track joining.
+        self.assertTrue(all(circular_mouth_checks(self.shape, self.d).values()))
 
     def test_oversized_ball_is_blocked(self):
         oversize = cq.Solid.makeSphere(

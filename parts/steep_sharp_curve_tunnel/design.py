@@ -1,9 +1,9 @@
-"""S02-V8: enclosed 2x2x3 sharp-right-turn steep drop tunnel.
+"""S02-V9: enclosed 2x2x3 right-turn drop tunnel with a gentle exit.
 
-Uses PR36's west-to-south port arrangement and PR38 S01-V5's roofed steep
-drop with a 0.65 southward exit ramp. Because a complete R16 arc cannot
-coexist with the shaft inside 2x2, the lower turn is a descending straight
-run-out, not a true R16 curve. Physical rolling/slicing remain untested.
+Uses PR36's west-to-south ports and PR38 S01-V6's roofed shaft with a
+1:4 (~14-degree) southward exit ramp. A complete R16 arc does not coexist
+with the shaft inside 2x2; the lower run-out turns by 90 degrees.
+Physical rolling and support-free slicing remain untested.
 """
 from dataclasses import asdict, replace
 from pathlib import Path
@@ -23,9 +23,9 @@ from parts.sharp_curve.design import SharpCurve
 from parts.steep_drop_hole.design import SteepDrop, ramp_normal_clearance
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "S02-V8"
+PART_ID = "S02-V9"
 SOURCE_CURVE_ID = "C01-V5"
-SOURCE_DROP_ID = "S01-V5"
+SOURCE_DROP_ID = "S01-V6"
 SHAFT_X = 0.0
 # Preserve the south exit direction without opening an unwanted low west port.
 
@@ -43,7 +43,7 @@ def _engrave_north(shape, label, width):
     plane = cq.Plane(origin=(0., width / 2 - .4, 18.),
                      xDir=(-1, 0, 0), normal=(0, 1, 0))
     text_tool = cq.Workplane(plane).text(
-        label, 2.7, .45, font="DejaVu Sans",
+        label, 3.0, .45, font="DejaVu Sans",
         kind="bold", combine=False).val()
     result = shape.cut(text_tool).clean()
     if not result.isValid() or len(result.Solids()) != 1:
@@ -61,14 +61,14 @@ def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), curve=SharpCurve(),
         raise ValueError("S02 uses exactly one DUPLO course of drop")
     if d.shaft_radius <= BALL_TRACK.ball_diameter / 2:
         raise ValueError("Shaft too narrow for the ball")
-    if not .0 < d.ramp_grade <= .7 or d.ramp_end_x != 13.:
-        raise ValueError("S02-V8 requires a supported S01-V5 steep exit")
-    if abs(d.ramp_grade - .65) > 1e-8:
-        raise ValueError("S02-V8 must use the S01-V5 33-degree ramp")
-    if not -15. <= d.ramp_start_x < d.shaft_x < d.ramp_end_x:
-        raise ValueError("Ramp start must precede the landing and exit")
-    if d.ramp_grade * (d.ramp_end_x - d.ramp_start_x) > d.drop - 1. + 1e-9:
-        raise ValueError("Ramp must preserve at least 1mm below the high entry floor")
+    if abs(d.shaft_x - SHAFT_X) > 1e-8:
+        raise ValueError("S02 must use its central landing shaft")
+    if not 0. < d.ramp_grade <= .35 or d.ramp_end_x != 13.:
+        raise ValueError("S02-V9 requires the gentle S01-V6 exit")
+    if abs(d.ramp_grade - .25) > 1e-8:
+        raise ValueError("S02-V9 uses the S01-V6 1:4 (14-degree) ramp")
+    if d.ramp_grade * (d.ramp_end_x + 15.) > 10.:
+        raise ValueError("Run-out would approach the high entrance floor")
     if d.low_floor - d.receiver_depth < 1.6 - 1e-6:
         raise ValueError("Underside receiver leaves insufficient floor")
     p = replace(brick_from_fit("duplo-e27-play-v1", nx=2, ny=2,
@@ -104,7 +104,7 @@ def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), curve=SharpCurve(),
     # The PR36 right-turn direction is combined with PR38's roofed shaft.
     # Its full R16 toroidal bore cannot be inserted into this 2x2 chamber:
     # it creates an unintended low west opening and non-manifold STL seams.
-    # A steep 0.65 south-facing run-out ramp makes the lower 90-degree turn instead.
+    # A gentle 1:4 south-facing run-out makes the lower 90-degree turn instead.
     lift = ramp_normal_clearance(d)
     landing_z = d.low_centre_z + d.ramp_grade * d.ramp_end_x + lift
     start = cq.Vector(0., 0., landing_z)
@@ -115,15 +115,15 @@ def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), curve=SharpCurve(),
     shape = (body.cut(shaft).cut(cone).cut(high).cut(south)
              .cut(sloped_bore).clean())
 
-    # Rotate S01-V5's inclined landing shelf toward south (negative Y).
-    # Y increases toward the closed north face; exit is south/negative Y.
-    north_start = -d.ramp_start_x
+    # Rotate S01-V6's 1:4 landing shelf toward south (-Y).
+    # Start at north Y=15, stop at south Y=-13 to preserve a round exit.
+    north_start = 15.0
     ramp = (cq.Workplane("YZ")
             .polyline(((north_start, d.low_floor - .2),
                        (-d.ramp_end_x, d.low_floor - .2),
                        (-d.ramp_end_x, d.low_floor),
                        (north_start, d.low_floor +
-                        d.ramp_grade * (d.ramp_end_x - d.ramp_start_x))))
+                        d.ramp_grade * (d.ramp_end_x + north_start))))
             .close().extrude(14., both=True).val())
     shape = shape.fuse(ramp).clean()
     shape = add_e31_05_receiver_features(shape, p.tubes(), p.tube_radius)
@@ -179,6 +179,32 @@ def swept_ball_path_collisions(shape, d=SteepDrop(shaft_x=SHAFT_X)):
     return swept
 
 
+def circular_mouth_checks(shape, d):
+    """Check both connecting port cross-sections against PR38's 16-angle test."""
+    r = d.section_radius
+    checks = {}
+    for mouth in ("high_west", "low_south"):
+        clear, rim = True, True
+        for i in range(16):
+            theta = 2. * math.pi * i / 16
+            lat, vert = math.cos(theta), math.sin(theta)
+            if mouth == "high_west":
+                inside = cq.Vector(-15.5, (r - .3) * lat,
+                                   d.high_centre_z + (r - .3) * vert)
+                outside = cq.Vector(-15.5, (r + .3) * lat,
+                                    d.high_centre_z + (r + .3) * vert)
+            else:
+                inside = cq.Vector((r - .3) * lat, -15.5,
+                                   d.low_centre_z + (r - .3) * vert)
+                outside = cq.Vector((r + .3) * lat, -15.5,
+                                    d.low_centre_z + (r + .3) * vert)
+            clear = clear and not shape.isInside(inside)
+            rim = rim and shape.isInside(outside)
+        checks[f"{mouth}_circular_bore"] = clear
+        checks[f"{mouth}_circular_rim"] = rim
+    return checks
+
+
 def _remove_collapsed_triangles(stl):
     raw = stl.read_bytes()
     kept = []
@@ -227,11 +253,11 @@ def export(out=Path("build/steep-sharp-curve-tunnel")):
         one_course_drop=(abs(ports(d)[0].floor_xyz_mm[2]
                              - ports(d)[1].floor_xyz_mm[2]
                              - DUPLO.height) < 1e-6),
-        ramp_grade_matches_s01_v5=abs(d.ramp_grade - .65) < 1e-8,
+        ramp_grade_matches_s01_v6=abs(d.ramp_grade - .25) < 1e-8,
         landing_to_runout_drop=abs(
-            d.ramp_grade * (d.ramp_end_x - d.shaft_x) - 8.45) < 1e-7,
+            d.ramp_grade * (d.ramp_end_x - d.shaft_x) - 3.25) < 1e-7,
         high_inlet_floor_margin=(
-            d.drop - d.ramp_grade * (d.ramp_end_x - d.ramp_start_x) >= 1. - 1e-8),
+            d.drop - d.ramp_grade * (d.ramp_end_x + 15.) >= 1. - 1e-8),
         downhill_floor_at_landing=shape.isInside(
             cq.Vector(0., 0., d.low_floor + 1.)),
         downhill_headroom_at_landing=not shape.isInside(cq.Vector(
@@ -239,6 +265,7 @@ def export(out=Path("build/steep-sharp-curve-tunnel")):
         exit_floor_clear=not shape.isInside(
             cq.Vector(0., -d.ramp_end_x, d.low_floor + .2)),
     )
+    checks.update(circular_mouth_checks(shape, d))
     report = dict(
         part_id=PART_ID, sources=[SOURCE_CURVE_ID, SOURCE_DROP_ID],
         passed=all(checks.values()), checks=checks,
@@ -252,7 +279,7 @@ def export(out=Path("build/steep-sharp-curve-tunnel")):
                         ramp_angle_deg=math.degrees(math.atan(d.ramp_grade)),
                         landing_to_runout_drop_mm=d.ramp_grade * (d.ramp_end_x - d.shaft_x),
                         inlet_floor_margin_mm=d.drop - d.ramp_grade * (
-                            d.ramp_end_x - d.ramp_start_x),
+                            d.ramp_end_x + 15.),
                         ramp_end_south_mm=d.ramp_end_x),
         mesh=mesh, collapsed_facets_removed=removed,
         ball_samples_mm3=samples, ball_sweep_mm3=sweeps,
@@ -261,7 +288,7 @@ def export(out=Path("build/steep-sharp-curve-tunnel")):
         support_free_slicing_validated=False,
         physical_fit_validated=False,
         limitations=[
-            "The drop chamber and 33-degree south run-out are connected and fully roofed.",
+            "The drop chamber and ~14-degree south run-out are connected and fully roofed.",
             "The south-directed sloping exit turns 90 degrees; it is not a complete R16 circular arc.",
             "Swept spheres prove only geometric clearance, not spontaneous exit after the fall.",
             "Tapered roof, underside, E31-05 and stud overhangs require physical/slicer checks.",
