@@ -4,6 +4,18 @@ from parts.sharp_downhill_tunnel_left.design import path, xy, height, LENGTH, MI
 import unittest
 from parts.sharp_downhill_tunnel_left.design import build_part, verify, ports, DROP
 class Geometry(unittest.TestCase):
+    def test_circular_inlet_and_outlet(self):
+        # T01/D01 mouths on main use a true circle at both exterior faces.
+        from brickcad.standards import BALL_TRACK
+        from parts.sharp_downhill_tunnel_left.design import wire
+        import math
+        expected=math.pi*BALL_TRACK.radius**2
+        for s in (-.3,0.,.5,LENGTH-.5,LENGTH,LENGTH+.3):
+            with self.subTest(station=s):
+                section=cq.Face.makeFromWires(wire(s,'passage'))
+                self.assertTrue(section.isValid())
+                self.assertAlmostEqual(section.Area(),expected,delta=.10)
+
     def test_continuous_clearance_and_structure(self):
         shape,p=build_part()
         checks,_=verify(shape,p)
