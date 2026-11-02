@@ -43,5 +43,19 @@ class Geometry(unittest.TestCase):
                 self.assertGreater(intersection(shape, clipped),
                                    .85 * clipped.Volume(), (x, y))
 
+    def test_recessed_version_id_survives_all_unions(self):
+        from parts.sharp_downhill_tunnel_left.design import PART_ID, xy, MIRROR
+        from brickcad.verify import intersection
+        shape,p=build_part()
+        _,y,_,_=xy(0)
+        if MIRROR:
+            y=-y
+        plane=cq.Plane(origin=(-p.width/2+0.3,y,5.55),
+                       xDir=(0,-1,0),normal=(-1,0,0))
+        cutter=(cq.Workplane(plane).text(
+            PART_ID,1.1,0.35,font='DejaVu Sans',
+            kind='bold',combine=False).val())
+        self.assertLess(intersection(shape,cutter),.10)
+
     def test_port_drop(self):
         self.assertAlmostEqual(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2],DROP)
