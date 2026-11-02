@@ -1,4 +1,4 @@
-"""Targeted S01-V5 roofed steep-drop CAD tests; no slicing/dynamics guarantee."""
+"""Targeted S01-V6 roofed steep-drop CAD tests; no slicing/dynamics guarantee."""
 import unittest
 import cadquery as cq
 from brickcad.ports import mate, straight_ports
@@ -17,7 +17,7 @@ class SteepDropHoleTests(unittest.TestCase):
         cls.shape, cls.p = build_steep_drop(cls.d)
 
     def test_dimensions_and_enclosed_roof(self):
-        self.assertEqual(PART_ID, "S01-V5")
+        self.assertEqual(PART_ID, "S01-V6")
         self.assertEqual((self.p.nx, self.p.ny), (2, 2))
         self.assertAlmostEqual(self.p.height, 57.6)
         self.assertTrue(self.shape.isValid())
@@ -55,25 +55,43 @@ class SteepDropHoleTests(unittest.TestCase):
         d = self.d
         path = rolling_ball_path(d)
         self.assertGreater(d.ramp_grade, 0)
-        self.assertAlmostEqual(d.ramp_grade, .65)
+        self.assertAlmostEqual(d.ramp_grade, .25)
         self.assertAlmostEqual(d.ramp_end_x, 13.)
-        self.assertAlmostEqual(path[2].z - path[3].z, 9.75)
-        self.assertAlmostEqual(
-            d.drop - d.ramp_grade * (d.ramp_end_x - d.ramp_start_x), 1.)
-        self.assertGreater(d.ramp_grade, .6)
+        self.assertAlmostEqual(path[2].z - path[3].z, 3.75)
         self.assertAlmostEqual(path[-1].z, d.low_centre_z)
         self.assertAlmostEqual(path[3].z, d.low_centre_z + ramp_normal_clearance(d))
         # The landing zone is no longer a flat empty pit.
         self.assertTrue(self.shape.isInside(cq.Vector(d.shaft_x, 0, d.low_floor + 1.)))
         self.assertFalse(self.shape.isInside(cq.Vector(
-            d.shaft_x, 0, d.low_floor +
-            d.ramp_grade * (d.ramp_end_x - d.shaft_x) + 1.)))
+            d.shaft_x, 0, d.low_floor + 3.75 + 1.)))
         self.assertFalse(self.shape.isInside(cq.Vector(
             d.ramp_end_x, 0, d.low_floor + .2)))
         # Whole-sphere tests along the ramp protect against overhead clipping.
         self.assertLess(max(sampled_ball_collisions(self.shape, d)), VOLUME_TOL)
         self.assertLess(max(continuous_ball_path_intersections(self.shape, d)),
                         VOLUME_TOL)
+
+    def test_both_mouths_keep_circular_openings_for_tunnel_connections(self):
+        # The 33-degree V5 wedge clipped the mouth visually and caused
+        # snagging when joined to a tunnel. V4 must retain circular ports.
+        import math
+        r = self.d.section_radius
+        section_centres = (
+            (-15.5, self.d.high_centre_z),
+            (15.5, self.d.low_centre_z),
+        )
+        for x, zc in section_centres:
+            for i in range(16):
+                theta = 2. * math.pi * i / 16
+                y_in = (r - .3) * math.cos(theta)
+                z_in = zc + (r - .3) * math.sin(theta)
+                y_out = (r + .3) * math.cos(theta)
+                z_out = zc + (r + .3) * math.sin(theta)
+                with self.subTest(x=x, angle_index=i):
+                    self.assertFalse(self.shape.isInside(
+                        cq.Vector(x, y_in, z_in)))
+                    self.assertTrue(self.shape.isInside(
+                        cq.Vector(x, y_out, z_out)))
 
     def test_negative_control_oversized_ball(self):
         ball = cq.Solid.makeSphere(
