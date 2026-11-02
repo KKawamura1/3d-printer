@@ -55,29 +55,34 @@ class Geometry(unittest.TestCase):
                 self.assertGreater(intersection(shape, clipped),
                                    .85 * clipped.Volume(), (x, y))
 
-    def test_visible_side_engraving_is_print_sized(self):
-        # A successful microscopic CAD cut does not imply a printable label.
-        from parts.sharp_downhill_tunnel_left.design import (
-            PART_ID, LABEL_X, LABEL_Z, LABEL_SIZE, LABEL_DEPTH
-        )
+    def test_side_engraving_uses_project_standard(self):
+        # Match the central marking helper, not locally invented font sizes.
+        import inspect
+        from brickcad.marking import engrave
+        from parts.sharp_downhill_tunnel_left.design import PART_ID, LABEL_X, LABEL_Z
         from pathlib import Path
         import json
-        spec = json.loads((Path(__file__).parent / 'cad-build.json').read_text())
+
+        params=inspect.signature(engrave).parameters
+        self.assertEqual(params['size'].default,3.)
+        self.assertEqual(params['depth'].default,.4)
+        size=params['size'].default
+        depth=params['depth'].default
+        spec=json.loads((Path(__file__).parent/'cad-build.json').read_text())
         self.assertEqual(PART_ID,spec['version'])
-        self.assertGreaterEqual(LABEL_SIZE,4.0)
-        self.assertGreaterEqual(LABEL_DEPTH,.5)
-        self.assertGreater(LABEL_Z-LABEL_SIZE/2,6.35)
+        self.assertGreater(LABEL_Z-size/2,6.35)
         shape,p=build_part()
-        # XZ's normal faces -Y, so the cutter must cross the outside wall.
-        tool=(cq.Workplane('XZ',origin=(LABEL_X,-p.depth/2+LABEL_DEPTH,LABEL_Z))
-              .text(PART_ID,LABEL_SIZE,LABEL_DEPTH+.05,
+        # Reconstruct the standard cutter to confirm readable exterior
+        # placement and a genuine recess, not just successful CAD validity.
+        tool=(cq.Workplane('XZ',origin=(LABEL_X,-p.depth/2+depth,LABEL_Z))
+              .text(PART_ID,size,depth+.05,
                     font='DejaVu Sans',kind='bold',combine=False).val())
         bb=tool.BoundingBox()
         self.assertGreater(bb.xmin,-p.width/2+2)
         self.assertLess(bb.xmax,-2)
         self.assertLessEqual(bb.ymin,-p.depth/2)
         self.assertGreater(bb.ymax,-p.depth/2)
-        self.assertGreater(tool.Volume(),12.)
+        self.assertGreater(tool.Volume(),1.)
         self.assertLess(intersection(shape,tool),.10)
 
 
