@@ -10,7 +10,7 @@ from brickcad.model import receiver, nominal_brick, build, brick_from_fit
 from parts.straight_rail.design import Rail
 from brickcad.standards import BALL_TRACK, ROUNDED_EDGES
 from brickcad.connections import make_studs
-from parts.tunnel.e31_fit import add_e31_05_receiver_features
+from parts.tunnel.e31_fit import add_e31_05_receiver_features, SLOT_END_Z
 from brickcad.provenance import design_manifest
 from brickcad.marking import engrave
 
@@ -174,7 +174,7 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
         mesh=m,collapsed_stl_triangles_removed=collapsed,
         finish_detail=dict(outer_corner_radius_mm=.8,stud_lip_radius_mm=.5,receiver_entry_chamfer_mm=.3,mouth_radius_mm=.3),
         e31_05_receiver=dict(tube_od_mm=13.20,bead_minor_radius_mm=.20,bead_z_mm=2.25,
-                             slot_width_mm=1.10,slot_end_z_mm=4.40,
+                             slot_width_mm=1.10,slot_end_z_mm=SLOT_END_Z,
                              transfer_to_shallow_tunnel_unvalidated=True),
         roof_style=dict(mouth='circular',inner='high_teardrop',circular_lip_mm=1.,transition_mm=4.),
         stl_tessellation=dict(linear_tolerance_mm=.03,angular_tolerance_radians=.2),
