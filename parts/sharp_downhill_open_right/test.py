@@ -63,5 +63,26 @@ class Geometry(unittest.TestCase):
         self.assertGreater(tool.Volume(),1.)
         self.assertLess(intersection(shape,tool),.10)
 
+    def test_reflection_route_and_ports(self):
+        from parts.sharp_downhill_open_right.design import path, ports
+        original, mirrored = path(), path(mirror=True)
+        self.assertEqual(len(original), len(mirrored))
+        for a,b in zip(original,mirrored):
+            self.assertAlmostEqual(a.x,b.x)
+            self.assertAlmostEqual(a.y,-b.y)
+            self.assertAlmostEqual(a.z,b.z)
+        for a,b in zip(ports(),ports(mirror=True)):
+            self.assertAlmostEqual(a.floor_xyz_mm[0],b.floor_xyz_mm[0])
+            self.assertAlmostEqual(a.floor_xyz_mm[1],-b.floor_xyz_mm[1])
+            self.assertAlmostEqual(a.floor_xyz_mm[2],b.floor_xyz_mm[2])
+
+    def test_unmarked_brep_is_exact_mirror(self):
+        unmarked_right,p=build_part(label=None)
+        mirrored,p2=build_part(label=None,mirror=True)
+        expected=unmarked_right.mirror('XZ')
+        self.assertTrue(mirrored.isValid())
+        self.assertAlmostEqual(mirrored.Volume(),expected.Volume(),delta=.01)
+        self.assertLess(mirrored.cut(expected).Volume()+expected.cut(mirrored).Volume(),.05)
+
     def test_port_drop(self):
         self.assertAlmostEqual(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2],DROP)

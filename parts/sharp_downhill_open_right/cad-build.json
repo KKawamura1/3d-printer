@@ -1,5 +1,5 @@
 {
-  "version": "SD01-V2",
+  "version": "SD01-V3",
   "auto": true,
   "command": [
     "python",
@@ -11,5 +11,6 @@
   "stl": [
     "brick.stl"
   ],
-  "timeout": 2400
+  "timeout": 2400,
+  "description": "Right-handed open downhill sharp curve. Shared unmarked CAD for left SD02-V3; engrave 3mm/0.4mm after reflection."
 }

@@ -1,13 +1,12 @@
-# SD01-V2
+# SD01-V3 / SD02-V3 — 緩坂＋急90°カーブ開放レール（左右統合）
 
-Issue #37: sharp_downhill_open_right。独立した刻印・版付きパーツ。
+Issue #37。左右の形状構築は **PR #48 の `parts/sharp_downhill_open_right/design.py` に1本化**。右の無刻印BRepをXZ平面で鏡映し、左の`design.py` は薄いラッパーとして残す。生成対象とパーツIDは左右それぞれ独立。
 
-- 16mmピッチ、高さ19.2mm、球径24.26mm。落差19.2mm。
-- 天井: False。開放型にはスタッド・高い衝突壁を付けない。
-- 下面の完全チューブにE31-05を移植。曲線輪郭で支持を切り、角の不要な床を除く。
-- 刻印は `brickcad.marking.engrave()` の標準仕様（DejaVu Sans Bold、文字サイズ3.0mm、凹み0.4mm）。入口直線区間の外側 -Y 面（X=-16mm、Z=12mm）へ移動。形状の左右反転後に刻印するので鏡文字にならない。
-- 連続球通過はレポートの折れ線全体をカプセルで検査。静的通過可能性であり、重力による自然転がりの証明ではない。
-- Bambu Studioスライス・実物の転がり・嵌合は未確認。
+- 右：`SD01-V3`、西入口→南出口。左：`SD02-V3`、西入口→北出口。
+- 16mmピッチ、落差19.2mm、対象球径24.26mm、E31-05下面支持・切断輪郭・ポート位置は従来仕様を継承。
+- **標準刻印**：`brickcad.marking.engrave`（DejaVu Sans Bold、文字高3.0mm、凹み0.4mm）。入口直線部の外側 -Y 面（X=-16mm、Z=12mm）。**形状の鏡映後に**別々のIDを刻むため鏡文字にならない。
+- 左`cad-build.json` は `SD01-V3` を明示的に依存指定。左右の版を連動更新すること。
+- CADテストは左右の走路連続クリアランス、支持、反射対称、刻印カッター位置・標準寸法を確認。重力による自然転がり・Bambu Studioスライス・実印刷は別途検証が必要。
 
-生成: `python -m parts.sharp_downhill_open_right.design --out build/sharp_downhill_open_right`。
-Actionsの`cad-verified-stl`にSTL/STEP/検証レポートを保存。
+生成：`python -m parts.sharp_downhill_open_right.design --out build/sharp_downhill_open_right` または `python -m parts.sharp_downhill_open_left.design --out build/sharp_downhill_open_left`。
+Actionsの`cad-verified-stl`が両方のSTL/STEP/検証レポートを保存する。
