@@ -2,7 +2,8 @@ name: Issue 37 multi-part A1 mini print plates
 on:
   push:
     paths:
-      - 'experiments/issue37_bulk_print/**'
+      - 'experiments/issue37_bulk_print/sources.json'
+      - 'experiments/issue37_bulk_print/assemble.py'
       - '.github/workflows/issue37-bulk-print.yml'
   workflow_dispatch:
     inputs:

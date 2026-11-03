@@ -48,7 +48,7 @@ Issue #37の現行対象 **23分類**を、**20個の固有STL**でカバーす�
 ## 出所・品質ゲート
 
 - すべての個別STLは**PR head SHA（または固定main SHA）**と版番号で固定。既存のCAD成功Artifactはrun/artifact IDで選択し、SHA-256を既知の場合照合。未登録のSHAも生成時manifestに必ず記録。
-- CAD Artifactに対象STLがないものだけ固定ソースから再生成。plate1は#50、plate3は#40とmainのT01/D01が対象です。**通常pushでplate3まで再生成しません。**
+- CAD Artifactに対象STLがないものだけ固定ソースから再生成。plate1は#50、plate3はmainのT01/D01が対象です。#40の左右版は最新HEADから生成済みの成功Artifactを再利用します。**通常pushでplate3まで再生成しません。**
 - PR head移動、CAD版ずれ、Artifact欠損、CAD report不合格、STL SHA不一致、プレートの180×180mm外への飛び出し・4mm間隔違反は失敗。RAIL-LEGACYのみ元STLを直接検証対象とするためCAD reportなし（明示例外）。
 - STLの元の形状・文字・支持は変更せず、並進と90°回転のみで合成。個別STLもArtifactに同梱。
 - Bambu StudioサポートOFFのスライス、天井ブリッジ、床面、刻印の視認性、嵌合、連続転がり10回は**別途実物検証**。結果はIssue #42に版を区別して記録します。

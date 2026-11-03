@@ -185,25 +185,27 @@
       "id": "SC02-V12",
       "pr": 40,
       "head_sha": "ac1f2d98d42fe299cd7dec78af58dab53aa2c9b1",
-      "rebuild_from_source": true,
       "path": "parts/sloped_curve_tunnel/SC02-V12/brick.stl",
       "plate": 3,
       "slot": "p3-big-b",
       "issue37_no": [
         17
-      ]
+      ],
+      "run": 41579827504,
+      "artifact": 13205631088
     },
     {
       "id": "SC02L-V6",
       "pr": 40,
       "head_sha": "ac1f2d98d42fe299cd7dec78af58dab53aa2c9b1",
-      "rebuild_from_source": true,
       "path": "parts/sloped_curve_tunnel_left/SC02L-V6/brick.stl",
       "plate": 3,
       "slot": "p3-big-c",
       "issue37_no": [
         18
-      ]
+      ],
+      "run": 41579827504,
+      "artifact": 13205631088
     },
     {
       "id": "SC05-V1",
