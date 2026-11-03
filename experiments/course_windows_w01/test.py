@@ -1,4 +1,4 @@
-"""Validate configurable W01, and compare old D01 to its new CAD composition."""
+"""Validate configurable W01, and compare PR59 D01-V3 to its new CAD composition."""
 import copy
 import unittest
 
@@ -28,7 +28,7 @@ class ConfiguredDownhillTests(unittest.TestCase):
     def test_legacy_d01_brep_symmetrical_difference(self):
         # Exact legacy D01 spec through the newly composed BRep, not legacy exporter.
         reference_spec = copy.deepcopy(self.spec)
-        reference_spec["id"], reference_spec["version"] = "D01", "V2"
+        reference_spec["id"], reference_spec["version"] = "D01", "V3"
         reference_spec["enclosure"]["windows"] = [
             {"side":"south","x_mm":x,"width_mm":8} for x in (-16,0,16)]
         validate_spec(reference_spec)
