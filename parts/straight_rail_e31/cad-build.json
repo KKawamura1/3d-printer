@@ -1,0 +1,16 @@
+{
+  "version": "R01-V1",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.straight_rail_e31.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1800,
+  "description": "E31-05 shallow receiver on measured open 2x4 straight rail"
+}
