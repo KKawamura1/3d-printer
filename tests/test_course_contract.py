@@ -60,6 +60,10 @@ class CourseContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "reverse-running"):
             course_axes([1, 6])
 
+    def test_sloped_tunnel_does_not_engrave_a_temporary_internal_id(self):
+        src = (ROOT / "brickcad/course_r48_sloped_tunnel.py").read_text()
+        self.assertNotIn('engrave_west(shape,"SC02-V12"',src)
+
     def test_all_geometry_builders_are_forced_through_shared_fit_and_marking(self):
         for name in BUILDERS:
             path = ROOT / "brickcad" / (name + ".py")
