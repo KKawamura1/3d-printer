@@ -17,7 +17,7 @@ from brickcad.course_contract import (
 ROOT = Path(__file__).resolve().parents[1]
 BUILDERS = (
     "course_loft_family", "course_r48_tunnel", "course_r48_sloped_tunnel",
-    "course_sharp_curve", "course_steep_drop", "course_downhill",
+    "course_prod_sharp_curve", "course_prod_steep_drop", "course_prod_downhill",
     "course_straight_tunnel", "course_straight_rail",
 )
 

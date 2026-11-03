@@ -1,6 +1,3 @@
-from brickcad.course_contract import course_fit
-from brickcad.course_contract import add_course_receiver_features as add_e31_05_receiver_features
-from brickcad.course_contract import engrave_course as engrave
 """Configured roofed steep-drop assembly sharing east/south outlet geometry.
 
 Reference principles: PR #38 S01-V8 / PR #41 S02-V15. These sources are on
@@ -17,12 +14,12 @@ from pathlib import Path
 import cadquery as cq
 
 from brickcad.connections import make_studs
-from brickcad.model import receiver
+from brickcad.marking import engrave
+from brickcad.model import brick_from_fit, receiver
 from brickcad.ports import Port
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import VOLUME_TOL, exact_bounds, intersection, mesh_check
-from parts.tunnel.e31_fit import (SLOT_END_Z, SLOT_END_RADIUS)
-
+from parts.tunnel.e31_fit import (add_e31_05_receiver_features, SLOT_END_Z, SLOT_END_RADIUS)
 
 
 @dataclass(frozen=True)
@@ -100,7 +97,8 @@ def build_course(spec, *, mark=True):
         raise ValueError("Shaft and ramp are out of order")
     if d.ramp_grade*(d.ramp_end-d.ramp_start) > d.drop-1.+1e-9:
         raise ValueError("Ramp blocks upper inlet floor")
-    p = course_fit(nx=2,ny=2,height_units=3)
+    p = replace(brick_from_fit("duplo-e27-play-v1",nx=2,ny=2,height_units=3),
+                tube_radius=6.60)
     cap_start = d.high_center+d.taper_start_offset
     cap_tip = p.height-d.roof_thickness
     if not d.high_center < cap_start < cap_tip:

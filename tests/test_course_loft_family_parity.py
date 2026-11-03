@@ -14,6 +14,7 @@ import unittest
 
 import cadquery as cq
 from brickcad.course_loft_family import build_course
+from brickcad.course_contract import kernel_for
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "experiments/course_catalog/registry.json"
@@ -36,7 +37,7 @@ class LoftFamilyReferenceParityTests(unittest.TestCase):
         cls.temp = tempfile.TemporaryDirectory(prefix="loft-parity-")
         cls.worktrees = {}
         cls.models = [m for m in json.loads(REGISTRY.read_text())["models"]
-                      if m["source"]["kind"] == "configured" and m["source"]["family"] == "loft"]
+                      if m["source"]["kind"] == "configured" and kernel_for(m["course"]) == "loft"]
         cls.root = Path(cls.temp.name)
         try:
             for index,sha in enumerate(sorted({m["source"]["reference"]["sha"]

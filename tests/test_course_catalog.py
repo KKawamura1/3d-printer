@@ -103,8 +103,9 @@ class CourseCatalogTests(unittest.TestCase):
         names = (
             "course_loft_family", "course_configured_special",
             "course_r48_tunnel", "course_r48_sloped_tunnel",
-            "course_downhill", "course_downhill_primitives",
+            "course_prod_downhill", "course_downhill_primitives",
             "course_straight_tunnel", "course_straight_rail",
+            "course_prod_sharp_curve", "course_prod_steep_drop",
         )
         for name in names:
             tree = ast.parse((ROOT / "brickcad" / (name + ".py")).read_text())

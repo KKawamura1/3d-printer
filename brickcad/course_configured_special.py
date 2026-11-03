@@ -7,8 +7,8 @@ from brickcad.course_artifacts import export_geometry
 
 from brickcad.course_contract import engrave_course as engrave
 from brickcad.verify import exact_bounds
-from brickcad.course_sharp_curve import build_course as build_sharp, checks as sharp_checks
-from brickcad.course_steep_drop import build_course as build_drop, geometry_checks as drop_checks
+from brickcad.course_prod_sharp_curve import build_course as build_sharp, checks as sharp_checks
+from brickcad.course_prod_steep_drop import build_course as build_drop, geometry_checks as drop_checks
 
 
 def build_course(model_id, family, recipe, *, mark=True):

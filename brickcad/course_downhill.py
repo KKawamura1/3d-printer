@@ -1,6 +1,3 @@
-from brickcad.course_contract import course_fit
-from brickcad.course_contract import add_course_receiver_features as add_e31_05_receiver_features
-from brickcad.course_contract import engrave_course as engrave
 """D01-derived, independently composed DUPLO downhill tunnel BRep.
 
 Only the external wall windows and engraving are configurable. The proven
@@ -16,21 +13,22 @@ from pathlib import Path
 import cadquery as cq
 
 from brickcad.connections import make_studs
-from brickcad.model import receiver
+from brickcad.marking import engrave
+from brickcad.model import brick_from_fit, receiver
 from brickcad.standards import BALL_TRACK, ROUNDED_EDGES
 from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
 from brickcad.course_downhill_primitives import (
     Downhill, _cut_passage, _window_cutter, floor_z, ball_positions,
     sampled_ball_intersections, ports,
 )
-from parts.tunnel.e31_fit import (SLOT_END_Z, SLOT_END_RADIUS)
-
+from parts.tunnel.e31_fit import (add_e31_05_receiver_features, SLOT_END_Z, SLOT_END_RADIUS)
 
 
 def build_course(spec):
     """A new BRep assembly, not a call to legacy build_downhill/export."""
     d = Downhill()
-    p = course_fit(nx=4,ny=2,height_units=3)
+    p = replace(brick_from_fit("duplo-e27-play-v1", nx=4, ny=2, height_units=3),
+                tube_radius=6.60)
     outer = cq.Workplane("XY").box(p.width, p.depth, p.height,
                                     centered=(True, True, False))
     outer = outer.edges("|Z").fillet(ROUNDED_EDGES.corner_radius)

@@ -87,13 +87,13 @@ def build(model,marked):
         from brickcad.course_straight_rail import build_course
         return build_course(name,recipe,marked=marked)[0]
     if family=="downhill_windowed":
-        from brickcad.course_downhill import build_course
+        from brickcad.course_prod_downhill import build_course
         ident,version=name.split("-")
         windows=[{"side":"south","x_mm":x,"width_mm":recipe["window_width_mm"]}
                  for x in recipe["windows"]]
         spec={"id":ident,"version":version,"enclosure":{"windows":windows}}
         if marked:return build_course(spec)[0]
-        with patch("brickcad.course_downhill.engrave",
+        with patch("brickcad.course_prod_downhill.engrave",
                    side_effect=lambda shape,*a,**kw:shape):
             return build_course(spec)[0]
     raise ValueError("Missing configured CAD family")

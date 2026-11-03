@@ -194,7 +194,7 @@ def build_one(model, destination):
         from brickcad.course_straight_tunnel import export_course
         export_course(ident, recipe, destination)
     elif kernel == "downhill_windowed":
-        from brickcad.course_downhill import export_course
+        from brickcad.course_prod_downhill import export_course
         name, version = ident.split("-")
         windows = [{"side": "south", "x_mm": x, "width_mm": recipe["window_width_mm"]}
                    for x in recipe["windows"]]

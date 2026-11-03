@@ -1,6 +1,3 @@
-from brickcad.course_contract import course_fit
-from brickcad.course_contract import add_course_receiver_features as add_e31_05_receiver_features
-from brickcad.course_contract import engrave_course as engrave
 """PR #36 R16 curve reconstructed from shared route and roofed shell primitives.
 
 C01-V6 and C02-V8 remain on an unmerged branch. This independent adapter
@@ -16,12 +13,12 @@ import struct
 import cadquery as cq
 
 from brickcad.connections import make_studs
-from brickcad.model import receiver
+from brickcad.marking import engrave
+from brickcad.model import brick_from_fit, receiver
 from brickcad.ports import Port
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
-from parts.tunnel.e31_fit import (SLOT_END_Z, SLOT_END_RADIUS)
-
+from parts.tunnel.e31_fit import (add_e31_05_receiver_features, SLOT_END_Z, SLOT_END_RADIUS)
 
 
 @dataclass(frozen=True)
@@ -89,7 +86,8 @@ def build_course(spec, *, reference_label=None, mark=True):
         raise ValueError("Receiver leaves less than 1.6 mm floor")
     kind=spec["enclosure"]["kind"]
     height_units=1 if kind=="open" else 2
-    p=course_fit(nx=2,ny=2,height_units=height_units)
+    p=replace(brick_from_fit("duplo-e27-play-v1",nx=2,ny=2,
+                             height_units=height_units),tube_radius=6.60)
     outer=(cq.Workplane("XY")
            .box(p.width,p.depth,p.height,centered=(True,True,False))
            .edges("|Z").fillet(ROUNDED_EDGES.corner_radius)
