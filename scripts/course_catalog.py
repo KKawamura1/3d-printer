@@ -66,7 +66,7 @@ def load_registry(path=REGISTRY):
             if (not re.fullmatch(r"(parts|experiments)/[a-z0-9_]+", source.get("target", ""))
                     or not re.fullmatch(r"[A-Z0-9-]+", source.get("cad_version", ""))):
                 raise ValueError("Missing safe CAD target or version")
-        elif model_id != "RAIL-LEGACY" or source.get("module") != "parts.straight_rail.design":
+        if kind == "legacy" and (model_id != "RAIL-LEGACY" or source.get("module") != "parts.straight_rail.design"):
             raise ValueError("Only horizontal rail trial may use legacy exporter")
     if sorted(categories) != CATEGORIES or sum(len(m["issue37_no"]) == 2 for m in items) != 3:
         raise ValueError("Catalogue does not cover exactly 23 categories")
