@@ -14,7 +14,7 @@ from parts.tunnel.e31_fit import add_e31_05_receiver_features
 from brickcad.provenance import design_manifest
 from brickcad.marking import engrave
 
-PART_ID = "T01-V4"
+PART_ID = "T01-V5"
 from brickcad.render import viewer, mesh, outlines, preview
 from brickcad.verify import intersection, exact_bounds, mesh_check, place, VOLUME_TOL
 
