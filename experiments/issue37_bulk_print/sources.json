@@ -1,16 +1,20 @@
 {
-  "schema": 1,
+  "schema": 2,
   "bed_mm": 180,
   "minimum_gap_mm": 4,
   "items": [
     {
-      "id": "SD03-V11",
-      "pr": 50,
-      "head_sha": "1e0092a4854a00323a1a2c50adfb29f0b2450052",
-      "rebuild_from_source": true,
-      "path": "parts/sharp_downhill_tunnel_right/SD03-V11/brick.stl",
+      "id": "E01-V3",
+      "pr": 64,
+      "head_sha": "fee658386d8ce3f94d1b3476ba19673d0d3a4d00",
+      "run": 41580241005,
+      "artifact": 13205871803,
+      "path": "parts/gentle_curve_tunnel/E01-V3/brick.stl",
       "plate": 1,
-      "slot": "medium-right-0"
+      "slot": "p1-big",
+      "issue37_no": [
+        7
+      ]
     },
     {
       "id": "SD04-V10",
@@ -19,29 +23,10 @@
       "rebuild_from_source": true,
       "path": "parts/sharp_downhill_tunnel_left/SD04-V10/brick.stl",
       "plate": 1,
-      "slot": "medium-right-1"
-    },
-    {
-      "id": "C02-V8",
-      "pr": 36,
-      "head_sha": "689db76d4656c580953699e60b91c6ebe75687df",
-      "run": 41579912356,
-      "artifact": 13205535096,
-      "path": "parts/sharp_curve_tunnel/C02-V8/brick.stl",
-      "sha256": "fdc290aefee3049f5f686bcd7af2e5dfb7acd65163e8d0d620340290caa5038a",
-      "plate": 1,
-      "slot": "small-bottom-0"
-    },
-    {
-      "id": "S01-V8",
-      "pr": 38,
-      "head_sha": "6da294f4c3b96c1a61a008f152c9036a4fd463e8",
-      "run": 41578835980,
-      "artifact": 13204713340,
-      "path": "parts/steep_drop_hole/S01-V8/brick.stl",
-      "sha256": "d0c95b578905ddd05ffcd34d8b8c63fce342f3807c91d468b3d22ffc41130644",
-      "plate": 1,
-      "slot": "small-bottom-1"
+      "slot": "p1-medium",
+      "issue37_no": [
+        20
+      ]
     },
     {
       "id": "S02-V16",
@@ -52,29 +37,24 @@
       "path": "parts/steep_sharp_curve_tunnel/S02-V16/brick.stl",
       "sha256": "e97a920673cf07d0f084ca8f5101c83bc0242b7764f35b2a42b55a8573ac1fb3",
       "plate": 1,
-      "slot": "small-bottom-2"
+      "slot": "p1-small-a",
+      "issue37_no": [
+        24
+      ]
     },
     {
-      "id": "S03-V10",
-      "pr": 41,
-      "head_sha": "f18c8086431fbbc6454066eb917628aaac5ee8ef",
-      "run": 41581243995,
-      "artifact": 13205962109,
-      "path": "parts/steep_sharp_tunnel_left/S03-V10/brick.stl",
-      "sha256": "4d230b0669ee6140c0948d03c3e701f42721be78421011fb3e797a5b0490c923",
+      "id": "S01-V8",
+      "pr": 38,
+      "head_sha": "6da294f4c3b96c1a61a008f152c9036a4fd463e8",
+      "run": 41578835980,
+      "artifact": 13204713340,
+      "path": "parts/steep_drop_hole/S01-V8/brick.stl",
+      "sha256": "d0c95b578905ddd05ffcd34d8b8c63fce342f3807c91d468b3d22ffc41130644",
       "plate": 1,
-      "slot": "small-bottom-3"
-    },
-    {
-      "id": "SD01-V4",
-      "pr": 48,
-      "head_sha": "080958c7fe99813949ffecaac7f7bcd2ad29fc7a",
-      "run": 41579088665,
-      "artifact": 13204184241,
-      "path": "parts/sharp_downhill_open_right/SD01-V4/brick.stl",
-      "sha256": "19c5536f9d73dbe18567c9944200b0a1aae60bdd33668b6d8f90e945b1f85e09",
-      "plate": 1,
-      "slot": "big-01"
+      "slot": "p1-small-b",
+      "issue37_no": [
+        21
+      ]
     },
     {
       "id": "SC03-V5",
@@ -85,7 +65,10 @@
       "path": "parts/sloped_curve_open_right/SC03-V5/brick.stl",
       "sha256": "192709c565688dc558e5eb6f1654236baafb964febe593469b0d37ad9c536c8b",
       "plate": 2,
-      "slot": "p2-big-01"
+      "slot": "p2-big-a",
+      "issue37_no": [
+        12
+      ]
     },
     {
       "id": "GC01-V5",
@@ -96,7 +79,37 @@
       "path": "parts/gentle_curve_open/GC01-V5/brick.stl",
       "sha256": "fc2195e2bbfbf1884cdb454fddccacd43c78d7bb53e0d77edb39f817f60d5df3",
       "plate": 2,
-      "slot": "p2-big"
+      "slot": "p2-big-b",
+      "issue37_no": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "SD03-V11",
+      "pr": 50,
+      "head_sha": "1e0092a4854a00323a1a2c50adfb29f0b2450052",
+      "rebuild_from_source": true,
+      "path": "parts/sharp_downhill_tunnel_right/SD03-V11/brick.stl",
+      "plate": 2,
+      "slot": "p2-medium-a",
+      "issue37_no": [
+        19
+      ]
+    },
+    {
+      "id": "SD01-V4",
+      "pr": 48,
+      "head_sha": "080958c7fe99813949ffecaac7f7bcd2ad29fc7a",
+      "run": 41579088665,
+      "artifact": 13204184241,
+      "path": "parts/sharp_downhill_open_right/SD01-V4/brick.stl",
+      "sha256": "19c5536f9d73dbe18567c9944200b0a1aae60bdd33668b6d8f90e945b1f85e09",
+      "plate": 2,
+      "slot": "p2-medium-b",
+      "issue37_no": [
+        14
+      ]
     },
     {
       "id": "SD02-V4",
@@ -107,7 +120,10 @@
       "path": "parts/sharp_downhill_open_left/SD02-V4/brick.stl",
       "sha256": "c807ba661ff7c4e3cca578b31e70ce1bef889196e63265e2ab4005bc4e4f2627",
       "plate": 2,
-      "slot": "p2-medium-1"
+      "slot": "p2-medium-c",
+      "issue37_no": [
+        15
+      ]
     },
     {
       "id": "D02-V4",
@@ -118,7 +134,189 @@
       "path": "parts/downhill_open/D02-V4/brick.stl",
       "sha256": "8f46a1b2db3d897c16d442f70447bb64c5645f09e70fa193f8e5d3fdf10564cf",
       "plate": 2,
-      "slot": "p2-medium-2"
+      "slot": "p2-medium-d",
+      "issue37_no": [
+        11
+      ]
+    },
+    {
+      "id": "C02-V8",
+      "pr": 36,
+      "head_sha": "689db76d4656c580953699e60b91c6ebe75687df",
+      "run": 41579912356,
+      "artifact": 13205535096,
+      "path": "parts/sharp_curve_tunnel/C02-V8/brick.stl",
+      "sha256": "fdc290aefee3049f5f686bcd7af2e5dfb7acd65163e8d0d620340290caa5038a",
+      "plate": 2,
+      "slot": "p2-small-a",
+      "issue37_no": [
+        9,
+        10
+      ]
+    },
+    {
+      "id": "S03-V10",
+      "pr": 41,
+      "head_sha": "f18c8086431fbbc6454066eb917628aaac5ee8ef",
+      "run": 41581243995,
+      "artifact": 13205962109,
+      "path": "parts/steep_sharp_tunnel_left/S03-V10/brick.stl",
+      "sha256": "4d230b0669ee6140c0948d03c3e701f42721be78421011fb3e797a5b0490c923",
+      "plate": 2,
+      "slot": "p2-small-b",
+      "issue37_no": [
+        25
+      ]
+    },
+    {
+      "id": "E01L-V1",
+      "pr": 64,
+      "head_sha": "fee658386d8ce3f94d1b3476ba19673d0d3a4d00",
+      "run": 41580241005,
+      "artifact": 13205871803,
+      "path": "parts/gentle_curve_tunnel_left/E01L-V1/brick.stl",
+      "plate": 3,
+      "slot": "p3-big-a",
+      "issue37_no": [
+        8
+      ]
+    },
+    {
+      "id": "SC02-V12",
+      "pr": 40,
+      "head_sha": "ac1f2d98d42fe299cd7dec78af58dab53aa2c9b1",
+      "rebuild_from_source": true,
+      "path": "parts/sloped_curve_tunnel/SC02-V12/brick.stl",
+      "plate": 3,
+      "slot": "p3-big-b",
+      "issue37_no": [
+        17
+      ]
+    },
+    {
+      "id": "SC02L-V6",
+      "pr": 40,
+      "head_sha": "ac1f2d98d42fe299cd7dec78af58dab53aa2c9b1",
+      "rebuild_from_source": true,
+      "path": "parts/sloped_curve_tunnel_left/SC02L-V6/brick.stl",
+      "plate": 3,
+      "slot": "p3-big-c",
+      "issue37_no": [
+        18
+      ]
+    },
+    {
+      "id": "SC05-V1",
+      "pr": 46,
+      "head_sha": "4e3f9ea29efd53dfbdd5dccef495aa5abaab862d",
+      "run": 41579043070,
+      "artifact": 13205675926,
+      "path": "parts/sloped_curve_open_left/SC05-V1/brick.stl",
+      "plate": 3,
+      "slot": "p3-big-d",
+      "issue37_no": [
+        13
+      ]
+    },
+    {
+      "id": "D01-V3",
+      "pr": 0,
+      "head_sha": "fa708cb19382872ef4a501e0f7aa981cc837aca5",
+      "rebuild_from_source": true,
+      "path": "parts/downhill_tunnel/D01-V3/brick.stl",
+      "plate": 3,
+      "slot": "p3-side-medium-a",
+      "issue37_no": [
+        16
+      ]
+    },
+    {
+      "id": "RAIL-LEGACY",
+      "pr": 0,
+      "head_sha": "fa708cb19382872ef4a501e0f7aa981cc837aca5",
+      "repository_stl": "parts/straight_rail/model.stl",
+      "legacy_unverified_e31": true,
+      "path": "parts/straight_rail/RAIL-LEGACY/brick.stl",
+      "plate": 3,
+      "slot": "p3-side-medium-b",
+      "issue37_no": [
+        1
+      ]
+    },
+    {
+      "id": "C01-V6",
+      "pr": 36,
+      "head_sha": "689db76d4656c580953699e60b91c6ebe75687df",
+      "run": 41579912356,
+      "artifact": 13205535096,
+      "path": "parts/sharp_curve/C01-V6/brick.stl",
+      "plate": 3,
+      "slot": "p3-small-a",
+      "issue37_no": [
+        4,
+        5
+      ]
+    },
+    {
+      "id": "T01-V5",
+      "pr": 0,
+      "head_sha": "fa708cb19382872ef4a501e0f7aa981cc837aca5",
+      "rebuild_from_source": true,
+      "path": "parts/tunnel/T01-V5/brick.stl",
+      "plate": 3,
+      "slot": "p3-small-b",
+      "issue37_no": [
+        6
+      ]
+    }
+  ],
+  "default_plates": "1",
+  "issue37_supported_numbers": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    24,
+    25
+  ],
+  "reverse_direction_unverified": [
+    {
+      "id": "GC01-V5",
+      "numbers": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "C01-V6",
+      "numbers": [
+        4,
+        5
+      ]
+    },
+    {
+      "id": "C02-V8",
+      "numbers": [
+        9,
+        10
+      ]
     }
   ]
 }
