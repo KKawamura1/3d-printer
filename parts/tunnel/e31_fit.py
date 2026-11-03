@@ -4,8 +4,9 @@ Source: experiments/retention_balance_e31/design.py, specimen E31-05.
 Applies the E31-05 bead and four split tube slots to the supplied solid.
 PR #58 printed B coupons demonstrate a short Z3.50 slot for shallow 4.75 mm
 track receivers. Deep ordinary bricks retain the original E31-05 Z4.40 slot.
-The original E31 coupon is unchanged. The caller MUST supply the actual
-receiver_depth; no implicit rail/brick default is permitted.
+The original E31 coupon is unchanged. New designs must supply the actual
+receiver_depth. Historical callers without the keyword keep Z4.40 unchanged,
+never silently inheriting the short-slot rail geometry.
 Caller must select a tube OD of 13.20 mm (radius 6.60).
 """
 import math
@@ -36,8 +37,11 @@ def slot_end_z_for_receiver_depth(receiver_depth):
     raise ValueError("Receiver too shallow for E31 split slots with a 0.60mm roof margin")
 
 
-def add_e31_05_receiver_features(shape, centres, tube_radius, *, receiver_depth):
-    end_z = slot_end_z_for_receiver_depth(receiver_depth)
+def add_e31_05_receiver_features(shape, centres, tube_radius, *, receiver_depth=None):
+    # Backwards compatibility for historical callers: preserve E31-05 geometry.
+    # New rail/tunnel designs explicitly pass the real cavity depth.
+    end_z = (ORIGINAL_E31_SLOT_END_Z if receiver_depth is None
+             else slot_end_z_for_receiver_depth(receiver_depth))
     if abs(tube_radius - 6.60) > 1e-6:
         raise ValueError("E31-05 requires nominal tube radius 6.60 mm")
     result = shape
