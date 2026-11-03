@@ -73,11 +73,18 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 41,
-        "sha": "f18c8086431fbbc6454066eb917628aaac5ee8ef",
-        "target": "parts/steep_sharp_curve_tunnel",
-        "cad_version": "S02-V16"
+        "kind": "configured",
+        "family": "drop",
+        "recipe": {
+          "exit": "south",
+          "mirror": false
+        },
+        "reference": {
+          "pr": 41,
+          "sha": "f18c8086431fbbc6454066eb917628aaac5ee8ef",
+          "target": "parts/steep_sharp_curve_tunnel",
+          "cad_version": "S02-V16"
+        }
       }
     },
     {
@@ -87,11 +94,18 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 38,
-        "sha": "6da294f4c3b96c1a61a008f152c9036a4fd463e8",
-        "target": "parts/steep_drop_hole",
-        "cad_version": "S01-V8"
+        "kind": "configured",
+        "family": "drop",
+        "recipe": {
+          "exit": "east",
+          "mirror": false
+        },
+        "reference": {
+          "pr": 38,
+          "sha": "6da294f4c3b96c1a61a008f152c9036a4fd463e8",
+          "target": "parts/steep_drop_hole",
+          "cad_version": "S01-V8"
+        }
       }
     },
     {
@@ -257,11 +271,17 @@
       ],
       "reversible_unverified": true,
       "source": {
-        "kind": "pr",
-        "pr": 36,
-        "sha": "689db76d4656c580953699e60b91c6ebe75687df",
-        "target": "parts/sharp_curve_tunnel",
-        "cad_version": "C02-V8"
+        "kind": "configured",
+        "family": "sharp_r16",
+        "recipe": {
+          "enclosure": "tunnel"
+        },
+        "reference": {
+          "pr": 36,
+          "sha": "689db76d4656c580953699e60b91c6ebe75687df",
+          "target": "parts/sharp_curve_tunnel",
+          "cad_version": "C02-V8"
+        }
       }
     },
     {
@@ -271,11 +291,18 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 41,
-        "sha": "f18c8086431fbbc6454066eb917628aaac5ee8ef",
-        "target": "parts/steep_sharp_tunnel_left",
-        "cad_version": "S03-V10"
+        "kind": "configured",
+        "family": "drop",
+        "recipe": {
+          "exit": "south",
+          "mirror": true
+        },
+        "reference": {
+          "pr": 41,
+          "sha": "f18c8086431fbbc6454066eb917628aaac5ee8ef",
+          "target": "parts/steep_sharp_tunnel_left",
+          "cad_version": "S03-V10"
+        }
       }
     },
     {
@@ -376,11 +403,17 @@
       ],
       "reversible_unverified": true,
       "source": {
-        "kind": "pr",
-        "pr": 36,
-        "sha": "689db76d4656c580953699e60b91c6ebe75687df",
-        "target": "parts/sharp_curve",
-        "cad_version": "C01-V6"
+        "kind": "configured",
+        "family": "sharp_r16",
+        "recipe": {
+          "enclosure": "open"
+        },
+        "reference": {
+          "pr": 36,
+          "sha": "689db76d4656c580953699e60b91c6ebe75687df",
+          "target": "parts/sharp_curve",
+          "cad_version": "C01-V6"
+        }
       }
     },
     {

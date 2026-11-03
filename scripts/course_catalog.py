@@ -43,19 +43,28 @@ def load_registry(path=REGISTRY):
         if kind not in ("local", "pr", "legacy", "configured"):
             raise ValueError("Missing CAD source kind")
         if kind == "configured":
-            if source.get("family") != "loft" or not isinstance(source.get("recipe"), dict):
+            if source.get("family") not in ("loft","sharp_r16","drop") or not isinstance(source.get("recipe"), dict):
                 raise ValueError("Configured model needs a real geometry recipe")
             # Cheap catalogue checks run without CadQuery installed.
             recipe = source["recipe"]
+            if source["family"] == "sharp_r16":
+                if recipe not in ({"enclosure":"open"},{"enclosure":"tunnel"}):
+                    raise ValueError("Unsupported R16 recipe")
+            if source["family"] == "drop":
+                if (set(recipe)!={"exit","mirror"} or
+                        recipe["exit"] not in ("east","south") or
+                        type(recipe["mirror"]) is not bool or
+                        (recipe["exit"]=="east" and recipe["mirror"])):
+                    raise ValueError("Unsupported steep-drop recipe")
             required = {"route","drop_mm","tunnel","mirror","mark_face",
                         "label_z_mm"}
-            if not required.issubset(recipe) or set(recipe) - (required | {"label_x_mm"}):
+            if source["family"]=="loft" and (not required.issubset(recipe) or set(recipe) - (required | {"label_x_mm"})):
                 raise ValueError("Malformed loft recipe")
-            if (recipe["route"] not in ("straight","sharp","gentle")
+            if (source["family"]=="loft" and (recipe["route"] not in ("straight","sharp","gentle")
                     or recipe["drop_mm"] not in (0,19.2)
                     or type(recipe["tunnel"]) is not bool
                     or type(recipe["mirror"]) is not bool
-                    or recipe["mark_face"] not in ("south","west")):
+                    or recipe["mark_face"] not in ("south","west"))):
                 raise ValueError("Unsupported loft recipe")
             ref = source.get("reference", {})
             if (type(ref.get("pr")) is not int or
@@ -168,10 +177,15 @@ def build(models, output, strict_head=False):
             source_root = worktree
         try:
             if kind == "configured":
-                from brickcad.course_loft_family import export_course
                 for model in chosen:
+                    source = model["source"]
                     dest = ROOT / "build/course-catalog-configured" / model["id"]
-                    export_course(model["id"],model["source"]["recipe"],dest)
+                    if source["family"] == "loft":
+                        from brickcad.course_loft_family import export_course
+                        export_course(model["id"],source["recipe"],dest)
+                    else:
+                        from brickcad.course_configured_special import export_course
+                        export_course(model["id"],source["family"],source["recipe"],dest)
             elif kind == "legacy":
                 run(sys.executable, "-m", "parts.straight_rail.design",
                     "--kind", "rail", "--out",
