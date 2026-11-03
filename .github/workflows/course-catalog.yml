@@ -32,7 +32,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m unittest tests.test_course_catalog -v
+      - name: Validate all model recipes and Issue 37 category coverage
+        run: python -m unittest tests.test_course_catalog -v
       - run: python scripts/course_catalog.py --mode validate
   render:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
