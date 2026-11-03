@@ -1,4 +1,4 @@
-"""Assemble 13 SHA-pinned, CAD-verified STL files into two A1 mini plates.
+"""Assemble 11 CAD-verified STL files from pinned PR revisions into two A1 mini plates.
 Only XY translations and 90-degree rotations; geometry/labels are unchanged.
 """
 import argparse
@@ -15,8 +15,8 @@ START = (BED - (2 * 63.8 + 31.8 + 2 * GAP)) / 2
 A, B = START, START + 63.8 + GAP
 C = B + 63.8 + GAP
 SLOTS = {
-    # Plate 01 prioritizes high-risk tunnel designs.  Two 4x4, two 2x4,
-    # four 2x2 tunnel parts, plus one open sharp-turn downhill control.
+    # Plate 01: 6 tunnel designs plus one open sharp-turn downhill control.
+    # Discontinued SG01/SG02 4x4 tunnels are intentionally absent.
     'big-00': (A, A, 0), 'big-10': (B, A, 0),
     'big-01': (A, B, 0),
     'medium-right-0': (C, A, 90), 'medium-right-1': (B, B, 90),
@@ -24,7 +24,7 @@ SLOTS = {
     'small-bottom-1': (A + 31.8 + GAP, C, 0),
     'small-bottom-2': (A + 2 * (31.8 + GAP), C, 0),
     'small-bottom-3': (A + 3 * (31.8 + GAP), C, 0),
-    # Plate 02 contains the simpler, mostly dominated open-track variants.
+    # Plate 02: four open-track specimens (latest mirrored versions included).
     'p2-big': (8, 8, 0),
     'p2-big-01': (78, 8, 0),
     'p2-medium-1': (78, 80, 0),
@@ -82,9 +82,9 @@ def assemble(manifest_path, source_root, out):
     if (manifest.get('schema'), manifest.get('bed_mm'), manifest.get('minimum_gap_mm')) != (1, BED, GAP):
         raise ValueError('Unknown plate specification')
     items = manifest['items']
-    if len(items) != 13 or {x['plate'] for x in items} != {1, 2}:
-        raise ValueError('Expected 13 specimens in two explicit plates')
-    if len({x['id'] for x in items}) != 13 or len({x['slot'] for x in items}) != 13:
+    if len(items) != 11 or sum(i['plate'] == 1 for i in items) != 7 or sum(i['plate'] == 2 for i in items) != 4:
+        raise ValueError('Expected 7+4 specimens in two explicit plates')
+    if len({x['id'] for x in items}) != 11 or len({(x['plate'], x['slot']) for x in items}) != 11:
         raise ValueError('Duplicate ID or plate slot')
     validated = []
     for item in items:
@@ -96,8 +96,13 @@ def assemble(manifest_path, source_root, out):
         if report.get('passed') is not True or report.get('mesh', {}).get('passed') is not True:
             raise ValueError(f'CAD validation failed: {item["id"]}')
         sha = hashlib.sha256(source.read_bytes()).hexdigest()
-        if sha != item['sha256']:
-            raise ValueError(f'Incorrect source STL for {item["id"]}: {sha}')
+        if item.get('rebuild_from_source'):
+            if not item.get('head_sha') or len(item['head_sha']) != 40:
+                raise ValueError(f'Unpinned source revision: {item["id"]}')
+            if item.get('sha256') and sha != item['sha256']:
+                raise ValueError(f'Incorrect rebuilt STL for {item["id"]}: {sha}')
+        elif sha != item['sha256']:
+            raise ValueError(f'Incorrect pinned source STL for {item["id"]}: {sha}')
         mesh = read_stl(source)
         x, y, turn = SLOTS[item['slot']]
         moved, lo, hi = place(mesh, x, y, turn)
@@ -112,8 +117,10 @@ def assemble(manifest_path, source_root, out):
     (out / 'individual').mkdir(parents=True, exist_ok=True)
     for item, source, _, _ in validated:
         shutil.copyfile(source, out / 'individual' / f'{item["id"]}.stl')
+    resolved_sources = [{**item, 'sha256': meta['source_sha256']}
+                        for item, _, _, meta in validated]
     release = {'bed_mm': BED, 'minimum_gap_mm': GAP, 'slicing_validated': False,
-               'physical_fit_validated': False, 'source_manifest': items, 'plates': {}}
+               'physical_fit_validated': False, 'source_manifest': resolved_sources, 'plates': {}}
     for plate in (1, 2):
         chosen = [(item, moved, meta) for item, _, moved, meta in validated if item['plate'] == plate]
         filename = f'issue37-plate-{plate:02d}-{len(chosen)}parts.stl'

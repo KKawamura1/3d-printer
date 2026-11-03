@@ -8,57 +8,99 @@ on:
 permissions:
   contents: read
   actions: read
+  pull-requests: read
 jobs:
   build-print-plates:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Install mesh library
         run: python -m pip install numpy==2.3.5
-      - name: Reject pinned artifacts from superseded PR versions
+      - name: Reject superseded PR commits or mismatched CAD versions
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          while read -r pr part_id part_dir; do
+          while IFS=$'\t' read -r pr expected_sha part_id part_dir; do
             current_sha=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr}" --jq '.head.sha')
-            current_version=$(gh api "repos/${GITHUB_REPOSITORY}/contents/${part_dir}/cad-build.json?ref=${current_sha}" --jq '.content' | base64 --decode | python -c 'import sys,json; print(json.load(sys.stdin)["version"])')
+            if [[ "${current_sha}" != "${expected_sha}" ]]; then
+              echo "::error::PR #${pr} moved from ${expected_sha} to ${current_sha}; repin and recheck STL."
+              exit 1
+            fi
+            current_version=$(gh api "repos/${GITHUB_REPOSITORY}/contents/${part_dir}/cad-build.json?ref=${expected_sha}" --jq '.content' | base64 --decode | python -c 'import sys,json; print(json.load(sys.stdin)["version"])')
             if [[ "${current_version}" != "${part_id}" ]]; then
-              echo "STALE: PR #${pr} is ${current_version}; plate pinned ${part_id}. Update sources.json and regenerate." >&2
+              echo "::error::PR #${pr} version ${current_version} differs from pinned ${part_id}"
               exit 1
             fi
           done < <(python - <<'PY'
           import json
           from pathlib import PurePosixPath
           for it in json.load(open('experiments/issue37_bulk_print/sources.json'))['items']:
-              path = PurePosixPath(it['path'])
-              print(it['pr'], it['id'], path.parent.parent)
+              print(it['pr'], it['head_sha'], it['id'], PurePosixPath(it['path']).parent.parent, sep='\t')
           PY
           )
-      - name: Fetch pinned successful STL artifacts (fail closed)
+      - name: Download pinned successful STL artifacts (each run once)
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          while read -r pr run artifact; do
-            echo "Downloading PR #${pr} run ${run}, artifact ${artifact}"
-            actual=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}/artifacts" --jq ".artifacts[] | select(.name==\"cad-verified-stl\") | .id")
+          while IFS=$'\t' read -r pr run artifact; do
+            echo "Downloading PR #${pr}, run ${run}, artifact ${artifact}"
+            conclusion=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}" --jq '.conclusion')
+            if [[ "${conclusion}" != "success" ]]; then
+              echo "::error::PR #${pr}: pinned run is not successful (${conclusion})."
+              exit 1
+            fi
+            actual=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}/artifacts" --jq ".artifacts[] | select(.name==\"cad-verified-stl\" and .expired==false) | .id")
             if [[ "${actual}" != "${artifact}" ]]; then
-              echo "Missing or changed pinned artifact for PR #${pr}: ${actual}" >&2
+              echo "::error::Missing/expired pinned artifact for PR #${pr}: ${actual}"
               exit 1
             fi
             mkdir -p "build/issue37-sources/pr${pr}"
             gh run download "${run}" --name cad-verified-stl --dir "build/issue37-sources/pr${pr}"
           done < <(python - <<'PY'
           import json
+          s=set()
           for it in json.load(open('experiments/issue37_bulk_print/sources.json'))['items']:
-              print(it['pr'], it['run'], it['artifact'])
+              if it.get('rebuild_from_source'): continue
+              s.add((it['pr'],it['run'],it['artifact']))
+          for row in sorted(s): print(*row,sep='\t')
+          PY
+          )
+      - name: Rebuild only source-pinned models missing a successful STL artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS=$'\t' read -r pr sha targets; do
+            echo "Rebuilding CAD at immutable PR #${pr} commit ${sha}: ${targets}"
+            worktree="${RUNNER_TEMP}/issue37-source-pr${pr}"
+            git fetch origin "${sha}"
+            git worktree add --detach "${worktree}" "${sha}"
+            (
+              cd "${worktree}"
+              python -m pip install -r requirements.txt
+              python scripts/cad_versions.py --mode build --targets "${targets}"
+            )
+            mkdir -p "build/issue37-sources/pr${pr}"
+            cp -a "${worktree}/build/cad-delivery/." "build/issue37-sources/pr${pr}/"
+          done < <(python - <<'PY'
+          import json
+          from pathlib import PurePosixPath
+          groups={}
+          for it in json.load(open('experiments/issue37_bulk_print/sources.json'))['items']:
+              if it.get('rebuild_from_source'):
+                  key=(it['pr'],it['head_sha'])
+                  groups.setdefault(key,set()).add(str(PurePosixPath(it['path']).parent.parent))
+          for (pr,sha),targets in sorted(groups.items()):
+              print(pr,sha,','.join(sorted(targets)),sep='\t')
           PY
           )
       - name: Verify source reports/SHA-256 and produce plates
