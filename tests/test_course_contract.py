@@ -11,7 +11,8 @@ from brickcad.course_contract import (
     CATEGORY_AXES, RECEIVER_DEPTH_MM, TUBE_RADIUS_MM,
     SLOT_END_Z_MM, MARK_SIZE_MM, MARK_DEPTH_MM,
     course_axes, kernel_for, course_fit, add_course_receiver_features,
-    engrave_course, engrave_course_west,
+    engrave_course, engrave_course_west, CourseBuildAudit,
+    audited_production_course,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +41,48 @@ class CourseContractTests(unittest.TestCase):
             engrave_course(None, "R01-V1", x=0, y=0, z=0, size=2.5)
         with self.assertRaisesRegex(ValueError, "3.0 mm"):
             engrave_course_west(None, "SC02-V12", x=0, y=0, z=0, depth=.3)
+
+    def test_runtime_audit_rejects_missing_and_double_finishing(self):
+        with self.assertRaisesRegex(ValueError, "fit bypassed"):
+            with audited_production_course("R01-V1"):
+                pass
+        with self.assertRaisesRegex(ValueError, "E31 receiver bypassed"):
+            with audited_production_course("R01-V1") as audit:
+                audit.fit_calls += 1
+        with self.assertRaisesRegex(ValueError, "exactly one final standard"):
+            with audited_production_course("R01-V1") as audit:
+                audit.fit_calls += 1
+                audit.receiver_calls += 1
+                audit.marked_labels.extend(["R01-V1", "R01-V1"])
+        with self.assertRaisesRegex(ValueError, "exactly one final standard"):
+            with audited_production_course("SC02L-V6") as audit:
+                audit.fit_calls += 1
+                audit.receiver_calls += 1
+                audit.marked_labels.extend(["SC02-V12", "SC02L-V6"])
+        with audited_production_course("R01-V1") as audit:
+            audit.fit_calls += 1
+            audit.receiver_calls += 1
+            audit.marked_labels.append("R01-V1")
+        self.assertEqual(audit.manifest()["final_marking_labels"], ["R01-V1"])
+        self.assertEqual(audit.manifest()["e31_receiver_calls"], 1)
+        with self.assertRaisesRegex(ValueError, "Nested"):
+            with audited_production_course("R01-V1"):
+                with audited_production_course("C01-V6"):
+                    pass
+
+    def test_sloped_r48_intermediate_cannot_engrave_a_fixed_model_id(self):
+        path = ROOT / "brickcad/course_r48_sloped_tunnel.py"
+        tree = ast.parse(path.read_text())
+        intermediate = next(
+            n for n in tree.body if isinstance(n, ast.FunctionDef) and
+            n.name == "open_curve"
+        )
+        self.assertFalse(
+            any(isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
+                and n.func.id in {"engrave_west", "engrave"} for n in ast.walk(intermediate)),
+            "Intermediate geometry must not contain a temporary engraved ID",
+        )
+        self.assertIn("engrave_west", path.read_text().split("def build_course")[1])
 
     def test_pure_axis_routing_without_legacy_special_case(self):
         expected = {
@@ -82,6 +125,11 @@ class CourseContractTests(unittest.TestCase):
             self.assertTrue(
                 {"engrave_course", "engrave_course_west"} & from_contract, name
             )
+            calls = {n.func.id for n in ast.walk(tree)
+                     if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+            self.assertIn("course_fit", calls, name)
+            self.assertIn("add_e31_05_receiver_features", calls, name)
+            self.assertTrue({"engrave", "engrave_west"} & calls, name)
             # The only profile selector in a production geometry builder is course_fit.
             src = path.read_text()
             self.assertNotIn("duplo-straight-rail-trial-v1", src, name)

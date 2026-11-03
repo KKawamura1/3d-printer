@@ -84,3 +84,9 @@ D01坂トンネルの生成・出力は引き続き旧実験と共通の
 ## 不変の旧実験との境界
 
 `brickcad/course_sharp_curve.py` / `course_steep_drop.py` / `course_downhill.py` は歴史的実験IDの再現コードとして**変更せず保持**。PR56本番のR16/急落下/窓付き坂には対応する `brickcad/course_prod_*.py` を利用し、共通 `course_contract` からE31・刻印の設定を得る。既存の固定版実験をCIのバージョン更新対象にしない。
+
+## 本番生成の実行時監査（共通仕様の強制）
+
+`scripts/course_catalog.py build` は各形状の実生成を `audited_production_course(ID)` で囲み、共通 `course_fit`、浅いE31加工、IDに一致する**最終刻印をちょうど1回**実行したかを確認する。単に生成器が関数をimportした、レポートがPASSを自己申告した、という状態では合格しない。欠落、別ID、仮刻印、二重刻印は生成を失敗させる。通過結果はカタログ `manifest.json` に `contract_evidence` として記録される。
+
+`SC02-V12/SC02L-V6` の下地 `open_curve()` にあった固定の中間刻印を削除し、鏡映後の完成形状に1回だけ刻印する方式へ修正。これによって本番生成の契約が統一される。原典BRepとの差分検査で造形形状が不変かを確認する。

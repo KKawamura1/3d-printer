@@ -5,6 +5,7 @@ on:
       - 'scripts/course_catalog.py'
       - 'brickcad/course_*.py'
       - 'brickcad/course_contract.py'
+      - 'brickcad/course_r48_sloped_tunnel.py'
       - 'experiments/course_catalog/**'
       - 'tests/test_course_catalog.py'
       - 'tests/test_course_contract.py'

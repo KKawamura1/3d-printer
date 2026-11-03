@@ -106,9 +106,8 @@ def open_curve():
             abs(e.BoundingBox().zmin)<1e-5 and
             abs(e.BoundingBox().zmax)<1e-5]
     shape=shape.fillet(.5,bottom).clean()
-    # The original tunnel assembly generated the open foundation with a
-    # temporary ID before enclosing it; the cover subsequently fills this.
-    shape=engrave_west(shape,"SC02-V12",x=-p.width/2,y=-16,z=12)
+    # This is an intermediate base. Only the complete, mirrored course gets
+    # its standard part ID once, at the end of build_course().
     return shape,p
 
 

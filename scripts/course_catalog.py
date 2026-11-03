@@ -12,7 +12,9 @@ ROOT = Path(__file__).resolve().parents[1]
 # Direct script execution adds scripts/, not repository root, to sys.path.
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
-from brickcad.course_contract import validate_course_axes, kernel_for, PRODUCTION_CONTRACT
+from brickcad.course_contract import (
+    validate_course_axes, kernel_for, PRODUCTION_CONTRACT, audited_production_course,
+)
 REGISTRY = ROOT / "experiments/course_catalog/registry.json"
 CATEGORIES = list(range(1, 22)) + [24, 25]
 
@@ -147,7 +149,7 @@ def stl_info(path):
             "sha256": hashlib.sha256(raw).hexdigest()}
 
 
-def export_one(model, output):
+def export_one(model, output, *, audit):
     """Accept only validated CAD outputs from the current production contract."""
     ident = model["id"]
     folder = ROOT / "build/course-catalog-configured" / ident
@@ -166,7 +168,9 @@ def export_one(model, output):
     provenance = folder / "course-manifest.json"
     if provenance.is_file():
         shutil.copy2(provenance, dst / "course-manifest.json")
+    evidence = audit.manifest()
     return {**model, "stl": "models/" + ident + "/brick.stl",
+            "contract_evidence": evidence,
             "stl_info": meta, "geometry_verified": True,
             "production_contract": PRODUCTION_CONTRACT,
             "legacy_unverified_e31": False,
@@ -215,8 +219,9 @@ def build(models, output, strict_head=False):
     results = []
     for model in models:
         destination = ROOT / "build/course-catalog-configured" / model["id"]
-        build_one(model, destination)
-        results.append(export_one(model, output))
+        with audited_production_course(model["id"]) as audit:
+            build_one(model, destination)
+        results.append(export_one(model, output, audit=audit))
     categories = sorted(n for model in results for n in model["issue37_no"])
     manifest = {
         "generated_meshes": len(results), "covered_categories": categories,
