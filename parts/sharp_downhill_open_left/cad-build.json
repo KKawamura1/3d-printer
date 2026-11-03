@@ -1,10 +1,10 @@
 {
-  "version": "SD02-V3",
+  "version": "SD02-V4",
   "auto": true,
   "requires": [
     {
       "target": "parts/sharp_downhill_open_right",
-      "version": "SD01-V3"
+      "version": "SD01-V4"
     }
   ],
   "command": [
@@ -18,5 +18,5 @@
     "brick.stl"
   ],
   "timeout": 2400,
-  "description": "Mirror shared SD01-V3 unmarked open curve, then engrave readable SD02-V3 using standard 3mm/0.4mm"
+  "description": "Mirror shared SD01-V4 unmarked open curve, then engrave readable SD02-V4 using standard 3mm/0.4mm"
 }
