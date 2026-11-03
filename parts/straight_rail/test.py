@@ -4,6 +4,7 @@ import tempfile
 import unittest
 import cadquery as cq
 from parts.straight_rail.design import Rail, build_rail, export, rounded_brick, fit_profile
+from brickcad.test_cache import cached_build_part
 from brickcad.verify import intersection, VOLUME_TOL
 
 class RailTests(unittest.TestCase):
@@ -14,7 +15,7 @@ class RailTests(unittest.TestCase):
             with self.assertRaises(ValueError):Rail(**kw)
 
     def test_ball_and_oversize_negative_control(self):
-        shape,p=build_rail();r=Rail()
+        shape,p=cached_build_part(build_rail);r=Rail()
         for radius,clear in [(12.13,True),(14,False)]:
             ball=cq.Solid.makeSphere(radius,cq.Vector(0,0,r.floor+12.13+.05),angleDegrees1=-90)
             self.assertEqual(intersection(shape,ball)<VOLUME_TOL,clear)

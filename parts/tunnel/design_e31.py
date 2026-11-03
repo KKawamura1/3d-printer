@@ -16,7 +16,7 @@ from brickcad.marking import engrave
 
 PART_ID = "T01-V6"
 from brickcad.render import viewer, mesh, outlines, preview
-from brickcad.verify import intersection, exact_bounds, mesh_check, place, VOLUME_TOL
+from brickcad.verify import intersection, exact_bounds, mesh_check, place, precise_volume, VOLUME_TOL
 
 
 @dataclass(frozen=True)
@@ -151,10 +151,10 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
     restored=cq.importers.importStep(str(out/'brick.step')).val()
     # STEP serialization may change tiny absolute volumes; use a strict
     # relative tolerance, while still requiring one valid connected solid.
-    step_delta_mm3=abs(restored.Volume()-shape.Volume())
+    step_delta_mm3=abs(precise_volume(restored)-precise_volume(shape))
     step_delta_fraction=step_delta_mm3/shape.Volume()
     step_roundtrip_ok=(restored.isValid() and len(restored.Solids())==1
-                       and step_delta_fraction<1e-6)
+                       and step_delta_fraction<1e-6 and step_delta_mm3<1e-4)
     m=mesh_check(out/'brick.stl');fit=fit_checks(shape,p)
     sweep=ball_sweep(shape,p,t,t.ball_diameter)
     negative=ball_sweep(shape,p,t,28.)

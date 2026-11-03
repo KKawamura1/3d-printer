@@ -168,6 +168,53 @@ class VersionSelectionTests(unittest.TestCase):
             (part / 'test.py').write_text('assert 1 == 1' + chr(10))
             self.assertEqual(before, cad.source_fingerprint(root, 'parts/alpha'))
 
+    def test_step_precision_changes_without_version_bump(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / 'parts/alpha/design.py'
+            source.parent.mkdir(parents=True)
+            old = ('from brickcad.verify import exact_bounds\\n'
+                   'def build():\\n    return 10\\n'
+                   'def export():\\n'
+                   '    return abs(restored.Volume()-shape.Volume())/shape.Volume()<1e-4\\n')
+            new = ('from brickcad.verify import exact_bounds, precise_volume\\n'
+                   'def build():\\n    return 10\\n'
+                   'def export():\\n'
+                   '    return abs(precise_volume(restored)-precise_volume(shape))/precise_volume(shape)<1e-4\\n')
+            source.write_text(new.replace('\\n', '\n'))
+            with mock.patch.object(cad, 'git', return_value=old.replace('\\n', '\n').encode()):
+                changed, validation = cad.split_verification_only_changes(
+                    root, 'old_sha', {'parts/alpha/design.py'})
+                self.assertEqual(changed, set())
+                self.assertEqual(validation, {'parts/alpha/design.py'})
+                # Any actual geometry edit must still demand a version bump.
+                source.write_text(new.replace('return 10', 'return 11').replace('\\n', '\n'))
+                self.assertFalse(cad.verification_only_precision_change(
+                    root, 'old_sha', 'parts/alpha/design.py'))
+                changed, _ = cad.split_verification_only_changes(
+                    root, 'old_sha', {'parts/alpha/design.py'})
+                self.assertEqual(changed, {'parts/alpha/design.py'})
+
+    def test_step_precision_helper_addition_is_non_geometric(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / 'brickcad/verify.py'
+            source.parent.mkdir(parents=True)
+            before = 'from OCP.Bnd import Bnd_Box\\ndef intersection(a, b):\\n    return 1\\n'
+            after = ('from OCP.Bnd import Bnd_Box\\n'
+                     'from OCP.BRepGProp import BRepGProp\\n'
+                     'from OCP.GProp import GProp_GProps\\n'
+                     'def precise_volume(shape, relative_tolerance=1e-7):\\n'
+                     '    return relative_tolerance\\n'
+                     'def intersection(a, b):\\n    return 1\\n')
+            source.write_text(after.replace('\\n', '\n'))
+            with mock.patch.object(cad, 'git', return_value=before.replace('\\n', '\n').encode()):
+                self.assertTrue(cad.verification_only_precision_change(
+                    root, 'old_sha', 'brickcad/verify.py'))
+                source.write_text(after.replace('return 1', 'return 2').replace('\\n', '\n'))
+                self.assertFalse(cad.verification_only_precision_change(
+                    root, 'old_sha', 'brickcad/verify.py'))
+
     def test_stl_binary_integrity(self):
         with tempfile.TemporaryDirectory() as tmp:
             model = Path(tmp) / 'brick.stl'

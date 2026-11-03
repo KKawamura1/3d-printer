@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 240
     env:
-      COURSE_PARITY_MODELS: ${{ github.event_name == 'workflow_dispatch' && inputs.models || 'GC01-V5' }}
+      COURSE_PARITY_MODELS: ${{ github.event_name == 'workflow_dispatch' && inputs.models || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-all]') && 'all') || 'GC01-V5' }}
     steps:
       - uses: actions/checkout@v4
         with:

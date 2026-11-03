@@ -10,7 +10,7 @@ import cadquery as cq
 from experiments.full_height_fit.design import coupon, export_stl
 from brickcad.model import nominal_brick
 from brickcad.render import viewer
-from brickcad.verify import exact_bounds, fit_report
+from brickcad.verify import exact_bounds, fit_report, precise_volume
 
 
 def plan(stage='holes', hole=None):
@@ -59,7 +59,7 @@ def generate(out, stage='holes', hole=None):
         cq.exporters.export(s,str(step))
         restored=cq.importers.importStep(str(step)).val()
         assert restored.isValid() and len(restored.Solids())==1
-        assert abs(restored.Volume()-s.Volume())<1e-4
+        assert abs(precise_volume(restored)-precise_volume(s))<1e-4
         r.update(file=name,parameters=asdict(p),step_roundtrip_passed=True,**result)
         # A viewer per actual variant; collision status is descriptive, not a clutch test.
         vout=out/r['id'];vout.mkdir()
@@ -77,7 +77,7 @@ def generate(out, stage='holes', hole=None):
     cq.exporters.export(plate,str(out/'plate.step'))
     restored=cq.importers.importStep(str(out/'plate.step')).val()
     assert restored.isValid() and len(restored.Solids())==len(records)
-    assert abs(restored.Volume()-plate.Volume())<1e-4
+    assert abs(precise_volume(restored)-precise_volume(plate))<1e-4
     bounds=exact_bounds(plate)
     assert bounds[0]+10<180 and bounds[1]+10<180
     report=dict(schema_version=1,stage=stage,passed=True,physical_fit_validated=False,
