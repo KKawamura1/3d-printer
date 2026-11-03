@@ -1,4 +1,4 @@
-"""C02-V7: recover C02-V2's guided R16 tunnel after printed-part testing.
+"""C02-V8: recover C02-V2's guided R16 tunnel after printed-part testing.
 
 C02-V4's flat turning chamber traps the ball; C02R-V1 loses exit momentum.
 The original C02-V2 print rolled smoothly after removing an internal burr.
@@ -24,7 +24,7 @@ from parts.sharp_curve.design import SharpCurve, _curve_cut, ball_intersections,
 from parts.tunnel.e31_fit import (add_e31_05_receiver_features,
                                   SLOT_END_Z, SLOT_END_RADIUS)
 
-PART_ID = "C02-V7"
+PART_ID = "C02-V8"
 SOURCE_CURVE_ID = "C01-V6"
 FIT_PROFILE_ID = "duplo-e27-play-v1"
 BODY_COURSES = 2
@@ -138,6 +138,8 @@ def export(out=Path("build/sharp-curve-tunnel")):
         geometry=dict(bounds_mm=bounds, volume_mm3=shape.Volume(),
                       parameters=asdict(p)),
         curve=asdict(curve), ports=[asdict(x) for x in ports(curve)],
+        marking=dict(face="north", after_mirror=True, font="DejaVu Sans",
+                     weight="bold", text_height_mm=3.0, depth_mm=.4),
         e31_slot=dict(end_z_mm=SLOT_END_Z, end_radius_mm=SLOT_END_RADIUS,
                       receiver_ceiling_z_mm=curve.receiver_depth),
         roof=dict(style="circular_mouth_raised_center_dome",
