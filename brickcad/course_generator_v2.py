@@ -1,6 +1,6 @@
 """Issue #39 phase 2: configurable straight downhill tunnel geometry.
 
-Restricted to the proven D01-V2 route, roof and E31-05 fit family. Geometry
+Restricted to the proven D01-V3 route, roof and E31-05 fit family. Geometry
 is assembled from the original CAD primitives, but window positions/count/
 width and the engraved revision come from a checked recipe.
 """
@@ -79,7 +79,7 @@ def export_config(config, out):
         "physical_fit_validated": False,
         "physical_rolling_validated": False,
         "slicing_validated": False,
-        "geometry_reference": "D01-V2",
+        "geometry_reference": "D01-V3",
         "recipe_sha256": hashlib.sha256(config.read_bytes()).hexdigest(),
         "stl_sha256": hashlib.sha256(mesh_path.read_bytes()).hexdigest(),
         "limitations": [

@@ -1,6 +1,6 @@
 {
   "id": "T01",
-  "version": "V4",
+  "version": "V5",
   "geometry": {
     "kind": "straight_tunnel",
     "size": [
@@ -19,6 +19,6 @@
   },
   "legacy": {
     "module": "parts.tunnel.design_e31",
-    "part_id": "T01-V4"
+    "part_id": "T01-V5"
   }
 }

@@ -2,7 +2,7 @@
 
 Only the external wall windows and engraving are configurable. The proven
 smoothstep floor, teardrop passage, E31-05 receiver and roof remain pinned.
-Historical D01-V2 is intentionally not modified.
+Historical D01-V3 is intentionally not modified.
 """
 from dataclasses import asdict, replace
 import hashlib
@@ -21,7 +21,7 @@ from parts.downhill_tunnel.design import (
     Downhill, _cut_passage, _window_cutter, floor_z, ball_positions,
     sampled_ball_intersections, ports,
 )
-from parts.tunnel.e31_fit import add_e31_05_receiver_features
+from parts.tunnel.e31_fit import (add_e31_05_receiver_features, SLOT_END_Z, SLOT_END_RADIUS)
 
 
 def build_course(spec):
@@ -43,7 +43,8 @@ def build_course(spec):
                        p.stud_inner_radius, p.stud_height,
                        ROUNDED_EDGES.stud_lip_radius)
     shape = body.union(studs).val().clean()
-    shape = add_e31_05_receiver_features(shape, p.tubes(), p.tube_radius)
+    shape = add_e31_05_receiver_features(shape, p.tubes(), p.tube_radius,
+                                         receiver_depth=d.receiver_depth)
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError("Configured downhill must have one valid connected solid")
     label = spec["id"] + "-" + spec["version"]
@@ -68,6 +69,10 @@ def geometry_checks(shape, p, d, windows):
             cq.Vector(w["x_mm"], -15.2, floor_z(w["x_mm"],d)+4)) for w in windows),
         "full_e31_tubes": len(p.tubes()) == 3 and abs(p.tube_radius - 6.6) < 1e-6,
         "eight_studs": len(p.studs()) == 8,
+        "short_receiver_slots_leave_roof": (
+            abs(SLOT_END_Z - 3.50) < 1e-6 and
+            d.receiver_depth - (SLOT_END_Z + SLOT_END_RADIUS) >= .60 - 1e-6
+        ),
     }
     return checks, collisions, bounds
 
@@ -110,7 +115,9 @@ def export_course(spec, out):
                      "bounds_mm": bounds, "volume_mm3": shape.Volume()},
         "fit_profile_id": p.fit_profile_id,
         "e31_05": {"tube_od_mm": 13.20, "bead_radius_mm": .20,
-                   "split_slots": 4, "physical_fit_validated": False},
+                   "split_slots": 4, "slot_end_z_mm": SLOT_END_Z,
+                   "receiver_depth_mm": d.receiver_depth,
+                   "physical_fit_validated": False},
         "windows": windows, "parameters": asdict(d),
         "ports": [asdict(port) for port in ports(d)],
         "checks": checks, "mesh": mesh,

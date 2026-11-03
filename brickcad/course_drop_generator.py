@@ -1,6 +1,6 @@
 """Issue #39: one CAD recipe generator for both roofed steep-drop exits.
 
-S01-V5 (west to east) and S02-V8 (west to south) provide the engineering
+S01-V8 (west to east) and S02-V15 (west to south) provide the engineering
 reference. Existing parts and their version IDs are never overwritten.
 This creates independent prototype IDs X01/X02 for parity and print tests.
 """
@@ -27,8 +27,8 @@ def validate_spec(spec):
             or g["size"] != [2, 2, 3] or g["height_change"] != -1
             or g["entry"] != "west" or g["exit"] not in ("east", "south")
             or type(g["ramp_grade"]) not in (float, int)
-            or abs(g["ramp_grade"] - .65) > 1e-8):
-        raise ValueError("Only roofed 2x2x3 west-entry 0.65-grade east/south drop is established")
+            or abs(g["ramp_grade"] - .25) > 1e-8):
+        raise ValueError("Only roofed 2x2x3 west-entry 0.25-grade east/south drop is established")
     if spec["enclosure"] != {"kind": "tunnel", "windows": []}:
         raise ValueError("No openings/windows allowed on the roofed drop chamber")
     if spec["connection"] != {"profile": "E31-05"}:
@@ -53,8 +53,8 @@ def export_config(config, out):
         "schema_version": 2,
         "mode": "configured_cad_geometry",
         "id": spec["id"], "version": spec["version"],
-        "geometry_reference": ("PR #38 S01-V5" if spec["geometry"]["exit"] == "east"
-                               else "PR #41 S02-V8"),
+        "geometry_reference": ("PR #38 S01-V8" if spec["geometry"]["exit"] == "east"
+                               else "PR #41 S02-V15"),
         "geometry_verified": True, "physical_fit_validated": False,
         "physical_rolling_validated": False, "slicing_validated": False,
         "recipe_sha256": hashlib.sha256(config.read_bytes()).hexdigest(),

@@ -25,7 +25,7 @@ class ConfiguredCourseTest(unittest.TestCase):
         from brickcad.verify import VOLUME_TOL
         d = Downhill()
         shape, fit = build_downhill(d)
-        self.assertEqual(PART_ID, "D01-V2")
+        self.assertEqual(PART_ID, "D01-V3")
         self.assertTrue(shape.isValid())
         self.assertEqual(len(shape.Solids()), 1)
         self.assertEqual((fit.nx, fit.ny), (4, 2))

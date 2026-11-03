@@ -1,6 +1,6 @@
 """Configured roofed steep-drop assembly sharing east/south outlet geometry.
 
-Reference principles: PR #38 S01-V5 / PR #41 S02-V8. These sources are on
+Reference principles: PR #38 S01-V8 / PR #41 S02-V15. These sources are on
 unmerged branches, so this adapter contains the independently implemented
 common primitives; exact cross-branch BRep equality is NOT claimed.
 """
@@ -19,7 +19,7 @@ from brickcad.model import brick_from_fit, receiver
 from brickcad.ports import Port
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import VOLUME_TOL, exact_bounds, intersection, mesh_check
-from parts.tunnel.e31_fit import add_e31_05_receiver_features
+from parts.tunnel.e31_fit import (add_e31_05_receiver_features, SLOT_END_Z, SLOT_END_RADIUS)
 
 
 @dataclass(frozen=True)
@@ -31,7 +31,7 @@ class DropGeometry:
     receiver_depth: float = 4.75
     roof_thickness: float = 1.8
     taper_start_offset: float = 5.0
-    ramp_grade: float = .65
+    ramp_grade: float = .25
     ramp_start: float = -15.0
     ramp_end: float = 13.0
 
@@ -78,19 +78,12 @@ def ports(direction, d=DropGeometry()):
 
 
 def _north_engrave(shape, label, width):
-    plane = cq.Plane(origin=(0.,width/2-.4,18.),
-                     xDir=(-1,0,0),normal=(0,1,0))
-    cutter = cq.Workplane(plane).text(
-        label,2.7,.45,font="DejaVu Sans",kind="bold",combine=False).val()
-    result = shape.cut(cutter).clean()
-    if not result.isValid() or len(result.Solids()) != 1:
-        raise ValueError("Engraving broke steep-turn solid")
-    if shape.Volume()-result.Volume() < .2:
-        raise ValueError("Steep-turn revision has no visible engraving")
-    return result
+    """Standard 3.0mm / 0.4mm engraved text after CAD assembly."""
+    turned = shape.rotate((0, 0, 0), (0, 0, 1), 180)
+    marked = engrave(turned, label, x=0., y=-width/2, z=18.)
+    return marked.rotate((0, 0, 0), (0, 0, 1), -180)
 
-
-def build_course(spec):
+def build_course(spec, *, mark=True):
     direction = spec["geometry"]["exit"]
     d = DropGeometry()
     shaft_u = exit_parameters(direction)
@@ -98,7 +91,7 @@ def build_course(spec):
         raise ValueError("Vertical shaft has insufficient ball clearance or wall")
     if d.low_floor-d.receiver_depth < 1.6-1e-6:
         raise ValueError("Underside receiver must retain 1.6 mm floor")
-    if not 0 < d.ramp_grade <= .7:
+    if not 0 < d.ramp_grade <= .35:
         raise ValueError("Unsafe ramp grade")
     if not d.ramp_start < shaft_u < d.ramp_end:
         raise ValueError("Shaft and ramp are out of order")
@@ -153,7 +146,8 @@ def build_course(spec):
     shape = shape.fuse(ramp).clean()
     # Full 2x2 rectangular envelope (not a partial/curved perimeter).
     # Nonrectangular future adapters MUST clip studs and receiver to footprint.
-    shape = add_e31_05_receiver_features(shape,p.tubes(),p.tube_radius)
+    shape = add_e31_05_receiver_features(shape,p.tubes(),p.tube_radius,
+                                         receiver_depth=d.receiver_depth)
     studs = make_studs(
         p.studs(),p.height,p.stud_radius-p.clearance,
         p.stud_inner_radius,p.stud_height,
@@ -162,11 +156,12 @@ def build_course(spec):
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError("Steep-drop result must be one valid solid")
 
-    label = spec["id"]+"-"+spec["version"]
-    if direction == "east":
-        shape = engrave(shape,label,x=0.,y=-p.depth/2,z=12.)
-    else:
-        shape = _north_engrave(shape,label,p.depth)
+    if mark:
+        label = spec["id"]+"-"+spec["version"]
+        if direction == "east":
+            shape = engrave(shape,label,x=0.,y=-p.depth/2,z=12.)
+        else:
+            shape = _north_engrave(shape,label,p.depth)
     return shape,p,d
 
 
@@ -214,6 +209,28 @@ def geometry_checks(shape,p,d,direction):
             ports(direction,d)[0].floor_xyz_mm[2]-
             ports(direction,d)[1].floor_xyz_mm[2]-DUPLO.height)<1e-6,
     }
+    # At the visible faces both sections must remain circular in 16 rays.
+    def circular_mouths():
+        faces = [("west", -15.8, d.high_center),
+                 ("west", -15.5, d.high_center),
+                 (direction, 15.5 if direction == "east" else -15.5, d.low_center),
+                 (direction, 15.8 if direction == "east" else -15.8, d.low_center)]
+        for face, plane, centre_z in faces:
+            for i in range(16):
+                a = 2 * math.pi * i / 16
+                for offset, expected in ((-.3, False), (.3, True)):
+                    radius = d.radius + offset
+                    lateral = radius * math.cos(a)
+                    z = centre_z + radius * math.sin(a)
+                    point = (cq.Vector(plane, lateral, z) if face in ("west", "east")
+                             else cq.Vector(lateral, plane, z))
+                    if shape.isInside(point) != expected:
+                        return False
+        return True
+    checks["visible_mouths_are_circular"] = circular_mouths()
+    checks["short_receiver_slot_roof"] = (
+        abs(SLOT_END_Z - 3.50) < 1e-6 and
+        d.receiver_depth - SLOT_END_Z - SLOT_END_RADIUS >= .60 - 1e-6)
     if direction == "south":
         checks["lower_west_closed"]=shape.isInside(
             cq.Vector(-15.7,0,d.low_center))
@@ -257,6 +274,7 @@ def export_course(spec,out):
         "centreline_points_mm":[v.toTuple() for v in ball_centres(direction,d)],
         "ball_samples_mm3":samples,"ball_sweep_mm3":sweeps,
         "e31_05":{"tube_od_mm":13.2,"split_slots":4,
+                  "slot_end_z_mm":SLOT_END_Z, "receiver_depth_mm":d.receiver_depth,
                   "physical_fit_validated":False},
         "mesh":mesh,"sha256_stl":hashlib.sha256(stl.read_bytes()).hexdigest(),
         "physical_fit_validated":False,"physical_rolling_validated":False,

@@ -13,20 +13,20 @@ from pathlib import Path
 # A mismatched setting must fail, never quietly generate a different shape.
 SUPPORTED = {
     "straight_tunnel": {
-        "id": "T01", "version": "V4",
+        "id": "T01", "version": "V5",
         "geometry": {"kind": "straight_tunnel", "size": [2, 2, 2], "height_change": 0},
         "enclosure": {"kind": "tunnel", "windows": []},
         "connection": {"profile": "E31-05"},
-        "legacy": {"module": "parts.tunnel.design_e31", "part_id": "T01-V4"},
+        "legacy": {"module": "parts.tunnel.design_e31", "part_id": "T01-V5"},
     },
     "windowed_downhill_tunnel": {
-        "id": "D01", "version": "V2",
+        "id": "D01", "version": "V3",
         "geometry": {"kind": "windowed_downhill_tunnel", "size": [4, 2, 3], "height_change": -1},
         "enclosure": {"kind": "tunnel", "windows": [
             {"side": "south", "x_mm": x, "width_mm": 8.0} for x in (-16.0, 0.0, 16.0)
         ]},
         "connection": {"profile": "E31-05"},
-        "legacy": {"module": "parts.downhill_tunnel.design", "part_id": "D01-V2"},
+        "legacy": {"module": "parts.downhill_tunnel.design", "part_id": "D01-V3"},
     },
 }
 

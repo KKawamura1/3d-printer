@@ -13,7 +13,7 @@ class ConfiguredDropTests(unittest.TestCase):
     def test_east_and_south_outputs(self):
         root=Path(__file__).resolve().parents[1]
         shapes=[]
-        for side,reference_rise in (("east",9.75),("south",8.45)):
+        for side,reference_rise in (("east",3.75),("south",3.25)):
             with self.subTest(exit=side):
                 spec=load_spec(root/("experiments/course_drop_"+side+"/course.json"))
                 shape,p,d=build_course(spec)
@@ -25,6 +25,7 @@ class ConfiguredDropTests(unittest.TestCase):
                 self.assertAlmostEqual(ports(side,d)[0].floor_xyz_mm[2]-
                                        ports(side,d)[1].floor_xyz_mm[2],DUPLO.height)
                 self.assertAlmostEqual(ports(side,d)[1].floor_xyz_mm[2], BALL_TRACK.floor)
+                self.assertAlmostEqual(d.ramp_grade, .25)
                 self.assertTrue(shape.isValid())
                 shapes.append(shape)
         self.assertNotAlmostEqual(shapes[0].Volume(),shapes[1].Volume(),delta=1e-4)

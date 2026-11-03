@@ -25,7 +25,7 @@ class ConfiguredCourseTest(unittest.TestCase):
         from brickcad.verify import VOLUME_TOL
         t = Tunnel()
         shape, fit = build_tunnel(t)
-        self.assertEqual(PART_ID, "T01-V4")
+        self.assertEqual(PART_ID, "T01-V5")
         self.assertTrue(shape.isValid())
         self.assertEqual(len(shape.Solids()), 1)
         self.assertAlmostEqual(fit.tube_radius, 6.60)

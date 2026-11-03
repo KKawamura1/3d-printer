@@ -1,4 +1,4 @@
-"""Compare independent R16 BReps to immutable PR #36 CAD.
+"""Compare the protected R16 running geometry to immutable PR #36 CAD.
 
 The reference files are read from a pinned Git SHA, not from a moving branch.
 A temporary git worktree isolates the original parts code. The tests fail
@@ -60,20 +60,28 @@ class R16ParityTests(unittest.TestCase):
                        stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=180)
         return self.cq.importers.importStep(str(step)).val()
 
-    def test_original_pr36_brep_parity_and_rejected_wide_turn_room(self):
+    def test_original_pr36_running_geometry_without_old_slots_or_marking(self):
         for kind,label in (("open","C01-V5"),("tunnel","C02-V5")):
             with self.subTest(kind=kind):
                 config=load_spec(ROOT/"experiments"/("course_curve_"+kind)/"course.json")
-                shape,p,path=build_course(config,reference_label=label)
+                shape,p,path=build_course(config,reference_label=label,mark=False)
                 checks_dict,nominal,oversize,bounds=checks(shape,p,path,kind)
                 self.assertTrue(all(checks_dict.values()),checks_dict)
                 reference=self._old_shape(kind)
                 self.assertTrue(reference.isValid() and shape.isValid())
                 self.assertEqual(len(reference.Solids()),1)
-                a=reference.cut(shape).Volume()
-                b=shape.cut(reference).Volume()
-                self.assertLess(a,.05,("lost material",kind,a))
-                self.assertLess(b,.05,("extra material",kind,b))
+                # PR #60 intentionally changes E31 slots beneath Z5.05 and
+                # north-wall engraving near Y+15.9. Protect the actual
+                # running channel and roof, not the old rejected details.
+                protected=self.cq.Workplane("XY").box(
+                    40.,31.,90.,centered=(True,True,False)
+                ).translate((0.,-.5,5.4)).val()
+                previous=reference.intersect(protected)
+                current=shape.intersect(protected)
+                a=previous.cut(current).Volume()
+                b=current.cut(previous).Volume()
+                self.assertLess(a,.05,("lost protected material",kind,a))
+                self.assertLess(b,.05,("added protected material",kind,b))
 
 
 if __name__=="__main__":

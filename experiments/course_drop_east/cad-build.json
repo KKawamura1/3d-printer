@@ -1,5 +1,5 @@
 {
-  "version": "X01-V2",
+  "version": "X01-V3",
   "auto": true,
   "command": [
     "python",
@@ -14,5 +14,5 @@
     "brick.stl"
   ],
   "timeout": 1200,
-  "description": "Issue 39 common BRep: west high to east low roofed steep drop with 0.65 run-out, prototype (X01-V1)"
+  "description": "Issue 39 common BRep: west high to east low roofed steep drop with 0.25 run-out, prototype (X01-V1)"
 }

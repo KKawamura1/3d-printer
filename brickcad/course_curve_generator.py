@@ -52,8 +52,8 @@ def export_config(config, out):
     manifest = {
         "schema_version": 2, "mode": "configured_cad_geometry",
         "id": spec["id"], "version": spec["version"],
-        "geometry_reference": ("PR #36 C01-V5" if spec["enclosure"]["kind"] == "open"
-                               else "PR #36 C02-V5 (C02-V2 restored guide)"),
+        "geometry_reference": ("PR #36 C01-V6" if spec["enclosure"]["kind"] == "open"
+                               else "PR #36 C02-V8 (C02-V2 restored guide)"),
         "pinned_reference_commit": "fc70fdd3bf34a6b675595d54c721cec4544e1e76",
         "recipe_sha256": hashlib.sha256(config.read_bytes()).hexdigest(),
         "stl_sha256": hashlib.sha256((out/"brick.stl").read_bytes()).hexdigest(),
@@ -62,8 +62,8 @@ def export_config(config, out):
         "physical_rolling_validated": False,
         "slicing_validated": False,
         "limitations": [
-            "Stage 1 of PR #55 is assumed successful for prioritization, not observed.",
-            "C02-V5 internal burrs and natural exit speed remain subject to user print feedback.",
+            "Old PR #55 prints do not validate this revised prototype.",
+            "C02-V8 internal burrs and natural exit speed remain subject to user print feedback.",
             "Only an R16 west->south route is supported; alternative handedness is not implemented.",
         ],
     }

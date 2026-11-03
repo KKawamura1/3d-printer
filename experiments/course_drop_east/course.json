@@ -1,6 +1,6 @@
 {
   "id": "X01",
-  "version": "V2",
+  "version": "V3",
   "geometry": {
     "kind": "roofed_steep_drop",
     "size": [
@@ -11,7 +11,7 @@
     "height_change": -1,
     "entry": "west",
     "exit": "east",
-    "ramp_grade": 0.65
+    "ramp_grade": 0.25
   },
   "enclosure": {
     "kind": "tunnel",

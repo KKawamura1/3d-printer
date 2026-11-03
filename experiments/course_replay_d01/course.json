@@ -1,6 +1,6 @@
 {
   "id": "D01",
-  "version": "V2",
+  "version": "V3",
   "geometry": {
     "kind": "windowed_downhill_tunnel",
     "size": [
@@ -35,6 +35,6 @@
   },
   "legacy": {
     "module": "parts.downhill_tunnel.design",
-    "part_id": "D01-V2"
+    "part_id": "D01-V3"
   }
 }

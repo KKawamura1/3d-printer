@@ -11,7 +11,7 @@ PATH = Path(__file__).resolve().parents[1]/"experiments/course_windows_w01/cours
 class ConfigurableDownhillSchemaTests(unittest.TestCase):
     def test_valid_recipe(self):
         spec = load_spec(PATH)
-        self.assertEqual(spec["id"]+"-"+spec["version"], "W01-V1")
+        self.assertEqual(spec["id"]+"-"+spec["version"], "W01-V2")
         self.assertEqual(len(spec["enclosure"]["windows"]), 2)
 
     def test_window_variations_supported(self):

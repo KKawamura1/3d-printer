@@ -1,6 +1,6 @@
 """PR #36 R16 curve reconstructed from shared route and roofed shell primitives.
 
-C01-V5 and C02-V5 remain on an unmerged branch. This independent adapter
+C01-V6 and C02-V8 remain on an unmerged branch. This independent adapter
 retains their exact quarter-torus, mirror direction and optional spherical
 roof relief; parity against the pinned PR commit is tested independently.
 """
@@ -13,11 +13,12 @@ import struct
 import cadquery as cq
 
 from brickcad.connections import make_studs
+from brickcad.marking import engrave
 from brickcad.model import brick_from_fit, receiver
 from brickcad.ports import Port
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
-from parts.tunnel.e31_fit import add_e31_05_receiver_features
+from parts.tunnel.e31_fit import (add_e31_05_receiver_features, SLOT_END_Z, SLOT_END_RADIUS)
 
 
 @dataclass(frozen=True)
@@ -70,23 +71,14 @@ def _torus_cut(path):
     return torus
 
 
-def _mark_north(shape,label,width,kind):
-    depth=.4
-    z=11.5 if kind=="open" else 18.0
-    plane=cq.Plane(origin=(0,width/2-depth,z),
-                   xDir=(-1,0,0),normal=(0,1,0))
-    tool=(cq.Workplane(plane)
-          .text(label,2.7,depth+.05,font="DejaVu Sans",
-                kind="bold",combine=False).val())
-    marked=shape.cut(tool).clean()
-    if not marked.isValid() or len(marked.Solids())!=1:
-        raise ValueError("North engraving invalidated sharp curve BRep")
-    if shape.Volume()-marked.Volume()<.2:
-        raise ValueError("North engraving does not intersect wall")
-    return marked
+def _mark_north(shape, label, width, kind):
+    """Use standard upright 3mm text on the finished north wall."""
+    z = 11.5 if kind == "open" else 18.0
+    turned = shape.rotate((0, 0, 0), (0, 0, 1), 180)
+    marked = engrave(turned, label, x=0., y=-width/2, z=z)
+    return marked.rotate((0, 0, 0), (0, 0, 1), -180)
 
-
-def build_course(spec, *, reference_label=None):
+def build_course(spec, *, reference_label=None, mark=True):
     path=SharpPath()
     if abs(path.turn_radius-16)>1e-6 or path.section_radius>=14.4:
         raise ValueError("Unsupported R16 cut radius/wall")
@@ -101,7 +93,8 @@ def build_course(spec, *, reference_label=None):
            .edges("|Z").fillet(ROUNDED_EDGES.corner_radius)
            .edges(">Z").fillet(.5))
     body=receiver(p,outer,path.receiver_depth,0).val()
-    body=add_e31_05_receiver_features(body,p.tubes(),p.tube_radius)
+    body=add_e31_05_receiver_features(body,p.tubes(),p.tube_radius,
+                                      receiver_depth=path.receiver_depth)
     # The receiver intersects the R16 cut first; leftover tube/support is
     # geometrically clipped, never replaced by detached uncut full supports.
     body=body.cut(_torus_cut(path)).clean().mirror("XZ")
@@ -119,6 +112,8 @@ def build_course(spec, *, reference_label=None):
     # C01 open course: NO top studs, even on the remaining corner.
     if not body.isValid() or len(body.Solids())!=1:
         raise ValueError("Sharp curve must be one valid connected solid")
+    if not mark:
+        return body,p,path
     label=reference_label or (spec["id"]+"-"+spec["version"])
     return _mark_north(body,label,p.depth,kind),p,path
 
@@ -137,6 +132,9 @@ def checks(shape,p,path,kind):
         "oversized_ball_blocked":max(oversize)>VOLUME_TOL,
         "receiver_bore_open":not shape.isInside(cq.Vector(0,0,1)),
         "receiver_wall":shape.isInside(cq.Vector(4,4,1)),
+        "e31_short_slots_leave_roof": (
+            abs(SLOT_END_Z - 3.50) < 1e-6 and
+            path.receiver_depth - SLOT_END_Z - SLOT_END_RADIUS >= .60 - 1e-6),
         "remaining_curve_floor":shape.isInside(cq.Vector(mid,mid,path.floor-.15)),
         "west_to_south_ports":(
             ports(path)[0].floor_xyz_mm==(-16.,0.,path.floor)
@@ -158,6 +156,18 @@ def checks(shape,p,path,kind):
             # These two pockets became empty in C02-V4 and trapped the ball:
             "inner_wall_north_retained":shape.isInside(cq.Vector(0,12.5,20)),
             "inner_wall_east_retained":shape.isInside(cq.Vector(12.5,0,20)),
+            "visible_round_mouths":all(
+                shape.isInside(cq.Vector(*xyz)) == solid
+                for angle in range(0, 360, 30)
+                for radius, solid in ((path.section_radius-.45,False),
+                                      (path.section_radius+.45,True))
+                for xyz in (
+                    (-15.8,radius*math.cos(math.radians(angle)),
+                     path.floor+path.section_radius+radius*math.sin(math.radians(angle))),
+                    (radius*math.cos(math.radians(angle)),-15.8,
+                     path.floor+path.section_radius+radius*math.sin(math.radians(angle)))
+                )
+            ),
             "minimum_roof":p.height-max(
                 path.floor+2*path.section_radius,
                 ROOF_DOME_CENTER_Z+ROOF_DOME_RADIUS)>=DUPLO.roof,
@@ -207,13 +217,14 @@ def export_course(spec,out):
         "ball_samples_mm3":nominal,
         "oversized_ball_samples_mm3":oversize,
         "mesh":mesh,"sha256_stl":hashlib.sha256(stl.read_bytes()).hexdigest(),
+        "e31_05":{"receiver_depth_mm":path.receiver_depth,"slot_end_z_mm":SLOT_END_Z},
         "physical_rolling_validated":False,"slicing_validated":False,
-        "pr55_stage1_print_assumed_success":True,
+        "pr55_stage1_print_assumed_success":False,
         "pr55_stage1_print_report_received":False,
         "limitations":[
-            "PR55 Stage1 success is a development assumption, not a real print result.",
+            "Old PR55 prints do not validate this newly revised prototype.",
             "C02-V4 wide turning chamber and C02R-V1 head-on impact rejected.",
-            "R16 C02-V5 internal burrs may require post-print inspection.",
+            "R16 C02-V8 internal burrs may require post-print inspection.",
             "Finite sphere samples and mesh cannot prove reliable natural rolling.",
         ],
     }
