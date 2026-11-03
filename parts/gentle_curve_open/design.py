@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'GC01-V4'
+PART_ID = 'GC01-V5'
 KIND = 'gentle'
 DROP = 0
 TUNNEL = False
@@ -24,6 +24,8 @@ LENGTH = 64. if KIND == 'straight' else (math.pi*R/2 + (32. if KIND == 'sharp' e
 FLOOR = BALL_TRACK.floor
 BALL = BALL_TRACK.ball_diameter
 DEPTH = 4.75
+# West inlet wall beneath the running floor; size/depth use shared defaults.
+LABEL_Z = 5.10
 
 
 def xy(s):
@@ -114,11 +116,14 @@ def build_part(label=PART_ID):
         studs=make_studs(p.studs(),57.45,p.stud_radius,p.stud_inner_radius,4.65,.5).val().intersect(mask)
         body=body.fuse(studs).clean()
         if STEEP: print('stud body valid',body.isValid(),flush=True)
-    # Mark below the running floor, on the inlet face; avoids mating contact below 4.75.
-    x,y,_,_=xy(0)
+    # Finish all geometry first. The visible west inlet wall is solid below
+    # the 6.35 mm track floor; 3mm bold lettering fits at Z5.10.
+    # Any mirrored geometry must be reflected BEFORE readable text is carved.
+    _,y,_,_=xy(0)
     if MIRROR:
         body=body.mirror('XZ');y=-y
-    body=engrave_west(body,label,x=-p.width/2,y=y,z=5.55,size=1.1,depth=.3)
+    if label is not None:
+        body=engrave_west(body,label,x=-p.width/2,y=y,z=LABEL_Z)
     if not body.isValid() or len(body.Solids())!=1:raise ValueError('Expected one valid connected solid')
     return body,p
 
