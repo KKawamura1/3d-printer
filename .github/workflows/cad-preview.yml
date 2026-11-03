@@ -7,6 +7,7 @@ on:
       - 'parts/**/cad-build.json'
       - 'experiments/**/*.py'
       - 'experiments/**/cad-build.json'
+      - 'experiments/**/course.json'
       - 'brickcad/**'
       - 'profiles/**'
       - 'requirements.txt'
