@@ -56,7 +56,7 @@ class TunnelTests(unittest.TestCase):
 
     def test_round_entry_high_ceiling_style(self):
         from parts.tunnel.design_e31 import PART_ID
-        self.assertEqual(PART_ID, 'T01-V5')
+        self.assertEqual(PART_ID, 'T01-V6')
         # Internal roof is higher than the circular entrance at this position.
         z_circle=self.t.floor+2*self.t.radius
         self.assertFalse(self.shape.isInside(cq.Vector(0,0,z_circle+0.2)))

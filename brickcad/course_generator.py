@@ -13,11 +13,11 @@ from pathlib import Path
 # A mismatched setting must fail, never quietly generate a different shape.
 SUPPORTED = {
     "straight_tunnel": {
-        "id": "T01", "version": "V5",
+        "id": "T01", "version": "V6",
         "geometry": {"kind": "straight_tunnel", "size": [2, 2, 2], "height_change": 0},
         "enclosure": {"kind": "tunnel", "windows": []},
         "connection": {"profile": "E31-05"},
-        "legacy": {"module": "parts.tunnel.design_e31", "part_id": "T01-V5"},
+        "legacy": {"module": "parts.tunnel.design_e31", "part_id": "T01-V6"},
     },
     "windowed_downhill_tunnel": {
         "id": "D01", "version": "V3",
