@@ -13,6 +13,9 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+# Direct script execution adds scripts/, not repository root, to sys.path.
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 REGISTRY = ROOT / "experiments/course_catalog/registry.json"
 CATEGORIES = list(range(1, 22)) + [24, 25]
 
