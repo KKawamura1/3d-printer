@@ -1,11 +1,11 @@
 name: Issue37 independent CAD vs original BRep parity
 on:
   push:
+    # Any production geometry or contract edit must exercise the parity oracle.
+    # The push message may request [course-all] for full verification.
     paths:
       - 'tests/test_course_catalog_parity.py'
-      - 'brickcad/course_contract.py'
-      - 'brickcad/course_straight_rail.py'
-      - 'brickcad/course_r48_sloped_tunnel.py'
+      - 'brickcad/course_*.py'
       - 'experiments/course_catalog/registry.json'
       - '.github/workflows/course-catalog-parity.yml'
   workflow_dispatch:
