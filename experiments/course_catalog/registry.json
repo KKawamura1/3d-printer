@@ -47,11 +47,23 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 50,
-        "sha": "1e0092a4854a00323a1a2c50adfb29f0b2450052",
-        "target": "parts/sharp_downhill_tunnel_left",
-        "cad_version": "SD04-V10"
+        "kind": "configured",
+        "family": "loft",
+        "recipe": {
+          "route": "sharp",
+          "drop_mm": 19.2,
+          "tunnel": true,
+          "mirror": true,
+          "mark_face": "south",
+          "label_x_mm": -16,
+          "label_z_mm": 12
+        },
+        "reference": {
+          "pr": 50,
+          "sha": "1e0092a4854a00323a1a2c50adfb29f0b2450052",
+          "target": "parts/sharp_downhill_tunnel_left",
+          "cad_version": "SD04-V10"
+        }
       }
     },
     {
@@ -89,11 +101,22 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 46,
-        "sha": "84c1df9dd2439c6b2f8b60d81997765c1307637e",
-        "target": "parts/sloped_curve_open_right",
-        "cad_version": "SC03-V5"
+        "kind": "configured",
+        "family": "loft",
+        "recipe": {
+          "route": "gentle",
+          "drop_mm": 19.2,
+          "tunnel": false,
+          "mirror": true,
+          "mark_face": "west",
+          "label_z_mm": 12
+        },
+        "reference": {
+          "pr": 46,
+          "sha": "84c1df9dd2439c6b2f8b60d81997765c1307637e",
+          "target": "parts/sloped_curve_open_right",
+          "cad_version": "SC03-V5"
+        }
       }
     },
     {
@@ -104,11 +127,22 @@
       ],
       "reversible_unverified": true,
       "source": {
-        "kind": "pr",
-        "pr": 43,
-        "sha": "a7fb01fb536d067e99f12a93f63bbe93d5b83d2e",
-        "target": "parts/gentle_curve_open",
-        "cad_version": "GC01-V5"
+        "kind": "configured",
+        "family": "loft",
+        "recipe": {
+          "route": "gentle",
+          "drop_mm": 0,
+          "tunnel": false,
+          "mirror": false,
+          "mark_face": "west",
+          "label_z_mm": 5.1
+        },
+        "reference": {
+          "pr": 43,
+          "sha": "a7fb01fb536d067e99f12a93f63bbe93d5b83d2e",
+          "target": "parts/gentle_curve_open",
+          "cad_version": "GC01-V5"
+        }
       }
     },
     {
@@ -118,11 +152,23 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 50,
-        "sha": "1e0092a4854a00323a1a2c50adfb29f0b2450052",
-        "target": "parts/sharp_downhill_tunnel_right",
-        "cad_version": "SD03-V11"
+        "kind": "configured",
+        "family": "loft",
+        "recipe": {
+          "route": "sharp",
+          "drop_mm": 19.2,
+          "tunnel": true,
+          "mirror": false,
+          "mark_face": "south",
+          "label_x_mm": -16,
+          "label_z_mm": 12
+        },
+        "reference": {
+          "pr": 50,
+          "sha": "1e0092a4854a00323a1a2c50adfb29f0b2450052",
+          "target": "parts/sharp_downhill_tunnel_right",
+          "cad_version": "SD03-V11"
+        }
       }
     },
     {
@@ -132,11 +178,23 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 48,
-        "sha": "080958c7fe99813949ffecaac7f7bcd2ad29fc7a",
-        "target": "parts/sharp_downhill_open_right",
-        "cad_version": "SD01-V4"
+        "kind": "configured",
+        "family": "loft",
+        "recipe": {
+          "route": "sharp",
+          "drop_mm": 19.2,
+          "tunnel": false,
+          "mirror": false,
+          "mark_face": "south",
+          "label_x_mm": -16,
+          "label_z_mm": 12
+        },
+        "reference": {
+          "pr": 48,
+          "sha": "080958c7fe99813949ffecaac7f7bcd2ad29fc7a",
+          "target": "parts/sharp_downhill_open_right",
+          "cad_version": "SD01-V4"
+        }
       }
     },
     {
@@ -146,11 +204,23 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 48,
-        "sha": "080958c7fe99813949ffecaac7f7bcd2ad29fc7a",
-        "target": "parts/sharp_downhill_open_left",
-        "cad_version": "SD02-V4"
+        "kind": "configured",
+        "family": "loft",
+        "recipe": {
+          "route": "sharp",
+          "drop_mm": 19.2,
+          "tunnel": false,
+          "mirror": true,
+          "mark_face": "south",
+          "label_x_mm": -16,
+          "label_z_mm": 12
+        },
+        "reference": {
+          "pr": 48,
+          "sha": "080958c7fe99813949ffecaac7f7bcd2ad29fc7a",
+          "target": "parts/sharp_downhill_open_left",
+          "cad_version": "SD02-V4"
+        }
       }
     },
     {
@@ -160,11 +230,23 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 44,
-        "sha": "1275e5bc21acae8c73b58ed19b0f024ab8c20545",
-        "target": "parts/downhill_open",
-        "cad_version": "D02-V4"
+        "kind": "configured",
+        "family": "loft",
+        "recipe": {
+          "route": "straight",
+          "drop_mm": 19.2,
+          "tunnel": false,
+          "mirror": false,
+          "mark_face": "south",
+          "label_x_mm": -16,
+          "label_z_mm": 12
+        },
+        "reference": {
+          "pr": 44,
+          "sha": "1275e5bc21acae8c73b58ed19b0f024ab8c20545",
+          "target": "parts/downhill_open",
+          "cad_version": "D02-V4"
+        }
       }
     },
     {
@@ -245,11 +327,22 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 46,
-        "sha": "84c1df9dd2439c6b2f8b60d81997765c1307637e",
-        "target": "parts/sloped_curve_open_left",
-        "cad_version": "SC05-V1"
+        "kind": "configured",
+        "family": "loft",
+        "recipe": {
+          "route": "gentle",
+          "drop_mm": 19.2,
+          "tunnel": false,
+          "mirror": false,
+          "mark_face": "west",
+          "label_z_mm": 12
+        },
+        "reference": {
+          "pr": 46,
+          "sha": "84c1df9dd2439c6b2f8b60d81997765c1307637e",
+          "target": "parts/sloped_curve_open_left",
+          "cad_version": "SC05-V1"
+        }
       }
     },
     {

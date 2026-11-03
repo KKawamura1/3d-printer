@@ -37,13 +37,22 @@ def load_registry(path=REGISTRY):
         if m["reversible_unverified"] is not (len(numbers) > 1):
             raise ValueError("Reversible CAD must be marked unverified")
         kind = source.get("kind")
-        if kind not in ("local", "pr", "legacy"):
+        if kind not in ("local", "pr", "legacy", "configured"):
             raise ValueError("Missing CAD source kind")
+        if kind == "configured":
+            if source.get("family") != "loft" or not isinstance(source.get("recipe"), dict):
+                raise ValueError("Configured model needs a real geometry recipe")
+            from brickcad.course_loft_family import LoftSettings
+            LoftSettings.from_dict(source["recipe"])
+            ref = source.get("reference", {})
+            if (type(ref.get("pr")) is not int or
+                    not re.fullmatch(r"[0-9a-f]{40}", ref.get("sha", ""))):
+                raise ValueError("Reference CAD provenance must be pinned")
         if kind == "pr":
             if (type(source.get("pr")) is not int or source["pr"] < 1
                     or not re.fullmatch(r"[0-9a-f]{40}", source.get("sha", ""))):
                 raise ValueError("Source must pin PR number and full commit SHA")
-        if kind != "legacy":
+        if kind not in ("legacy", "configured"):
             if (not re.fullmatch(r"(parts|experiments)/[a-z0-9_]+", source.get("target", ""))
                     or not re.fullmatch(r"[A-Z0-9-]+", source.get("cad_version", ""))):
                 raise ValueError("Missing safe CAD target or version")
@@ -90,7 +99,9 @@ def stl_info(path):
 
 def export_one(model, source_root, output):
     src = model["source"]
-    if src["kind"] == "legacy":
+    if src["kind"] == "configured":
+        folder = source_root / "build/course-catalog-configured" / model["id"]
+    elif src["kind"] == "legacy":
         folder = source_root / "build/course-catalog-legacy"
     else:
         folder = source_root / "build/cad-delivery" / src["target"] / src["cad_version"]
@@ -143,7 +154,12 @@ def build(models, output, strict_head=False):
             run("git", "worktree", "add", "--detach", str(worktree), sha)
             source_root = worktree
         try:
-            if kind == "legacy":
+            if kind == "configured":
+                from brickcad.course_loft_family import export_course
+                for model in chosen:
+                    dest = ROOT / "build/course-catalog-configured" / model["id"]
+                    export_course(model["id"],model["source"]["recipe"],dest)
+            elif kind == "legacy":
                 run(sys.executable, "-m", "parts.straight_rail.design",
                     "--kind", "rail", "--out",
                     str(ROOT / "build/course-catalog-legacy"))
