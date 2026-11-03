@@ -1,10 +1,10 @@
 {
-  "version": "SC02L-V5",
+  "version": "SC02L-V6",
   "auto": true,
   "requires": [
     {
       "target": "parts/sloped_curve_tunnel",
-      "version": "SC02-V11"
+      "version": "SC02-V12"
     }
   ],
   "command": [
@@ -18,5 +18,5 @@
     "brick.stl"
   ],
   "timeout": 1200,
-  "description": "SC02L-V5 left R48 downhill tunnel: mirror unmarked SC02-V11 source before 3mm post-engraving"
+  "description": "SC02L-V6 left R48 downhill tunnel: mirror unmarked SC02-V12 source before 3mm post-engraving"
 }

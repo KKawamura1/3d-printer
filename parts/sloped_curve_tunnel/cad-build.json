@@ -1,5 +1,5 @@
 {
-  "version": "SC02-V11",
+  "version": "SC02-V12",
   "auto": true,
   "command": [
     "python",
