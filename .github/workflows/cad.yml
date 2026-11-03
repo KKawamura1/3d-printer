@@ -27,7 +27,8 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # CAD geometry tests may take several minutes per part; 10m truncated PR #46.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
