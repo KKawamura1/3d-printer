@@ -6,6 +6,7 @@ Adding a new shape/knob requires an explicit engine change and CAD tests.
 """
 import argparse
 import hashlib
+import importlib
 import json
 from pathlib import Path
 
@@ -60,19 +61,21 @@ def load_spec(path):
     return spec
 
 
-def export_config(config, out):
-    """Export the original BRep/STL via a pinned, tested source adapter."""
+def export_config(config, out, *, source=None):
+    """Export a strict reference via a revision-checked, source-specific adapter.
+
+    Versioned recipes enter via course_replay_t01/course_replay_d01 so the
+    fingerprint planner statically sees only the relevant source family.
+    Direct manual calls may use the verified dynamic module lookup.
+    """
     config = Path(config)
     spec = load_spec(config)
     out = Path(out)
     kind = spec["geometry"]["kind"]
-    # Both dependencies are statically discoverable by cad_versions imports_for.
-    if kind == "straight_tunnel":
-        from parts.tunnel import design_e31 as source
-    elif kind == "windowed_downhill_tunnel":
-        from parts.downhill_tunnel import design as source
-    else:
-        raise ValueError(f"Unsupported course kind: {kind!r}")
+    if source is None:
+        source = importlib.import_module(spec["legacy"]["module"])
+    if source.__name__ != spec["legacy"]["module"]:
+        raise ValueError("Replay source does not match the pinned recipe")
     if source.PART_ID != spec["legacy"]["part_id"]:
         raise ValueError("Legacy source revision changed; replay is not safe")
     report = source.export(out)
@@ -106,13 +109,17 @@ def export_config(config, out):
     return manifest
 
 
-def main():
+def main_for_source(source=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
-    manifest = export_config(args.config, args.out)
+    manifest = export_config(args.config, args.out, source=source)
     print("COURSE REPLAY PASS", manifest["kind"], manifest["stl_sha256"], flush=True)
+
+
+def main():
+    main_for_source()
 
 
 if __name__ == "__main__":

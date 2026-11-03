@@ -4,7 +4,7 @@
   "command": [
     "python",
     "-m",
-    "brickcad.course_generator",
+    "brickcad.course_replay_d01",
     "--config",
     "experiments/course_replay_d01/course.json",
     "--out",
