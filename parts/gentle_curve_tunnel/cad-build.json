@@ -1,0 +1,16 @@
+{
+  "version": "E01-V3",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.gentle_curve_tunnel.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 2400,
+  "description": "E31-05 horizontal R48 right tunnel with circular visible mouths and standard post-engraving"
+}

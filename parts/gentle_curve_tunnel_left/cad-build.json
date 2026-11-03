@@ -1,0 +1,22 @@
+{
+  "version": "E01L-V1",
+  "auto": true,
+  "requires": [
+    {
+      "target": "parts/gentle_curve_tunnel",
+      "version": "E01-V3"
+    }
+  ],
+  "command": [
+    "python",
+    "-m",
+    "parts.gentle_curve_tunnel_left.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 2400,
+  "description": "Mirrored horizontal R48 left tunnel with own readable E01L-V1 marking"
+}
