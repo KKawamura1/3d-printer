@@ -112,7 +112,7 @@ def build_part(label=PART_ID, *, mirror=False):
     full=[]
     for x,y in p.tubes():
         if all(mask.isInside(cq.Vector(x+6.85*math.cos(a),y+6.85*math.sin(a),2)) for a in [i*math.pi/4 for i in range(8)]):full.append((x,y))
-    if full: body=add_e31_05_receiver_features(body,full,p.tube_radius)
+    if full: body=add_e31_05_receiver_features(body, full, p.tube_radius, receiver_depth=DEPTH)
     if TUNNEL:
         studs=make_studs(p.studs(),57.45,p.stud_radius,p.stud_inner_radius,4.65,.5).val().intersect(mask)
         body=body.fuse(studs).clean()
