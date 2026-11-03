@@ -55,7 +55,7 @@ def build_tunnel(curve=SharpCurve(), *, label=PART_ID):
              .edges("|Z").fillet(ROUNDED_EDGES.corner_radius)
              .edges(">Z").fillet(.5))
     body = receiver(p, outer, curve.receiver_depth, 0).val()
-    body = add_e31_05_receiver_features(body, p.tubes(), p.tube_radius)
+    body = add_e31_05_receiver_features(body, p.tubes(), p.tube_radius, receiver_depth=curve.receiver_depth)
     # C01's toroidal cut initially travels west -> north; reflect it to
     # west -> south. Its circular mouths match the open rail exactly.
     body = body.cut(_curve_cut(curve)).clean().mirror("XZ")
