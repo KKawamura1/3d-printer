@@ -1,24 +1,22 @@
-# SD03-V8 / SD04-V7 — 緩坂＋急カーブ・左右共通生成
+# SD03-V9 / SD04-V8 — 緩坂＋急カーブ・左右共通生成
 
-Issue #37 / PR #50。右カーブ（SD03）と左カーブ（SD04）は**共通BRepをXZ面で鏡面反転**して生成する。別形状として手修正しない。
+Issue #37 / #60、PR #50。右カーブ（SD03）と左カーブ（SD04）を**同一の無刻印BRep**から生成し、片側をXZ平面で鏡映した**後**にそれぞれのIDを彫る。左右別の走路や支持構造は実装しない。
 
-- **共通形状:** `parts/sharp_downhill_tunnel_right/design.py` に1つだけ実装する。
-- **右:** `SD03-V8`、`build_part(mirror=False)`。刻印は `SD03-V8`。
-- **左:** `SD04-V7`、`parts/sharp_downhill_tunnel_left/design.py` は薄い呼び出しラッパー。共通形状を反転し、**反転後に** `SD04-V7` を凹刻印。文字は鏡文字にならない。
-- **刻印標準:** `brickcad.marking.engrave` 既定値（DejaVu Sans Bold / 文字サイズ3.0mm / 深さ0.4mm）、位置は直線部外側（X=-16, Z=12, -Y外壁）。
-- **開口:** mainのトンネル方式を参照し入口・出口を円形に、1mmの円形リップと4mmの屋根遷移。
-- **下面・上面:** 輪郭切断チューブとスタッドを保持。完全チューブへのE31-05適用、極小スタッド片除去は既存仕様を維持。
-- **差分テスト:** 左右の走路・ポート鏡面対称、刻印前BRepの鏡像一致、口の円形断面、CAD閉鎖単一ソリッド、連続球掃引、刻印の実切削。
-- **印刷:** 2つの`cad-build.json`を更新し、1つのPRからそれぞれのSTL/STEP/レポートを生成する。実機での自然転がり・スライス・嵌合は未検証。
+- **右:** `SD03-V9`、`parts/sharp_downhill_tunnel_right/design.py` の `build_part(mirror=False)`。
+- **左:** `SD04-V8`、`parts/sharp_downhill_tunnel_left/design.py` の薄いラッパーから `build_part(mirror=True)` を呼ぶ。左アダプタは右の形状版 `SD03-V9` に依存し、バージョン不一致なら失敗させる。
+- **刻印:** `brickcad.marking.engrave()` の既定値（DejaVu Sans Bold、文字高3.0mm、深さ0.4mm）。完成外形の外側 -Y 壁、X=-16 / Z=12へ最後に凹刻印する。左も文字を鏡映しない。切削ツールと最終形状に干渉が残らないことを回帰テストする。
+- **開口:** 見える入口・出口は半径 `BALL_TRACK.radius` の真円断面。外端の円形リップ約1mm、続く屋根の滑らかな遷移約4mm。
+- **嵌合:** 上面スタッドと下面チューブは輪郭で切断された支持部分を保持。E31-05のビード／4分割スリットは完全チューブに限る。
+- **床面の採用候補（PR #58 B）:** スリット終端中心Z=3.50mm、端R=0.65mm、最上端Z=4.15mm。下面空洞天井Z=4.75mmまで**0.60mm**確保し、追加リブは付けない。小型試験片Bでは床印刷OK・嵌合感も良好だったが、**SD03/SD04の実印刷は未確認**。
+- **検証:** 左右反転一致、独立刻印、円形開口、球経路のCADクリアランス、切断支持、スリット終端、CAD単一ソリッド、閉鎖STL、STEP往復を個別に確認する。CADの通過判定は実物の自然転がりを保証しない。
 
 ```sh
 python -m parts.sharp_downhill_tunnel_right.design --out build/sharp_downhill_tunnel_right
 python -m parts.sharp_downhill_tunnel_left.design --out build/sharp_downhill_tunnel_left
 ```
 
-PR #51 は独立生成コードを引き継いだため統合後にクローズする。PR #55 の旧一括プレートはこの版を含まない。
+各 `cad-build.json` で別々のSTL / STEP / `report.json` を生成する。GitHub Actionsの `cad-verified-stl` は生成された**対象コミットSHA**と対応を必ず確認する。旧#55プレートは旧版（SD03-V4 / SD04-V3）を参照しており、ここでの更新がそのまま旧プレートに伝播するわけではない。
 
+**検証状態:** #58の2×2試験片Bの結果のみ実機確認済み。SD03-V9 / SD04-V8についてはBambu StudioサポートOFF再スライス、実物の床面、次レール接続・自然転がり（各10回）、刻印可読性、純正／印刷相手別の挿抜耐久を未確認。子どもへの提供前にバリ・剥離・床崩れを確認する。
 
-## PR58転用（SD03-V9 / SD04-V8）
-
-スリット終端中心Z4.40→3.50mm、上端Z4.15mm（下面天井より0.60mm下）。リブなし。左右の共通形状と、反転後に標準刻印を刻む手順は維持。PR58の2×2試験片Bは印刷・嵌合感良好、当モデルは実印刷未検証。
+Refs #37 #42 #51 #55 #58 #59 #60.
