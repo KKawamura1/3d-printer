@@ -232,7 +232,9 @@ def export_course(model_id,recipe,out):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     shape,p=build_course(model_id,recipe)
     stl=out/"brick.stl"
-    # Match the proven PR40 exporter tessellation; geometry is unchanged.
+    # Intermediate tessellation passes both manifold and volume checks: .01/.10
+    # was nonmanifold and PR40's .03/.20 exceeded the mesh-volume tolerance.
+    # This changes only STL sampling, never the independently tested BRep.
     cq.exporters.export(shape,str(stl),tolerance=.02,angularTolerance=.15)
     _strip(stl)
     cq.exporters.export(shape,str(out/"brick.step"))
