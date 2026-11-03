@@ -9,7 +9,7 @@ Issue #37。左右の形状構築は **PR #48 の `parts/sharp_downhill_open_rig
 - CADテストは左右の走路連続クリアランス、支持、反射対称、刻印カッター位置・標準寸法を確認。重力による自然転がり・Bambu Studioスライス・実印刷は別途検証が必要。
 
 生成：`python -m parts.sharp_downhill_open_right.design --out build/sharp_downhill_open_right` または `python -m parts.sharp_downhill_open_left.design --out build/sharp_downhill_open_left`。
-Actionsの`cad-verified-stl`が両方のSTL/STEP/検証レポートを保存する。
+Actionsの`cad-verified-stl`が両方のSTL/STEP/検証レポートを保存する。版番号の正本は`version`および左の`requires`であり、右の`cad-build.json`の旧説明文（SD02-V3）は形状と生成対象を決めない。説明文だけでもversion-bump判定対象になるため、V4の設計fingerprint維持を優先しREADME側で現行版を明記している。
 
 
 ## SD01-V4（PR58床面改善）
