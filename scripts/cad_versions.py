@@ -25,7 +25,7 @@ def git(root, *args):
 
 
 class _RestoreStepVolumeSyntax(ast.NodeTransformer):
-    """Normalize only export()'s precise STEP comparison back to Volume()."""
+    """Normalize precise STEP comparisons in model export/generate routines."""
 
     def visit_Call(self, node):
         self.generic_visit(node)
@@ -70,7 +70,7 @@ def verification_only_precision_change(root, base, path):
         for node in after.body:
             if isinstance(node, ast.ImportFrom) and node.module == 'brickcad.verify':
                 node.names = [a for a in node.names if a.name != 'precise_volume']
-            elif isinstance(node, ast.FunctionDef) and node.name == 'export':
+            elif isinstance(node, ast.FunctionDef) and node.name in ('export', 'generate'):
                 _RestoreStepVolumeSyntax().visit(node)
     return ast.dump(before, include_attributes=False) == ast.dump(after, include_attributes=False)
 
