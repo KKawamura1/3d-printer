@@ -122,6 +122,14 @@ jobs:
               python scripts/cad_versions.py --mode plan --base "$BEFORE_SHA"
             fi
           fi
+      - name: Fail rather than report a successful empty manual repair
+        if: github.event_name == 'workflow_dispatch' && steps.plan.outputs.has_models != 'true'
+        run: |
+          echo "::error::No STL targets selected. Set targets to a part path (including auto:false models) or all."
+          exit 1
+      - name: Explain when no new STL is expected
+        if: github.event_name != 'workflow_dispatch' && steps.plan.outputs.has_models != 'true'
+        run: echo "::notice::No new or bumped CAD revisions in this diff; no STL artifact is expected."
       - uses: actions/setup-python@v5
         if: steps.plan.outputs.has_models == 'true'
         with:
