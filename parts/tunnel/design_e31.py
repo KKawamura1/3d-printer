@@ -105,7 +105,8 @@ def build_tunnel(t=Tunnel(), *, roof='transition', transition=4., label=None):
     studs=make_studs(p.studs(), p.height, p.stud_radius-p.clearance,
                      p.stud_inner_radius, p.stud_height, lip_radius=ROUNDED_EDGES.stud_lip_radius)
     shape=result.union(studs).val().clean()
-    shape=add_e31_05_receiver_features(shape,p.tubes(),p.tube_radius)
+    shape=add_e31_05_receiver_features(shape,p.tubes(),p.tube_radius,
+                                       receiver_depth=t.cavity_height)
     if not shape.isValid() or len(shape.Solids())!=1:
         raise ValueError('Tunnel must be one valid solid')
     shape=engrave(shape,label or PART_ID,x=0,y=-p.depth/2,z=10.)
