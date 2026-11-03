@@ -1,0 +1,26 @@
+name: Independent configured loft BRep parity
+on:
+  push:
+    paths:
+      - 'brickcad/course_loft_family.py'
+      - 'tests/test_course_loft_family_parity.py'
+      - 'experiments/course_catalog/registry.json'
+      - '.github/workflows/course-loft-parity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Recreate original immutable CAD and compare both BReps
+        run: python -m unittest tests.test_course_loft_family_parity -v
