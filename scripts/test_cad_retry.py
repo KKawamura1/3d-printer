@@ -1,4 +1,5 @@
 """No-network tests for recovery of failed/cancelled CAD generation."""
+import subprocess
 import unittest
 from unittest import mock
 
@@ -39,26 +40,62 @@ class RetrySelectionTests(unittest.TestCase):
         runs = [run(4, "success"), run(3, "success")]
         self.assertEqual(cad_retry.unrecovered_runs(runs, 5, lambda item: False), [])
 
-    @mock.patch.object(cad_retry, "git", return_value="base123")
-    @mock.patch.object(cad_retry, "get_pr_base", return_value="pr-sha")
+    @mock.patch.object(cad_retry, "git")
     @mock.patch.object(cad_retry, "api_get")
-    def test_stacked_pr_uses_its_own_base(self, api, pr, git):
+    def test_pr_retry_uses_failed_push_parent_not_pr_merge_base(self, api, git):
+        # A large PR may contain many older, already-successful experiments.
+        # Retrying one failed later push must not revalidate that entire diff.
+        attempt = run(5, "failure")
         api.side_effect = [
-            {"workflow_runs": [run(5, "failure")]},
+            {"workflow_runs": [attempt]},
             {"artifacts": []},
         ]
-        base, count = cad_retry.retry_base("example/repo", "branch", 6, "token")
-        self.assertEqual((base, count), ("base123", 1))
-        git.assert_called_once_with("merge-base", "HEAD", "pr-sha")
+        git.side_effect = ["", "parent-of-failed-push"]
+        base, count = cad_retry.retry_base("example/repo", "feature/pr56", 6, "token")
+        self.assertEqual((base, count), ("parent-of-failed-push", 1))
+        self.assertEqual(git.call_args_list, [
+            mock.call("merge-base", "--is-ancestor", attempt["head_sha"], "HEAD"),
+            mock.call("rev-parse", attempt["head_sha"] + "^"),
+        ])
 
-    @mock.patch.object(cad_retry, "git", return_value="parent123")
-    @mock.patch.object(cad_retry, "get_pr_base", return_value=None)
+    @mock.patch.object(cad_retry, "git")
     @mock.patch.object(cad_retry, "api_get")
-    def test_default_branch_uses_parent_of_first_failed_push(self, api, pr, git):
+    def test_default_branch_uses_parent_of_first_failed_push(self, api, git):
         api.return_value = {"workflow_runs": [run(7, "failure"), run(6, "failure")]}
+        git.side_effect = ["", "parent-of-earliest"]
         base, count = cad_retry.retry_base("example/repo", "main", 8, "token")
-        self.assertEqual((base, count), ("parent123", 2))
-        git.assert_called_once_with("rev-parse", run(6, "failure")["head_sha"] + "^")
+        self.assertEqual((base, count), ("parent-of-earliest", 2))
+        git.assert_any_call("merge-base", "--is-ancestor",
+                            run(6, "failure")["head_sha"], "HEAD")
+        git.assert_any_call("rev-parse", run(6, "failure")["head_sha"] + "^")
+
+    @mock.patch.object(cad_retry, "git")
+    def test_force_push_skips_discarded_history(self, git):
+        old = run(20, "failure")
+        current = run(21, "failure")
+        git.side_effect = [
+            subprocess.CalledProcessError(1, "git"),  # old SHA not ancestor
+            "", "new-attempt-parent",
+        ]
+        self.assertEqual(cad_retry.failed_attempt_parent([current, old]),
+                         "new-attempt-parent")
+        self.assertEqual(git.call_args_list, [
+            mock.call("merge-base", "--is-ancestor", old["head_sha"], "HEAD"),
+            mock.call("merge-base", "--is-ancestor", current["head_sha"], "HEAD"),
+            mock.call("rev-parse", current["head_sha"] + "^"),
+        ])
+
+    @mock.patch.object(cad_retry, "git",
+                       side_effect=subprocess.CalledProcessError(1, "git"))
+    def test_unreachable_failed_commit_never_expands_to_pr_base(self, git):
+        self.assertEqual(cad_retry.failed_attempt_parent([run(20, "failure")]), "")
+        git.assert_called_once_with("merge-base", "--is-ancestor",
+                                    run(20, "failure")["head_sha"], "HEAD")
+
+    def test_invalid_failed_sha_cannot_select_retry_base(self):
+        self.assertEqual(cad_retry.failed_attempt_parent(
+            [{"head_sha": "not-an-object"}]), "")
+
 
 
 if __name__ == "__main__":
