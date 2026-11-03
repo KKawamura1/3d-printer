@@ -42,8 +42,18 @@ def load_registry(path=REGISTRY):
         if kind == "configured":
             if source.get("family") != "loft" or not isinstance(source.get("recipe"), dict):
                 raise ValueError("Configured model needs a real geometry recipe")
-            from brickcad.course_loft_family import LoftSettings
-            LoftSettings.from_dict(source["recipe"])
+            # Cheap catalogue checks run without CadQuery installed.
+            recipe = source["recipe"]
+            required = {"route","drop_mm","tunnel","mirror","mark_face",
+                        "label_z_mm"}
+            if not required.issubset(recipe) or set(recipe) - (required | {"label_x_mm"}):
+                raise ValueError("Malformed loft recipe")
+            if (recipe["route"] not in ("straight","sharp","gentle")
+                    or recipe["drop_mm"] not in (0,19.2)
+                    or type(recipe["tunnel"]) is not bool
+                    or type(recipe["mirror"]) is not bool
+                    or recipe["mark_face"] not in ("south","west")):
+                raise ValueError("Unsupported loft recipe")
             ref = source.get("reference", {})
             if (type(ref.get("pr")) is not int or
                     not re.fullmatch(r"[0-9a-f]{40}", ref.get("sha", ""))):

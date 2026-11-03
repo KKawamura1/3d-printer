@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 300
     env:
-      TARGETS: ${{ github.event_name == 'workflow_dispatch' && inputs.targets || 'T01-V6' }}
+      TARGETS: ${{ github.event_name == 'workflow_dispatch' && inputs.targets || 'GC01-V5' }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
