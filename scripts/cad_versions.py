@@ -228,12 +228,20 @@ def select(specs, target, *, changed=(), prior=None, root=None, prior_specs=None
     changed = set(changed)
     selected, errors = [], []
     for name, spec in sorted(specs.items()):
+        # Experiments are opt-in to incremental CI: a shared CAD refactor alone
+        # must not revalidate or rebuild historical experiment revisions.
+        # Direct edits (including course recipes/configuration) remain subject
+        # to the normal version-bump rule below.
+        if name.startswith('experiments/') and not any(
+                path.startswith(name + '/') for path in changed):
+            continue
         old = prior.get(name)
         bumped = old != spec['version']
         # A geometry source edit must be accompanied by a new revision.
-        local_code = any(p.startswith(name + '/') and p.endswith('.py') and
-                         not p.endswith('/test.py') and not p.endswith('/__init__.py')
-                         for p in changed)
+        local_code = (name + '/course.json' in changed or any(
+            p.startswith(name + '/') and p.endswith('.py') and
+            not p.endswith('/test.py') and not p.endswith('/__init__.py')
+            for p in changed))
         imported = changed.intersection(imports_for(name + '/design.py', root) - {name + '/design.py'}) if root else set()
         config_changed = name + '/cad-build.json' in changed
         previous_spec = (prior_specs or {}).get(name)
