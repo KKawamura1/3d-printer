@@ -1,0 +1,35 @@
+name: Configured course exact geometry parity
+on:
+  push:
+    paths:
+      - 'tests/test_course_current_parity.py'
+      - 'brickcad/course_*.py'
+      - 'experiments/course_*/course.json'
+      - '.github/workflows/course-parity.yml'
+  pull_request:
+    paths:
+      - 'tests/test_course_current_parity.py'
+      - 'brickcad/course_*.py'
+      - 'experiments/course_*/course.json'
+      - '.github/workflows/course-parity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: course-parity-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compare unmarked BRep in both directions
+        run: python -m unittest tests.test_course_current_parity -v
