@@ -91,7 +91,7 @@
       "source": {
         "kind": "pr",
         "pr": 46,
-        "sha": "4e3f9ea29efd53dfbdd5dccef495aa5abaab862d",
+        "sha": "84c1df9dd2439c6b2f8b60d81997765c1307637e",
         "target": "parts/sloped_curve_open_right",
         "cad_version": "SC03-V5"
       }
@@ -247,7 +247,7 @@
       "source": {
         "kind": "pr",
         "pr": 46,
-        "sha": "4e3f9ea29efd53dfbdd5dccef495aa5abaab862d",
+        "sha": "84c1df9dd2439c6b2f8b60d81997765c1307637e",
         "target": "parts/sloped_curve_open_left",
         "cad_version": "SC05-V1"
       }
