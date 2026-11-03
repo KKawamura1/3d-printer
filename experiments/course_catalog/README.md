@@ -1,5 +1,18 @@
 # PR56 — Issue #37の23分類・20モデルを共通CADから生成
 
+**本PRは「坂×カーブ×トンネル×窓」の共通レシピから幾何生成器を選び、嵌合・刻印の共通契約を全形状へ強制する。**
+
+## 現行共通仕様と分類レシピ（2026-11-03）
+
+- 23分類・20形状を `models[].course = {slope,curve,enclosure,windows}` で定義。形状生成器は4軸から `brickcad.course_contract.kernel_for()` が決定し、`source.family` や旧仕様プロファイルで生成器を選択できない。
+- **水平×直進×開放＝`R01-V1`** は、他の19形状と同じ `course_fit`、浅いE31-05 `add_course_receiver_features`、標準 `engrave_course` を用いて独立生成。基準は [PR #67](https://github.com/KKawamura1/3d-printer/pull/67) の固定SHAで、旧 `RAIL-LEGACY` は本番カタログから除外。
+- 嵌合共通契約：E27寸法プロファイルを出発点に、E31-05チューブ半径6.60mm・下面深さ4.75mm・スリット終端Z3.50mmを適用する。深い通常ブロック17.60mm/Z4.40mmの契約は別であり、本コースに持ち込まない。
+- 刻印共通契約：可視壁の `ID`、高さ3.0mm、深さ0.4mm。形状ごとに適切な刻印面・座標は異なるが、サイズや深さの変更を拒否する。
+- 原典BRep一致試験は19形状を既存版と比較し、R01-V1は現行E31版と比較する。旧形状と一致することはもはや合格条件ではない。
+- `tests/test_course_catalog.py` は23分類と4軸・実装レシピの整合／旧仕様の拒否を、`tests/test_course_contract.py` は全生成器の共通契約の使用を検証する。`tests/test_course_straight_rail.py` はR01の実形状を検査する。
+
+**実機での合格はまだ別途必要**。共通仕様がコードで強制されても、サポートOFFスライス・自然転がり・接合・刻印の実印刷評価が完了するわけではない。
+
 **本PRの最新方式は旧PRの生成スクリプトを呼び出さない。** 個別PRの `parts/*/design.py` は本番の生成経路では読み込まれず、テストでの形状一致の参照元としてだけ使用する。
 
 ## 形状ファミリーと共通部品
@@ -11,7 +24,7 @@
 - **緩坂R48トンネル（2モデル）:** 高さ変化・高天井・切断上面スタッド・完全チューブと切断下面支持の区別（`brickcad/course_r48_sloped_tunnel.py`）。
 - **直線坂トンネル（1モデル）:** smoothstep床・可変窓・真円口・屋根・E31（`brickcad/course_downhill.py` と `course_downhill_primitives.py`）。
 - **水平直進トンネル（1モデル）:** 2×2×高さ2、円形口→屋根遷移（`brickcad/course_straight_tunnel.py`）。
-- **旧直線開放レール（1モデル）:** 過去形状を独立に再構成。これはE31-05・標準刻印に準拠した新部品ではない（`brickcad/course_legacy_rail.py`）。
+- **水平直進開放レール（1モデル）:** 同じ共通嵌合・刻印契約から `R01-V1` を生成する（`brickcad/course_straight_rail.py`）。
 
 数え方：20個の固有CADでIssue #37の23分類（開放10、トンネル13）をカバーする。GC01-V5、C01-V6、C02-V8の各1個が逆走で左右2分類を兼用する仮説。**逆方向の実物試験は未実施**。
 
@@ -36,13 +49,13 @@ COURSE_PARITY_MODELS=GC01-V5 python -m unittest tests.test_course_catalog_parity
 
 全件比較は重いためActions `Issue37 independent CAD vs original BRep parity` を手動実行し `models=all` を指定する。**テストを実際に完走するまでは「全20形状一致済み」とは扱わない。**
 
-生成成功はBambu Studioでのサポートなしスライス・実印刷・球の転がり・E31嵌合の成功を意味しない。旧直線レール（RAIL-LEGACY）だけは形状一致してもE31・標準刻印適合は別途修正対象。
+生成成功はBambu Studioでのサポートなしスライス・実印刷・球の転がり・E31嵌合の成功を意味しない。旧直線レール（RAIL-LEGACY）は本番生成対象外。直線レール（R01-V1）も他の19件と同じE31・標準刻印を強制する。
 
 ## 旧方式との関係
 
 以前の `scripts/course_catalog.py` は原典PRの`cad-build.json`を固定SHAで呼び直すだけだったため、当初の共通CADの目的を満たしていなかった。現行の全20モデルは `source.kind=configured` に変更し、**本番では元パーツの生成コードを呼ばない**。参照元のSHAはテストの基準にのみ残す。
 
-#58/#59/#60の床・刻印・左右反転ルールを維持。ただし旧いRAIL-LEGACYにはこれらを自動適用しない。設計上不採用の急落下×緩カーブ2方向（#52/#53）を含まない。
+#58/#59/#60の床・刻印・左右反転ルールを維持。ただし旧いRAIL-LEGACYは本番カタログから除外した。設計上不採用の急落下×緩カーブ2方向（#52/#53）を含まない。
 
 ## ファミリー横断の共通化（形状不変）
 

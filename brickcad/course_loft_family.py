@@ -1,3 +1,6 @@
+from brickcad.course_contract import course_fit
+from brickcad.course_contract import add_course_receiver_features as add_e31_05_receiver_features
+from brickcad.course_contract import engrave_course as engrave, engrave_course_west as engrave_west
 """Independent setting-driven swept-section CAD for straight/R16/R48 channels.
 
 A path, floor elevation, enclosure and handedness are the only shape variables.
@@ -14,11 +17,9 @@ import cadquery as cq
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_expanded
 from brickcad.connections import make_studs
-from brickcad.marking import engrave, engrave_west
-from brickcad.model import brick_from_fit, receiver
+from brickcad.model import receiver
 from brickcad.standards import BALL_TRACK
 from brickcad.verify import exact_bounds
-from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
 RECEIVER_DEPTH = 4.75
 CHANNEL_HALF_WIDTH = 15.9
@@ -153,9 +154,8 @@ def build_course(config, *, label=None):
     """Construct independent BRep. Engrave only after all unions/mirroring."""
     config = (LoftSettings.from_dict(config) if isinstance(config, dict) else config)
     ny = 4 if config.route == "gentle" else 2
-    p = replace(brick_from_fit("duplo-e27-play-v1",nx=4,ny=ny,
-                height_units=3 if config.tunnel else (2 if config.drop_mm else 1)),
-                tube_radius=6.6)
+    p = course_fit(nx=4,ny=ny,
+                height_units=3 if config.tunnel else (2 if config.drop_mm else 1))
     clip = cq.Workplane("XY").box(p.width,p.depth,100,
               centered=(True,True,False)).val()
     mask = loft(config,"mask").intersect(clip)

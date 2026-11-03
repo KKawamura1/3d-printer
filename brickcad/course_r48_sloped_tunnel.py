@@ -1,3 +1,6 @@
+from brickcad.course_contract import course_fit
+from brickcad.course_contract import add_course_receiver_features as add_e31_05_receiver_features
+from brickcad.course_contract import engrave_course_west as engrave_west
 """Shared sloped R48 tunnel kernel with clipped supports and shaped roof.
 
 This reconstructs the native SC02/SC02L geometry from common primitives
@@ -13,11 +16,8 @@ from brickcad.course_artifacts import export_geometry
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
 
 from brickcad.standards import BALL_TRACK,DUPLO
-from brickcad.model import brick_from_fit
 from brickcad.connections import make_receiver,make_studs
-from brickcad.marking import engrave_west
 from brickcad.verify import exact_bounds
-from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
 RADIUS=48.
 DROP=19.2
@@ -89,8 +89,7 @@ def cut_receiver_edges(shape):
 
 
 def open_curve():
-    p=replace(brick_from_fit("duplo-e27-play-v1",nx=4,ny=4,
-              height=HEIGHT+DROP),tube_radius=6.60)
+    p=course_fit(nx=4,ny=4,height=HEIGHT+DROP)
     base=cq.Workplane("XY").box(p.width,p.depth,FLOOR,centered=(True,True,False))
     base=base.edges("|Z").fillet(.8).edges(">Z").fillet(.5)
     base=make_receiver(base,FULL_TUBES,p.cavity_xy,CAVITY_DEPTH,

@@ -1,23 +1,82 @@
 """Issue #37 CAD catalogue: dispatch 23 categories to 20 proven CAD sources."""
 import argparse
-from collections import defaultdict
 import hashlib
 import json
-import os
 from pathlib import Path
 import re
 import shutil
 import struct
-import subprocess
 import sys
-import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 # Direct script execution adds scripts/, not repository root, to sys.path.
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+from brickcad.course_contract import validate_course_axes, kernel_for, PRODUCTION_CONTRACT
 REGISTRY = ROOT / "experiments/course_catalog/registry.json"
 CATEGORIES = list(range(1, 22)) + [24, 25]
+
+
+def validate_geometry_recipe(kernel, course, recipe):
+    """The geometry recipe can refine a course but cannot change its four axes."""
+    slope, curve, enclosure = course["slope"], course["curve"], course["enclosure"]
+    if not isinstance(recipe, dict):
+        raise ValueError("Missing geometry recipe")
+    if kernel == "straight_rail":
+        if recipe != {"channel": "standard", "length_mm": 63.8}:
+            raise ValueError("Straight open rail must use the standard channel, not a fit profile")
+    elif kernel == "straight_tunnel":
+        if recipe != {"roof": "transition", "transition_mm": 4, "ceiling_mm": 34.8}:
+            raise ValueError("Unsupported straight tunnel roof")
+    elif kernel == "downhill_windowed":
+        if recipe != {"windows": [-16, 0, 16], "window_width_mm": 8,
+                      "drop_mm": 19.2}:
+            raise ValueError("Unsupported windowed downhill")
+    elif kernel in ("horizontal_r48_tunnel", "sloped_r48_tunnel"):
+        expected = ({"direction", "radius_mm", "ceiling_mm", "lip_mm", "transition_mm"}
+                    if kernel == "horizontal_r48_tunnel" else
+                    {"direction", "drop_mm", "roof_top_mm", "lip_mm", "transition_mm"})
+        if set(recipe) != expected or recipe.get("direction") != curve.split("_")[-1]:
+            raise ValueError("R48 recipe does not match course direction")
+        if kernel == "horizontal_r48_tunnel":
+            if any(recipe[k] != v for k, v in {
+                "radius_mm": 48, "ceiling_mm": 34.8, "lip_mm": 1,
+                "transition_mm": 4}.items()):
+                raise ValueError("Unsupported horizontal R48 geometry")
+        elif any(recipe[k] != v for k, v in {
+                "drop_mm": 19.2, "roof_top_mm": 57.6, "lip_mm": 1,
+                "transition_mm": 4}.items()):
+            raise ValueError("Unsupported sloped R48 geometry")
+    elif kernel == "sharp_r16":
+        if recipe != {"enclosure": enclosure}:
+            raise ValueError("R16 enclosure mismatch")
+    elif kernel == "drop":
+        if set(recipe) != {"exit", "mirror"} or (
+            recipe["exit"] != ("east" if curve == "straight" else "south")
+            or recipe["mirror"] is not (curve == "sharp_left")
+        ):
+            raise ValueError("Steep-drop course recipe has wrong direction")
+    elif kernel == "loft":
+        if set(recipe) not in (
+            {"route", "drop_mm", "tunnel", "mirror", "mark_face", "label_z_mm"},
+            {"route", "drop_mm", "tunnel", "mirror", "mark_face", "label_z_mm", "label_x_mm"},
+        ):
+            raise ValueError("Malformed loft recipe")
+        path = "straight" if curve == "straight" else curve.split("_")[0]
+        mir = ((curve == "gentle_right" and slope == "gentle")
+               or curve == "sharp_left")
+        if (recipe["route"] != path
+            or recipe["drop_mm"] != (0 if slope == "horizontal" else 19.2)
+            or type(recipe["tunnel"]) is not bool
+            or recipe["tunnel"] != (enclosure == "tunnel")
+            or type(recipe["mirror"]) is not bool
+            or recipe["mirror"] != mir
+            or recipe["mark_face"] != ("west" if path == "gentle" else "south")
+            or not isinstance(recipe["label_z_mm"], (int, float))
+            or not 0 < recipe["label_z_mm"] <= 15):
+            raise ValueError("Loft recipe conflicts with canonical axes")
+    else:
+        raise ValueError("Unknown geometric kernel")
 
 
 def load_registry(path=REGISTRY):
@@ -29,85 +88,34 @@ def load_registry(path=REGISTRY):
         raise ValueError("Expected 20 unique CAD sources")
     ids, categories = set(), []
     for m in items:
-        model_id, numbers, source = m["id"], m["issue37_no"], m["source"]
-        if model_id in ids or not re.fullmatch(r"[A-Z0-9-]+", model_id):
+        ident, numbers, source = m["id"], m["issue37_no"], m["source"]
+        if ident in ids or not re.fullmatch(r"[A-Z0-9-]+", ident):
             raise ValueError("Duplicate or invalid model ID")
-        ids.add(model_id)
+        ids.add(ident)
         if (not isinstance(numbers, list) or not numbers
-                or any(type(n) is not int or n not in CATEGORIES for n in numbers)):
-            raise ValueError("Invalid category number")
+            or any(type(n) is not int or n not in CATEGORIES for n in numbers)):
+            raise ValueError("Invalid Issue #37 classification")
         categories += numbers
-        if m["reversible_unverified"] is not (len(numbers) > 1):
-            raise ValueError("Reversible CAD must be marked unverified")
-        kind = source.get("kind")
-        if kind not in ("local", "pr", "legacy", "configured"):
-            raise ValueError("Missing CAD source kind")
-        if kind == "configured":
-            if source.get("family") not in ("loft","sharp_r16","drop","horizontal_r48_tunnel","sloped_r48_tunnel","downhill_windowed","straight_tunnel","legacy_rail") or not isinstance(source.get("recipe"), dict):
-                raise ValueError("Configured model needs a real geometry recipe")
-            # Cheap catalogue checks run without CadQuery installed.
-            recipe = source["recipe"]
-            if source["family"] == "legacy_rail":
-                if (model_id != "RAIL-LEGACY" or
-                        recipe != {"width_mm":31.65,"length_mm":63.8,
-                                   "fit_profile":"duplo-straight-rail-trial-v1"}):
-                    raise ValueError("Unsupported legacy rail recipe")
-            if source["family"] == "straight_tunnel":
-                if recipe != {"roof":"transition","transition_mm":4,"ceiling_mm":34.8}:
-                    raise ValueError("Unsupported straight tunnel recipe")
-            if source["family"] == "downhill_windowed":
-                if recipe != {"windows":[-16,0,16],"window_width_mm":8,"drop_mm":19.2}:
-                    raise ValueError("Unsupported windowed downhill recipe")
-            if source["family"] == "sloped_r48_tunnel":
-                t=recipe
-                if (set(t)!={"direction","drop_mm","roof_top_mm","lip_mm","transition_mm"} or
-                        t["direction"] not in ("right","left") or
-                        t["drop_mm"]!=19.2 or t["roof_top_mm"]!=57.6 or
-                        t["lip_mm"]!=1 or t["transition_mm"]!=4):
-                    raise ValueError("Unsupported sloped R48 tunnel recipe")
-            if source["family"] == "horizontal_r48_tunnel":
-                t=recipe
-                if (set(t)!={"direction","radius_mm","ceiling_mm","lip_mm","transition_mm"} or
-                        t["direction"] not in ("right","left") or t["radius_mm"]!=48 or
-                        t["ceiling_mm"]!=34.8 or t["lip_mm"]!=1 or t["transition_mm"]!=4):
-                    raise ValueError("Unsupported R48 roofed course recipe")
-            if source["family"] == "sharp_r16":
-                if recipe not in ({"enclosure":"open"},{"enclosure":"tunnel"}):
-                    raise ValueError("Unsupported R16 recipe")
-            if source["family"] == "drop":
-                if (set(recipe)!={"exit","mirror"} or
-                        recipe["exit"] not in ("east","south") or
-                        type(recipe["mirror"]) is not bool or
-                        (recipe["exit"]=="east" and recipe["mirror"])):
-                    raise ValueError("Unsupported steep-drop recipe")
-            required = {"route","drop_mm","tunnel","mirror","mark_face",
-                        "label_z_mm"}
-            if source["family"]=="loft" and (not required.issubset(recipe) or set(recipe) - (required | {"label_x_mm"})):
-                raise ValueError("Malformed loft recipe")
-            if (source["family"]=="loft" and (recipe["route"] not in ("straight","sharp","gentle")
-                    or recipe["drop_mm"] not in (0,19.2)
-                    or type(recipe["tunnel"]) is not bool
-                    or type(recipe["mirror"]) is not bool
-                    or recipe["mark_face"] not in ("south","west"))):
-                raise ValueError("Unsupported loft recipe")
-            ref = source.get("reference", {})
-            if (type(ref.get("pr")) is not int or
-                    not re.fullmatch(r"[0-9a-f]{40}", ref.get("sha", ""))):
-                raise ValueError("Reference CAD provenance must be pinned")
-        if kind == "pr":
-            if (type(source.get("pr")) is not int or source["pr"] < 1
-                    or not re.fullmatch(r"[0-9a-f]{40}", source.get("sha", ""))):
-                raise ValueError("Source must pin PR number and full commit SHA")
-        if kind not in ("legacy", "configured"):
-            if (not re.fullmatch(r"(parts|experiments)/[a-z0-9_]+", source.get("target", ""))
-                    or not re.fullmatch(r"[A-Z0-9-]+", source.get("cad_version", ""))):
-                raise ValueError("Missing safe CAD target or version")
-        if kind == "legacy" and (model_id != "RAIL-LEGACY" or source.get("module") != "parts.straight_rail.design"):
-            raise ValueError("Only horizontal rail trial may use legacy exporter")
+        if m["reversible_unverified"] is not (len(numbers) == 2):
+            raise ValueError("Reversible CAD must be explicitly unverified")
+        kernel = validate_course_axes(m["course"], numbers)
+        if source.get("kind") != "configured" or "family" in source or "fit_profile" in source:
+            raise ValueError("Production may only use axes-configured CAD, not a legacy family")
+        validate_geometry_recipe(kernel, m["course"], source.get("recipe"))
+        reference = source.get("reference", {})
+        if (type(reference.get("pr")) is not int or
+            not re.fullmatch(r"[0-9a-f]{40}", reference.get("sha", ""))):
+            raise ValueError("Geometry parity must pin original CAD provenance")
+        if ident == "R01-V1":
+            if (numbers != [1] or reference.get("pr") != 67
+                or reference.get("cad_version") != "R01-V1"
+                or reference.get("target") != "parts/straight_rail_e31"):
+                raise ValueError("Straight open course must use R01-V1 E31 original")
     if sorted(categories) != CATEGORIES or sum(len(m["issue37_no"]) == 2 for m in items) != 3:
         raise ValueError("Catalogue does not cover exactly 23 categories")
+    if "R01-V1" not in ids or "RAIL-LEGACY" in ids:
+        raise ValueError("Production catalogue must contain the current straight rail")
     return data
-
 
 def select(registry, expression):
     if expression == "all":
@@ -128,10 +136,6 @@ def select(registry, expression):
     return [m for m in registry["models"] if m["id"] in selected]
 
 
-def run(*argv, cwd=ROOT, capture=False):
-    return subprocess.run(argv, cwd=cwd, text=True, check=True, capture_output=capture)
-
-
 def stl_info(path):
     raw = path.read_bytes()
     if len(raw) < 134 or (len(raw) - 84) % 50:
@@ -143,127 +147,90 @@ def stl_info(path):
             "sha256": hashlib.sha256(raw).hexdigest()}
 
 
-def export_one(model, source_root, output):
-    src = model["source"]
-    if src["kind"] == "configured":
-        folder = source_root / "build/course-catalog-configured" / model["id"]
-    elif src["kind"] == "legacy":
-        folder = source_root / "build/course-catalog-legacy"
-    else:
-        folder = source_root / "build/cad-delivery" / src["target"] / src["cad_version"]
+def export_one(model, output):
+    """Accept only validated CAD outputs from the current production contract."""
+    ident = model["id"]
+    folder = ROOT / "build/course-catalog-configured" / ident
     stl, report = folder / "brick.stl", folder / "report.json"
     if not stl.is_file() or not report.is_file():
         raise FileNotFoundError("CAD output missing: " + str(folder))
     result = json.loads(report.read_text())
-    if result.get("passed") is not True or result.get("mesh", {}).get("passed") is not True:
-        raise ValueError("Unverified CAD output: " + model["id"])
-    if src["kind"] == "pr" and result.get("part_id") not in (None, model["id"]):
-        raise ValueError("Unexpected CAD report ID: " + model["id"])
+    if (result.get("part_id") != ident or result.get("passed") is not True
+        or result.get("mesh", {}).get("passed") is not True):
+        raise ValueError("CAD checks failed or wrong version: " + ident)
     meta = stl_info(stl)
-    dst = output / "models" / model["id"]
+    dst = output / "models" / ident
     dst.mkdir(parents=True, exist_ok=True)
     shutil.copy2(stl, dst / "brick.stl")
     shutil.copy2(report, dst / "report.json")
     provenance = folder / "course-manifest.json"
     if provenance.is_file():
         shutil.copy2(provenance, dst / "course-manifest.json")
-    return {**model, "stl": "models/" + model["id"] + "/brick.stl",
+    return {**model, "stl": "models/" + ident + "/brick.stl",
             "stl_info": meta, "geometry_verified": True,
-            "legacy_unverified_e31": model["id"] == "RAIL-LEGACY",
+            "production_contract": PRODUCTION_CONTRACT,
+            "legacy_unverified_e31": False,
             "physical_fit_validated": False, "physical_rolling_validated": False,
             "slicing_validated": False}
 
 
+def build_one(model, destination):
+    """Dispatch only geometric algorithms, never fit/marking variants."""
+    ident, recipe = model["id"], model["source"]["recipe"]
+    kernel = kernel_for(model["course"])
+    if kernel == "straight_rail":
+        from brickcad.course_straight_rail import export_course
+        export_course(ident, recipe, destination)
+    elif kernel == "loft":
+        from brickcad.course_loft_family import export_course
+        export_course(ident, recipe, destination)
+    elif kernel == "horizontal_r48_tunnel":
+        from brickcad.course_r48_tunnel import export_course
+        export_course(ident, recipe, destination)
+    elif kernel == "sloped_r48_tunnel":
+        from brickcad.course_r48_sloped_tunnel import export_course
+        export_course(ident, recipe, destination)
+    elif kernel == "straight_tunnel":
+        from brickcad.course_straight_tunnel import export_course
+        export_course(ident, recipe, destination)
+    elif kernel == "downhill_windowed":
+        from brickcad.course_downhill import export_course
+        name, version = ident.split("-")
+        windows = [{"side": "south", "x_mm": x, "width_mm": recipe["window_width_mm"]}
+                   for x in recipe["windows"]]
+        export_course({"id": name, "version": version,
+                       "enclosure": {"kind": "tunnel", "windows": windows}}, destination)
+    else:
+        from brickcad.course_configured_special import export_course
+        export_course(ident, kernel, recipe, destination)
+
+
 def build(models, output, strict_head=False):
-    buckets = defaultdict(list)
-    for m in models:
-        source = m["source"]
-        buckets[(source["kind"], source.get("sha", "self"))].append(m)
+    """All selected parts are constructed locally from shared production code.
+
+    --strict-head is retained for CLI compatibility; historical references are
+    used only by the independent BRep parity CI, never during production builds.
+    """
     output.mkdir(parents=True, exist_ok=True)
     results = []
-    for (kind, sha), chosen in buckets.items():
-        source_root, temp, worktree = ROOT, None, None
-        if kind == "pr":
-            if strict_head:
-                for model in chosen:
-                    src = model["source"]
-                    current = run("gh", "api",
-                                  "repos/" + os.environ["GITHUB_REPOSITORY"] +
-                                  "/pulls/" + str(src["pr"]), "--jq", ".head.sha",
-                                  capture=True).stdout.strip()
-                    if current != src["sha"]:
-                        raise ValueError("PR #" + str(src["pr"]) +
-                                         " advanced; repin and revalidate " + model["id"])
-            temp = Path(tempfile.mkdtemp(prefix="issue37-cad-"))
-            worktree = temp / "source"
-            run("git", "fetch", "origin", sha)
-            run("git", "worktree", "add", "--detach", str(worktree), sha)
-            source_root = worktree
-        try:
-            if kind == "configured":
-                for model in chosen:
-                    source = model["source"]
-                    dest = ROOT / "build/course-catalog-configured" / model["id"]
-                    if source["family"] == "loft":
-                        from brickcad.course_loft_family import export_course
-                        export_course(model["id"],source["recipe"],dest)
-                    elif source["family"] == "horizontal_r48_tunnel":
-                        from brickcad.course_r48_tunnel import export_course
-                        export_course(model["id"],source["recipe"],dest)
-                    elif source["family"] == "sloped_r48_tunnel":
-                        from brickcad.course_r48_sloped_tunnel import export_course
-                        export_course(model["id"],source["recipe"],dest)
-                    elif source["family"] == "legacy_rail":
-                        from brickcad.course_legacy_rail import export_course
-                        export_course(model["id"],source["recipe"],dest)
-                    elif source["family"] == "straight_tunnel":
-                        from brickcad.course_straight_tunnel import export_course
-                        export_course(model["id"],source["recipe"],dest)
-                    elif source["family"] == "downhill_windowed":
-                        from brickcad.course_downhill import export_course
-                        model_name,rev=model["id"].split("-")
-                        windows=[{"side":"south","x_mm":x,
-                                  "width_mm":source["recipe"]["window_width_mm"]}
-                                 for x in source["recipe"]["windows"]]
-                        spec={"id":model_name,"version":rev,
-                              "enclosure":{"kind":"tunnel","windows":windows}}
-                        export_course(spec,dest)
-                    else:
-                        from brickcad.course_configured_special import export_course
-                        export_course(model["id"],source["family"],source["recipe"],dest)
-            elif kind == "legacy":
-                run(sys.executable, "-m", "parts.straight_rail.design",
-                    "--kind", "rail", "--out",
-                    str(ROOT / "build/course-catalog-legacy"))
-            else:
-                targets = sorted({m["source"]["target"] for m in chosen})
-                for model in chosen:
-                    src = model["source"]
-                    config = source_root / src["target"] / "cad-build.json"
-                    if not config.is_file():
-                        raise FileNotFoundError("Missing source CAD config: " + str(config))
-                    revision = json.loads(config.read_text())["version"]
-                    if revision != src["cad_version"]:
-                        raise ValueError("Source version changed: " + model["id"])
-                run(sys.executable, "scripts/cad_versions.py", "--mode", "build",
-                    "--targets", ",".join(targets), cwd=source_root)
-            results.extend(export_one(m, source_root, output) for m in chosen)
-        finally:
-            if worktree is not None and worktree.exists():
-                run("git", "worktree", "remove", "--force", str(worktree))
-            if temp is not None:
-                shutil.rmtree(temp, ignore_errors=True)
-    categories = sorted(n for m in results for n in m["issue37_no"])
-    manifest = {"generated_meshes": len(results), "covered_categories": categories,
-                "complete_23_categories": categories == CATEGORIES,
-                "reverse_direction_unverified": [m["id"] for m in results
-                                                  if m["reversible_unverified"]],
-                "legacy_unverified_e31": [m["id"] for m in results
-                                          if m["legacy_unverified_e31"]],
-                "models": results, "slicing_validated": False,
-                "physical_fit_validated": False}
+    for model in models:
+        destination = ROOT / "build/course-catalog-configured" / model["id"]
+        build_one(model, destination)
+        results.append(export_one(model, output))
+    categories = sorted(n for model in results for n in model["issue37_no"])
+    manifest = {
+        "generated_meshes": len(results), "covered_categories": categories,
+        "complete_23_categories": categories == CATEGORIES,
+        "production_contract": PRODUCTION_CONTRACT,
+        "reverse_direction_unverified": [m["id"] for m in results
+                                         if m["reversible_unverified"]],
+        "legacy_unverified_e31": [],
+        "models": results, "slicing_validated": False,
+        "physical_fit_validated": False,
+    }
     (output / "manifest.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     print("ISSUE37 GENERATED:", len(results), "meshes covering",
           len(categories), "categories", flush=True)
     return manifest

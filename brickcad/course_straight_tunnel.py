@@ -1,3 +1,6 @@
+from brickcad.course_contract import course_fit
+from brickcad.course_contract import add_course_receiver_features as add_e31_05_receiver_features
+from brickcad.course_contract import engrave_course as engrave
 """Independent 2x2 E31 straight tunnel: circular mouths and raised roof."""
 from dataclasses import dataclass,replace
 from pathlib import Path
@@ -7,12 +10,10 @@ import math
 import cadquery as cq
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_geometry import smoothstep_rise_expanded
-from brickcad.model import brick_from_fit,receiver
+from brickcad.model import receiver
 from brickcad.connections import make_studs
-from brickcad.marking import engrave
 from brickcad.standards import BALL_TRACK,ROUNDED_EDGES
 from brickcad.verify import exact_bounds
-from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
 
 @dataclass(frozen=True)
@@ -53,8 +54,7 @@ def build_course(model_id,recipe,*,marked=True):
     if recipe!={"roof":"transition","transition_mm":4,"ceiling_mm":34.8}:
         raise ValueError("Only validated T01 circular-to-teardrop roof supported")
     t=Tunnel()
-    p=replace(brick_from_fit("duplo-e27-play-v1",nx=2,ny=2,height_units=2),
-              tube_radius=6.60)
+    p=course_fit(nx=2,ny=2,height_units=2)
     body=(cq.Workplane("XY")
           .box(p.width,p.depth,p.height,centered=(True,True,False))
           .edges("|Z").fillet(ROUNDED_EDGES.corner_radius)

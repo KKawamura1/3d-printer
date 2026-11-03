@@ -5,7 +5,7 @@ import json
 import cadquery as cq
 from brickcad.course_artifacts import export_geometry
 
-from brickcad.marking import engrave
+from brickcad.course_contract import engrave_course as engrave
 from brickcad.verify import exact_bounds
 from brickcad.course_sharp_curve import build_course as build_sharp, checks as sharp_checks
 from brickcad.course_steep_drop import build_course as build_drop, geometry_checks as drop_checks

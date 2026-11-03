@@ -34,7 +34,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "horizontal_r48_tunnel",
         "recipe": {
           "direction": "right",
           "radius_mm": 48,
@@ -48,6 +47,12 @@
           "target": "parts/gentle_curve_tunnel",
           "cad_version": "E01-V3"
         }
+      },
+      "course": {
+        "slope": "horizontal",
+        "curve": "gentle_right",
+        "enclosure": "tunnel",
+        "windows": 0
       }
     },
     {
@@ -58,7 +63,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "loft",
         "recipe": {
           "route": "sharp",
           "drop_mm": 19.2,
@@ -74,6 +78,12 @@
           "target": "parts/sharp_downhill_tunnel_left",
           "cad_version": "SD04-V10"
         }
+      },
+      "course": {
+        "slope": "gentle",
+        "curve": "sharp_left",
+        "enclosure": "tunnel",
+        "windows": 0
       }
     },
     {
@@ -84,7 +94,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "drop",
         "recipe": {
           "exit": "south",
           "mirror": false
@@ -95,6 +104,12 @@
           "target": "parts/steep_sharp_curve_tunnel",
           "cad_version": "S02-V16"
         }
+      },
+      "course": {
+        "slope": "steep",
+        "curve": "sharp_right",
+        "enclosure": "tunnel",
+        "windows": 0
       }
     },
     {
@@ -105,7 +120,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "drop",
         "recipe": {
           "exit": "east",
           "mirror": false
@@ -116,6 +130,12 @@
           "target": "parts/steep_drop_hole",
           "cad_version": "S01-V8"
         }
+      },
+      "course": {
+        "slope": "steep",
+        "curve": "straight",
+        "enclosure": "tunnel",
+        "windows": 0
       }
     },
     {
@@ -126,7 +146,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "loft",
         "recipe": {
           "route": "gentle",
           "drop_mm": 19.2,
@@ -141,6 +160,12 @@
           "target": "parts/sloped_curve_open_right",
           "cad_version": "SC03-V5"
         }
+      },
+      "course": {
+        "slope": "gentle",
+        "curve": "gentle_right",
+        "enclosure": "open",
+        "windows": 0
       }
     },
     {
@@ -152,7 +177,6 @@
       "reversible_unverified": true,
       "source": {
         "kind": "configured",
-        "family": "loft",
         "recipe": {
           "route": "gentle",
           "drop_mm": 0,
@@ -167,6 +191,12 @@
           "target": "parts/gentle_curve_open",
           "cad_version": "GC01-V5"
         }
+      },
+      "course": {
+        "slope": "horizontal",
+        "curve": "gentle_right",
+        "enclosure": "open",
+        "windows": 0
       }
     },
     {
@@ -177,7 +207,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "loft",
         "recipe": {
           "route": "sharp",
           "drop_mm": 19.2,
@@ -193,6 +222,12 @@
           "target": "parts/sharp_downhill_tunnel_right",
           "cad_version": "SD03-V11"
         }
+      },
+      "course": {
+        "slope": "gentle",
+        "curve": "sharp_right",
+        "enclosure": "tunnel",
+        "windows": 0
       }
     },
     {
@@ -203,7 +238,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "loft",
         "recipe": {
           "route": "sharp",
           "drop_mm": 19.2,
@@ -219,6 +253,12 @@
           "target": "parts/sharp_downhill_open_right",
           "cad_version": "SD01-V4"
         }
+      },
+      "course": {
+        "slope": "gentle",
+        "curve": "sharp_right",
+        "enclosure": "open",
+        "windows": 0
       }
     },
     {
@@ -229,7 +269,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "loft",
         "recipe": {
           "route": "sharp",
           "drop_mm": 19.2,
@@ -245,6 +284,12 @@
           "target": "parts/sharp_downhill_open_left",
           "cad_version": "SD02-V4"
         }
+      },
+      "course": {
+        "slope": "gentle",
+        "curve": "sharp_left",
+        "enclosure": "open",
+        "windows": 0
       }
     },
     {
@@ -255,7 +300,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "loft",
         "recipe": {
           "route": "straight",
           "drop_mm": 19.2,
@@ -271,6 +315,12 @@
           "target": "parts/downhill_open",
           "cad_version": "D02-V4"
         }
+      },
+      "course": {
+        "slope": "gentle",
+        "curve": "straight",
+        "enclosure": "open",
+        "windows": 0
       }
     },
     {
@@ -282,7 +332,6 @@
       "reversible_unverified": true,
       "source": {
         "kind": "configured",
-        "family": "sharp_r16",
         "recipe": {
           "enclosure": "tunnel"
         },
@@ -292,6 +341,12 @@
           "target": "parts/sharp_curve_tunnel",
           "cad_version": "C02-V8"
         }
+      },
+      "course": {
+        "slope": "horizontal",
+        "curve": "sharp_right",
+        "enclosure": "tunnel",
+        "windows": 0
       }
     },
     {
@@ -302,7 +357,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "drop",
         "recipe": {
           "exit": "south",
           "mirror": true
@@ -313,6 +367,12 @@
           "target": "parts/steep_sharp_tunnel_left",
           "cad_version": "S03-V10"
         }
+      },
+      "course": {
+        "slope": "steep",
+        "curve": "sharp_left",
+        "enclosure": "tunnel",
+        "windows": 0
       }
     },
     {
@@ -323,7 +383,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "horizontal_r48_tunnel",
         "recipe": {
           "direction": "left",
           "radius_mm": 48,
@@ -337,6 +396,12 @@
           "target": "parts/gentle_curve_tunnel_left",
           "cad_version": "E01L-V1"
         }
+      },
+      "course": {
+        "slope": "horizontal",
+        "curve": "gentle_left",
+        "enclosure": "tunnel",
+        "windows": 0
       }
     },
     {
@@ -347,7 +412,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "sloped_r48_tunnel",
         "recipe": {
           "direction": "right",
           "drop_mm": 19.2,
@@ -361,6 +425,12 @@
           "target": "parts/sloped_curve_tunnel",
           "cad_version": "SC02-V12"
         }
+      },
+      "course": {
+        "slope": "gentle",
+        "curve": "gentle_right",
+        "enclosure": "tunnel",
+        "windows": 0
       }
     },
     {
@@ -371,7 +441,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "sloped_r48_tunnel",
         "recipe": {
           "direction": "left",
           "drop_mm": 19.2,
@@ -385,6 +454,12 @@
           "target": "parts/sloped_curve_tunnel_left",
           "cad_version": "SC02L-V6"
         }
+      },
+      "course": {
+        "slope": "gentle",
+        "curve": "gentle_left",
+        "enclosure": "tunnel",
+        "windows": 0
       }
     },
     {
@@ -395,7 +470,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "loft",
         "recipe": {
           "route": "gentle",
           "drop_mm": 19.2,
@@ -410,6 +484,12 @@
           "target": "parts/sloped_curve_open_left",
           "cad_version": "SC05-V1"
         }
+      },
+      "course": {
+        "slope": "gentle",
+        "curve": "gentle_left",
+        "enclosure": "open",
+        "windows": 0
       }
     },
     {
@@ -420,7 +500,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "downhill_windowed",
         "recipe": {
           "windows": [
             -16,
@@ -436,28 +515,39 @@
           "target": "parts/downhill_tunnel",
           "cad_version": "D01-V3"
         }
+      },
+      "course": {
+        "slope": "gentle",
+        "curve": "straight",
+        "enclosure": "tunnel",
+        "windows": 3
       }
     },
     {
-      "id": "RAIL-LEGACY",
+      "id": "R01-V1",
       "issue37_no": [
         1
       ],
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "legacy_rail",
         "recipe": {
-          "width_mm": 31.65,
-          "length_mm": 63.8,
-          "fit_profile": "duplo-straight-rail-trial-v1"
+          "channel": "standard",
+          "length_mm": 63.8
         },
         "reference": {
-          "pr": 0,
-          "sha": "fa708cb19382872ef4a501e0f7aa981cc837aca5",
-          "target": "parts/straight_rail",
-          "cad_version": "unversioned-legacy"
+          "pr": 67,
+          "sha": "4e9b6a8e28918490f2f8f8e445ab72148b8d3e8e",
+          "target": "parts/straight_rail_e31",
+          "module": "parts.straight_rail_e31.design",
+          "cad_version": "R01-V1"
         }
+      },
+      "course": {
+        "slope": "horizontal",
+        "curve": "straight",
+        "enclosure": "open",
+        "windows": 0
       }
     },
     {
@@ -469,7 +559,6 @@
       "reversible_unverified": true,
       "source": {
         "kind": "configured",
-        "family": "sharp_r16",
         "recipe": {
           "enclosure": "open"
         },
@@ -479,6 +568,12 @@
           "target": "parts/sharp_curve",
           "cad_version": "C01-V6"
         }
+      },
+      "course": {
+        "slope": "horizontal",
+        "curve": "sharp_right",
+        "enclosure": "open",
+        "windows": 0
       }
     },
     {
@@ -489,7 +584,6 @@
       "reversible_unverified": false,
       "source": {
         "kind": "configured",
-        "family": "straight_tunnel",
         "recipe": {
           "roof": "transition",
           "transition_mm": 4,
@@ -502,6 +596,12 @@
           "module": "parts.tunnel.design_e31",
           "cad_version": "T01-V6"
         }
+      },
+      "course": {
+        "slope": "horizontal",
+        "curve": "straight",
+        "enclosure": "tunnel",
+        "windows": 0
       }
     }
   ]

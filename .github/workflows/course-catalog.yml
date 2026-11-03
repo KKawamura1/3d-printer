@@ -3,15 +3,18 @@ on:
   push:
     paths:
       - 'scripts/course_catalog.py'
-      - 'brickcad/course_r48_sloped_tunnel.py'
+      - 'brickcad/course_*.py'
+      - 'brickcad/course_contract.py'
       - 'experiments/course_catalog/**'
       - 'tests/test_course_catalog.py'
+      - 'tests/test_course_contract.py'
       - '.github/workflows/course-catalog.yml'
   pull_request:
     paths:
       - 'scripts/course_catalog.py'
       - 'experiments/course_catalog/**'
       - 'tests/test_course_catalog.py'
+      - 'tests/test_course_contract.py'
       - '.github/workflows/course-catalog.yml'
   workflow_dispatch:
     inputs:
@@ -33,7 +36,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Validate all model recipes and Issue 37 category coverage
-        run: python -m unittest tests.test_course_catalog -v
+        run: python -m unittest tests.test_course_catalog tests.test_course_contract -v
       - run: python scripts/course_catalog.py --mode validate
   render:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -41,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 300
     env:
-      TARGETS: ${{ github.event_name == 'workflow_dispatch' && inputs.targets || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-all]') && 'all') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-SC02]') && 'SC02-V12') || 'GC01-V5' }}
+      TARGETS: ${{ github.event_name == 'workflow_dispatch' && inputs.targets || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-all]') && 'all') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-SC02]') && 'SC02-V12') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-R01]') && 'R01-V1') || 'GC01-V5' }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4

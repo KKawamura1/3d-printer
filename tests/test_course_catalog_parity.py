@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 import cadquery as cq
 from scripts.course_catalog import load_registry
+from brickcad.course_contract import kernel_for
 
 ROOT=Path(__file__).resolve().parents[1]
 REFERENCE=r"""
@@ -38,8 +39,11 @@ elif ident=="D01-V3":
     else:
         with patch.object(m,"engrave",lambda shape,*a,**kw:shape):
             shape=m.build_downhill()[0]
-elif ident=="RAIL-LEGACY":
-    shape=m.build_rail()[0]
+elif ident=="R01-V1":
+    if marked: shape=m.build_rail()[0]
+    else:
+        with patch.object(m,"engrave",lambda shape,*a,**kw:shape):
+            shape=m.build_rail()[0]
 elif ident.startswith(("C01","C02")):
     f=m.build_curve if ident.startswith("C01") else m.build_tunnel
     if marked:shape=f()[0]
@@ -61,7 +65,7 @@ shape.exportBrep(path)
 
 def build(model,marked):
     s=model["source"]
-    family=s["family"]
+    family=kernel_for(model["course"])
     recipe=s["recipe"]
     name=model["id"]
     if family=="loft":
@@ -79,9 +83,9 @@ def build(model,marked):
     if family=="straight_tunnel":
         from brickcad.course_straight_tunnel import build_course
         return build_course(name,recipe,marked=marked)[0]
-    if family=="legacy_rail":
-        from brickcad.course_legacy_rail import build_course
-        return build_course(recipe)[0]
+    if family=="straight_rail":
+        from brickcad.course_straight_rail import build_course
+        return build_course(name,recipe,marked=marked)[0]
     if family=="downhill_windowed":
         from brickcad.course_downhill import build_course
         ident,version=name.split("-")
