@@ -39,8 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 300
     env:
-      TARGETS: \${{ github.event_name == 'workflow_dispatch' && inputs.targets || 'T01-V6' }}
-      GH_TOKEN: \${{ github.token }}
+      TARGETS: ${{ github.event_name == 'workflow_dispatch' && inputs.targets || 'T01-V6' }}
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,7 +54,7 @@ jobs:
         run: python scripts/course_catalog.py --mode build --targets "$TARGETS" --strict-head
       - uses: actions/upload-artifact@v4
         with:
-          name: issue37-course-catalog-\${{ github.run_id }}
+          name: issue37-course-catalog-${{ github.run_id }}
           path: build/course-catalog/
           retention-days: 14
           if-no-files-found: error
