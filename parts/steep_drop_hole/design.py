@@ -1,4 +1,4 @@
-"""S01-V7: enclosed 2x2x3 steep drop tunnel, high west inlet to low east outlet.
+"""S01-V8: enclosed 2x2x3 steep drop tunnel, high west inlet to low east outlet.
 
 The roofed vertical shaft has a printable tapered apex instead of an exposed
 opening or a broad horizontal bridge. This is a geometric prototype; ball
@@ -19,9 +19,10 @@ from brickcad.model import brick_from_fit, receiver
 from brickcad.ports import Port
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import VOLUME_TOL, exact_bounds, intersection, mesh_check
-from parts.tunnel.e31_fit import add_e31_05_receiver_features
+from parts.tunnel.e31_fit import (SLOT_END_Z, SLOT_END_RADIUS,
+                                  add_e31_05_receiver_features)
 
-PART_ID = "S01-V7"
+PART_ID = "S01-V8"
 
 
 @dataclass(frozen=True)
@@ -76,7 +77,7 @@ def ports(d=SteepDrop()):
     )
 
 
-def build_steep_drop(d=SteepDrop()):
+def build_steep_drop(d=SteepDrop(), *, label=PART_ID):
     if d.shaft_radius <= BALL_TRACK.ball_diameter / 2:
         raise ValueError("Shaft must clear the ball diameter")
     if d.shaft_radius >= 15.9 - 1.6:
@@ -152,8 +153,11 @@ def build_steep_drop(d=SteepDrop()):
         lip_radius=ROUNDED_EDGES.stud_lip_radius)
     shape = cq.Workplane("XY").newObject([shape]).union(studs).val().clean()
     if not shape.isValid() or len(shape.Solids()) != 1:
-        raise ValueError("S01-V7 must be a single connected valid solid")
-    shape = engrave(shape, PART_ID, x=0., y=-p.depth / 2, z=12.)
+        raise ValueError("S01-V8 must be a single connected valid solid")
+    # Apply the standard 3.0 mm / 0.4 mm recessed ID after every union and cut.
+    # label=None exposes the *same* unmarked solid for the marking regression.
+    if label is not None:
+        shape = engrave(shape, label, x=0., y=-p.depth / 2, z=12.)
     return shape, p
 
 
@@ -190,6 +194,10 @@ def export(out=Path("build/steep-drop-hole")):
     out.mkdir(parents=True, exist_ok=True)
     d = SteepDrop()
     shape, p = build_steep_drop(d)
+    unmarked, _ = build_steep_drop(d, label=None)
+    removed_marking = unmarked.cut(shape).clean()
+    marking_bounds = removed_marking.BoundingBox()
+    marking_volume = unmarked.Volume() - shape.Volume()
     stl = out / "brick.stl"
     cq.exporters.export(shape, str(stl), tolerance=.03, angularTolerance=.2)
 
@@ -214,6 +222,15 @@ def export(out=Path("build/steep-drop-hole")):
         "size_2x2x3_with_studs": all(abs(a - b) < .01 for a, b in
                                   zip(bounds, (31.8, 31.8, p.height + p.stud_height))),
         "watertight_mesh": mesh["passed"],
+        "standard_south_marking_is_recessed": (
+            marking_volume > .2 and
+            abs(marking_bounds.ymin + p.depth / 2) < .05 and
+            marking_bounds.ymax <= -p.depth / 2 + .41),
+        "shortened_e31_slot_leaves_roof": (
+            SLOT_END_Z + SLOT_END_RADIUS <= d.receiver_depth - .59 and
+            all(shape.isInside(cq.Vector(x, y, 4.20))
+                for x, y in ((6.5, 0.), (-6.5, 0.),
+                             (0., 6.5), (0., -6.5)))),
         "sampled_ball_clear": max(collisions) < VOLUME_TOL,
         "continuous_ball_path_clear": max(sweeps) < VOLUME_TOL,
         "bottom_floor_present": shape.isInside(cq.Vector(0, 0, 6.2)),
@@ -254,7 +271,12 @@ def export(out=Path("build/steep-drop-hole")):
         "ports": [asdict(port) for port in ports(d)],
         "fit_profile_id": p.fit_profile_id,
         "e31_05_receiver": {"tube_od_mm": 13.2, "bead_radius_mm": .2,
-                            "split_slots": 4},
+                            "split_slots": 4, "slot_end_z_mm": SLOT_END_Z,
+                            "slot_top_z_mm": SLOT_END_Z + SLOT_END_RADIUS,
+                            "roof_clearance_mm": d.receiver_depth - SLOT_END_Z - SLOT_END_RADIUS},
+        "marking": {"label": PART_ID, "font": "DejaVu Sans Bold",
+                    "size_mm": 3.0, "depth_mm": .4,
+                    "removed_volume_mm3": marking_volume},
         "top_studs": 4,
         "top_duplo_stackable_geometrically": True,
         "physical_fit_validated": False,
@@ -274,7 +296,7 @@ def export(out=Path("build/steep-drop-hole")):
     print(PART_ID, "PASS" if report["passed"] else "FAIL",
           checks, flush=True)
     if not report["passed"]:
-        raise RuntimeError("S01-V7 geometry verification failed")
+        raise RuntimeError("S01-V8 geometry verification failed")
     return report
 
 
