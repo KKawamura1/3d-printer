@@ -1,4 +1,4 @@
-"""S03-V8: mirror unmarked S02-V14 geometry, then engrave readable left ID.
+"""S03-V9: mirror unmarked S02-V15 geometry, then engrave readable left ID.
 
 CAD geometry, roof, E31-05 receiver, floor, ramp and circular openings are
 fully shared with the right variant. The only transform is reflection in XZ.
@@ -18,7 +18,7 @@ from brickcad.verify import VOLUME_TOL, exact_bounds, intersection, mesh_check
 from parts.steep_drop_hole.design import SteepDrop
 from parts.steep_sharp_curve_tunnel import design as right
 
-PART_ID = "S03-V8"
+PART_ID = "S03-V9"
 SOURCE_RIGHT_ID = right.PART_ID
 SOURCE_DROP_ID = right.SOURCE_DROP_ID
 SHAFT_X = right.SHAFT_X

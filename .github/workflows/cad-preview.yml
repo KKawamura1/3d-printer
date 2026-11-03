@@ -72,9 +72,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build/cad-artifacts
-          key: cad-v2-${{ runner.os }}-${{ hashFiles('parts/**/cad-build.json', 'experiments/**/cad-build.json') }}
-          restore-keys: |
-            cad-v2-${{ runner.os }}-
+          # Do not reuse artifacts made with changed shared CAD geometry.
+          # Partial-prefix restoration may pass stale STLs to the strict fingerprint guard.
+          key: cad-v3-${{ runner.os }}-${{ hashFiles('parts/**/cad-build.json', 'experiments/**/cad-build.json', 'brickcad/**', 'parts/tunnel/e31_fit.py', 'profiles/**', 'requirements.txt') }}
       - name: Install CAD dependencies
         if: steps.plan.outputs.has_models == 'true'
         run: pip install -r requirements.txt
