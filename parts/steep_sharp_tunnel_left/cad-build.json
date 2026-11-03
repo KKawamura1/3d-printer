@@ -1,10 +1,10 @@
 {
-  "version": "S03-V9",
+  "version": "S03-V10",
   "auto": true,
   "requires": [
     {
       "target": "parts/steep_sharp_curve_tunnel",
-      "version": "S02-V15"
+      "version": "S02-V16"
     }
   ],
   "command": [
@@ -18,5 +18,5 @@
     "brick.stl"
   ],
   "timeout": 1200,
-  "description": "Mirror unmarked S02-V15 drop-and-turn geometry, then add readable standard 3mm/0.4mm south engraving"
+  "description": "Mirror unmarked S02-V16 drop-and-turn geometry, then add readable standard 3mm/0.4mm south engraving"
 }

@@ -1,4 +1,4 @@
-"""Regression tests for S03-V9's mirrored geometry and readable marking."""
+"""Regression tests for S03-V10's mirrored geometry and readable marking."""
 import unittest
 
 import cadquery as cq
@@ -24,7 +24,7 @@ class MirroredSteepSharpTunnelTests(unittest.TestCase):
 
     def test_both_versions_share_one_geometric_source(self):
         self.assertEqual((PART_ID, SOURCE_RIGHT_ID, SOURCE_DROP_ID),
-                         ("S03-V9", "S02-V15", "S01-V6"))
+                         ("S03-V10", "S02-V16", "S01-V8"))
         bare_right, _ = right.build_tunnel(self.d, label=None)
         bare_left = bare_right.mirror("XZ")
         self.assertTrue(bare_left.isValid())

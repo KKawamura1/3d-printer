@@ -1,6 +1,6 @@
-"""S02-V15: enclosed 2x2x3 right-turn drop tunnel with a gentle exit.
+"""S02-V16: enclosed 2x2x3 right-turn drop tunnel with a gentle exit.
 
-Uses PR36's west-to-south ports and PR38 S01-V6's roofed shaft with a
+Uses PR36's west-to-south ports and PR38 S01-V8's roofed shaft with a
 1:4 (~14-degree) southward exit ramp. A complete R16 arc does not coexist
 with the shaft inside 2x2; the lower run-out turns by 90 degrees.
 Physical rolling and support-free slicing remain untested.
@@ -25,9 +25,9 @@ from parts.steep_drop_hole.design import SteepDrop, ramp_normal_clearance
 from parts.tunnel.e31_fit import (add_e31_05_receiver_features,
                                   SLOT_END_Z, SLOT_END_RADIUS)
 
-PART_ID = "S02-V15"
-SOURCE_CURVE_ID = "C01-V5"
-SOURCE_DROP_ID = "S01-V6"
+PART_ID = "S02-V16"
+SOURCE_CURVE_ID = "C01-V6"
+SOURCE_DROP_ID = "S01-V8"
 SHAFT_X = 0.0
 # Preserve the south exit direction without opening an unwanted low west port.
 
@@ -52,9 +52,9 @@ def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), curve=SharpCurve(),
     if abs(d.shaft_x - SHAFT_X) > 1e-8:
         raise ValueError("S02 must use its central landing shaft")
     if not 0. < d.ramp_grade <= .35 or d.ramp_end_x != 13.:
-        raise ValueError("S02-V15 requires the gentle S01-V6 exit")
+        raise ValueError("S02-V16 requires the gentle S01-V8 exit")
     if abs(d.ramp_grade - .25) > 1e-8:
-        raise ValueError("S02-V15 uses the S01-V6 1:4 (14-degree) ramp")
+        raise ValueError("S02-V16 uses the S01-V8 1:4 (14-degree) ramp")
     if d.ramp_grade * (d.ramp_end_x + 15.) > 10.:
         raise ValueError("Run-out would approach the high entrance floor")
     if d.low_floor - d.receiver_depth < 1.6 - 1e-6:
@@ -103,7 +103,7 @@ def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), curve=SharpCurve(),
     shape = (body.cut(shaft).cut(cone).cut(high).cut(south)
              .cut(sloped_bore).clean())
 
-    # Rotate S01-V6's 1:4 landing shelf toward south (-Y).
+    # Rotate S01-V8's 1:4 landing shelf toward south (-Y).
     # Start at north Y=15, stop at south Y=-13 to preserve a round exit.
     north_start = 15.0
     ramp = (cq.Workplane("YZ")

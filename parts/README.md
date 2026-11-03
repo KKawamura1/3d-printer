@@ -10,6 +10,6 @@
 - [90度トンネル](elbow/)
 - [坂カーブ](sloped_curve/)
 
-- [2×2 急落下トンネル・約14°坂（高さ3）](steep_drop_hole/)
-- [2×2 急右カーブ＋急落下トンネル（高さ3）](steep_sharp_curve_tunnel/)
-- [2×2 急左カーブ＋急落下トンネル（右版から鏡映生成）](steep_sharp_tunnel_left/)
+- [2×2 急落下トンネル・約14°坂（高さ3、S01-V8）](steep_drop_hole/)
+- [2×2 急右カーブ＋急落下トンネル（高さ3、S02-V16）](steep_sharp_curve_tunnel/)
+- [2×2 急左カーブ＋急落下トンネル（右版から鏡映生成、S03-V10）](steep_sharp_tunnel_left/)

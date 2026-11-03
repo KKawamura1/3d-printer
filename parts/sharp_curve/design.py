@@ -1,4 +1,4 @@
-"""C01-V5: right-hand open 90-degree DUPLO curve, 2x2 by one course.
+"""C01-V6: right-hand open 90-degree DUPLO curve, 2x2 by one course.
 
 The rolling centreline is a R16 quarter-circle, west entry to south exit.
 Static sphere clearance does not establish reliable rolling at this tight radius.
@@ -13,13 +13,14 @@ import struct
 import cadquery as cq
 
 from brickcad.model import brick_from_fit, receiver
+from brickcad.marking import engrave
 from brickcad.ports import Port
 from brickcad.provenance import design_manifest
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "C01-V5"
+PART_ID = "C01-V6"
 FIT_PROFILE_ID = "duplo-e27-play-v1"
 
 
@@ -34,7 +35,7 @@ class SharpCurve:
 
     def __post_init__(self):
         if abs(self.turn_radius - DUPLO.pitch) > 1e-6:
-            raise ValueError("C01-V5 is a 2x2 R16 curve")
+            raise ValueError("C01-V6 is a 2x2 R16 curve")
         if self.section_radius >= self.turn_radius - 1.6:
             raise ValueError("No space remains for the inside corner")
         if self.floor - self.receiver_depth < 1.6 - 1e-6:
@@ -90,19 +91,15 @@ def _curve_cut(curve):
 
 
 def _engrave_north(shape, label, width):
-    """Place revision text on the non-running north face, below the top."""
-    depth = 0.4
-    plane = cq.Plane(origin=(0, width/2 - depth, 11.5),
-                     xDir=(-1, 0, 0), normal=(0, 1, 0))
-    tool = (cq.Workplane(plane).text(label, 2.7, depth + .05,
-                                    font="DejaVu Sans", kind="bold",
-                                    combine=False).val())
-    marked = shape.cut(tool).clean()
-    if not marked.isValid() or len(marked.Solids()) != 1:
-        raise ValueError("Engraving invalidated curve geometry")
-    if shape.Volume() - marked.Volume() < 0.2:
-        raise ValueError("Engraved revision did not intersect the north wall")
-    return marked
+    """Mark the visible north wall using the common 3 mm / 0.4 mm engraver.
+
+    A 180-degree rotation turns the north exterior into the south face expected
+    by brickcad.marking.engrave. Rotate back after cutting, so the letters read
+    normally when viewed from the north. The rail is already mirrored.
+    """
+    turned = shape.rotate((0, 0, 0), (0, 0, 1), 180)
+    marked = engrave(turned, label, x=0, y=-width / 2, z=11.5)
+    return marked.rotate((0, 0, 0), (0, 0, 1), -180)
 
 
 def build_curve(curve=SharpCurve(), *, label=PART_ID):
@@ -113,7 +110,7 @@ def build_curve(curve=SharpCurve(), *, label=PART_ID):
              .edges("|Z").fillet(ROUNDED_EDGES.corner_radius)
              .edges(">Z").fillet(.5))
     body = receiver(p, outer, curve.receiver_depth, 0).val()
-    body = add_e31_05_receiver_features(body, p.tubes(), p.tube_radius)
+    body = add_e31_05_receiver_features(body, p.tubes(), p.tube_radius, receiver_depth=curve.receiver_depth)
 
     # Build west -> north then reflect across XZ to give west -> south/right.
     body = body.cut(_curve_cut(curve)).clean()
@@ -183,6 +180,7 @@ def export(out=Path("build/sharp-curve")):
                                finish=ROUNDED_EDGES),
         physical_fit_validated=False,
         physical_rolling_validated=False,
+        slicing_validated=False,
         limitations=[
             "R16 is a tight 90-degree turn: momentum/friction and ball exit speed are untested.",
             "No top studs: open rail cannot carry a brick above it.",

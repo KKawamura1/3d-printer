@@ -1,8 +1,9 @@
-"""C02-V2: enclosed 2x2x2 R16 right-angle tunnel companion to C01-V2.
+"""C02-V8: recover C02-V2's guided R16 tunnel after printed-part testing.
 
-The running surface is the same quarter-torus as C01-V2. A second DUPLO
-course provides a real ceiling and supports all four top studs.
-CAD clearance is not evidence that a ball will carry momentum through R16.
+C02-V4's flat turning chamber traps the ball; C02R-V1 loses exit momentum.
+The original C02-V2 print rolled smoothly after removing an internal burr.
+V5 restores V2's geometry (apart from revision engraving); C01's shared
+torus cutter remains geometrically identical.
 """
 from dataclasses import asdict, replace
 from pathlib import Path
@@ -14,15 +15,17 @@ import struct
 import cadquery as cq
 
 from brickcad.connections import make_studs
+from brickcad.marking import engrave
 from brickcad.model import brick_from_fit, receiver
 from brickcad.provenance import design_manifest
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import exact_bounds, mesh_check, VOLUME_TOL
 from parts.sharp_curve.design import SharpCurve, _curve_cut, ball_intersections, ports
-from parts.tunnel.e31_fit import add_e31_05_receiver_features
+from parts.tunnel.e31_fit import (add_e31_05_receiver_features,
+                                  SLOT_END_Z, SLOT_END_RADIUS)
 
-PART_ID = "C02-V2"
-SOURCE_CURVE_ID = "C01-V2"
+PART_ID = "C02-V8"
+SOURCE_CURVE_ID = "C01-V6"
 FIT_PROFILE_ID = "duplo-e27-play-v1"
 BODY_COURSES = 2
 # Inner roof is raised locally, keeping the circular end openings unchanged.
@@ -33,19 +36,14 @@ ROOF_DOME_CENTER_Z = 24.5
 
 
 def _engrave_north(shape, label, width):
-    """Engrave the north face, away from both tunnel openings and the studs."""
-    depth = .40
-    plane = cq.Plane(origin=(0, width/2-depth, 18.0),
-                     xDir=(-1, 0, 0), normal=(0, 1, 0))
-    tool = cq.Workplane(plane).text(
-        label, 2.7, depth+.05, font="DejaVu Sans",
-        kind="bold", combine=False).val()
-    marked = shape.cut(tool).clean()
-    if not marked.isValid() or len(marked.Solids()) != 1:
-        raise ValueError("C02 engraving invalidated the tunnel solid")
-    if shape.Volume()-marked.Volume() < .2:
-        raise ValueError("C02 engraving did not touch the north wall")
-    return marked
+    """Cut standard upright 3 mm text into the completed north exterior.
+
+    Rotate the already-mirrored part so the shared south-facing engrave()
+    cutter reaches the north wall; rotate the resulting BRep back.
+    """
+    turned = shape.rotate((0, 0, 0), (0, 0, 1), 180)
+    marked = engrave(turned, label, x=0, y=-width / 2, z=18.0)
+    return marked.rotate((0, 0, 0), (0, 0, 1), -180)
 
 
 def build_tunnel(curve=SharpCurve(), *, label=PART_ID):
@@ -57,7 +55,7 @@ def build_tunnel(curve=SharpCurve(), *, label=PART_ID):
              .edges("|Z").fillet(ROUNDED_EDGES.corner_radius)
              .edges(">Z").fillet(.5))
     body = receiver(p, outer, curve.receiver_depth, 0).val()
-    body = add_e31_05_receiver_features(body, p.tubes(), p.tube_radius)
+    body = add_e31_05_receiver_features(body, p.tubes(), p.tube_radius, receiver_depth=curve.receiver_depth)
     # C01's toroidal cut initially travels west -> north; reflect it to
     # west -> south. Its circular mouths match the open rail exactly.
     body = body.cut(_curve_cut(curve)).clean().mirror("XZ")
@@ -85,7 +83,7 @@ def export(out=Path("build/sharp-curve-tunnel")):
     stl = out / "brick.stl"
     cq.exporters.export(shape, str(stl), tolerance=.01, angularTolerance=.1)
 
-    # As in C01-V2, drop only float32 triangles collapsed during STL export.
+    # As in V2, drop only float32 triangles collapsed during STL export.
     raw = stl.read_bytes()
     triangles = []
     count = struct.unpack_from("<I", raw, 80)[0]
@@ -127,6 +125,8 @@ def export(out=Path("build/sharp-curve-tunnel")):
         west_mouth_circular=shape.isInside(cq.Vector(-15.8,0,33.)),
         south_mouth_circular=shape.isInside(cq.Vector(0,-15.8,33.)),
         roof_min_thickness=p.height-ceiling_z>=DUPLO.roof,
+        receiver_slot_roof_gap=(SLOT_END_Z + SLOT_END_RADIUS <=
+                                curve.receiver_depth - .60 + 1e-6),
         curve_floor=shape.isInside(cq.Vector(
             -16+curve.turn_radius/math.sqrt(2),
             -16+curve.turn_radius/math.sqrt(2), curve.floor-.15)),
@@ -138,6 +138,10 @@ def export(out=Path("build/sharp-curve-tunnel")):
         geometry=dict(bounds_mm=bounds, volume_mm3=shape.Volume(),
                       parameters=asdict(p)),
         curve=asdict(curve), ports=[asdict(x) for x in ports(curve)],
+        marking=dict(face="north", after_mirror=True, font="DejaVu Sans",
+                     weight="bold", text_height_mm=3.0, depth_mm=.4),
+        e31_slot=dict(end_z_mm=SLOT_END_Z, end_radius_mm=SLOT_END_RADIUS,
+                      receiver_ceiling_z_mm=curve.receiver_depth),
         roof=dict(style="circular_mouth_raised_center_dome",
                   minimum_thickness_mm=p.height-ceiling_z,
                   ceiling_max_z_mm=ceiling_z,
@@ -153,7 +157,10 @@ def export(out=Path("build/sharp-curve-tunnel")):
         physical_rolling_validated=False,
         slicing_validated=False,
         limitations=[
-            "Very tight R16 curve: a collision-free ball may still stop or jam.",
+            "Original C02-V2 rolled smoothly after internal burr removal (one qualitative report).",
+            "V4 stopped in its wide chamber; C02R-V1 severely lost momentum on impact.",
+            "New prints must be inspected for internal burrs, drooping bridges and snag points.",
+            "Very tight R16 curve: repeatability on freshly printed samples is unverified.",
             "Circular mouths, with a spherical roof relief near the middle of the bend.",
             "Roof and underside bridge/overhang require Bambu Studio slicing.",
             "E31-05 receiver is a transferred trial, not physically verified here.",

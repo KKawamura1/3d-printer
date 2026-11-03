@@ -1,14 +1,14 @@
 {
-  "version": "S02-V15",
+  "version": "S02-V16",
   "auto": true,
   "requires": [
     {
       "target": "parts/sharp_curve",
-      "version": "C01-V5"
+      "version": "C01-V6"
     },
     {
       "target": "parts/steep_drop_hole",
-      "version": "S01-V6"
+      "version": "S01-V8"
     }
   ],
   "command": [
@@ -22,5 +22,5 @@
     "brick.stl"
   ],
   "timeout": 1200,
-  "description": "2x2x3 roofed right drop-and-turn: 14deg exit, circular ports, E31-05 short slots, standard 3mm/0.4mm north engraving; S03-V9 mirrors unmarked CAD"
+  "description": "2x2x3 roofed right drop-and-turn: 14deg exit, circular ports, E31-05 short slots, standard 3mm/0.4mm north engraving; S03-V10 mirrors unmarked CAD"
 }
