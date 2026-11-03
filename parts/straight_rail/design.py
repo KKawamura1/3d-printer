@@ -9,7 +9,7 @@ import cadquery as cq
 from brickcad.model import brick_from_fit, nominal_brick, receiver, build
 from brickcad.standards import BALL_TRACK, ROUNDED_EDGES
 from brickcad.provenance import design_manifest
-from brickcad.verify import exact_bounds, intersection, mesh_check, place, VOLUME_TOL
+from brickcad.verify import exact_bounds, intersection, mesh_check, place, VOLUME_TOL, precise_volume
 from brickcad.render import mesh, outlines, viewer
 
 
@@ -100,7 +100,7 @@ def export(kind='rail', out=Path('build/duplo-rail-trial-01')):
     stl.write_bytes(raw[:80]+struct.pack('<I',len(triangles))+b''.join(triangles))
     cq.exporters.export(shape,str(out/'brick.step'))
     restored=cq.importers.importStep(str(out/'brick.step')).val()
-    step=restored.isValid() and len(restored.Solids())==1 and abs(shape.Volume()-restored.Volume())<1e-4
+    step=restored.isValid() and len(restored.Solids())==1 and abs(precise_volume(shape)-precise_volume(restored))<1e-4
     m=mesh_check(out/'brick.stl')
     bounds=exact_bounds(shape)
     expected=[r.length,r.width,r.height] if kind=='rail' else [p.width,p.depth,p.height+p.stud_height]

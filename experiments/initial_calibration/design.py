@@ -6,7 +6,7 @@ import csv
 import hashlib
 import cadquery as cq
 from brickcad.model import build, nominal_brick
-from brickcad.verify import geometry_report, mesh_check, fit_report, exact_bounds
+from brickcad.verify import geometry_report, mesh_check, fit_report, exact_bounds, precise_volume
 from brickcad.render import viewer
 
 VALUES = (-0.04, 0.0, 0.04, 0.08, 0.12)
@@ -68,7 +68,7 @@ def generate(out=None, family='duplo', full_height=False):
     cq.exporters.export(compound,str(out/'plate.step'))
     assert mesh_check(out/'plate.stl')['passed']
     restored=cq.importers.importStep(str(out/'plate.step')).val()
-    assert len(restored.Solids())==5 and abs(restored.Volume()-compound.Volume())<1e-5
+    assert len(restored.Solids())==5 and abs(precise_volume(restored)-precise_volume(compound))<1e-5
     # Text STL also allows storage through GitHub's text-only connector.
     cq.exporters.export(compound,str(out/'plate-ascii.stl'),tolerance=0.025,angularTolerance=0.16,opt={'ascii':True})
     report=dict(schema_version=1,family=family,body_height_mm=body_height,full_height=full_height,physical_fit_validated=False,passed=True,
