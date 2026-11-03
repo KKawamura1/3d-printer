@@ -11,6 +11,6 @@
   ],
   "timeout": 1200,
   "description": "E31-05 receiver + T04 circular mouth/high interior roof; single model, duplicate in slicer as needed.",
-  "version": "T01-V4",
+  "version": "T01-V5",
   "auto": true
 }
