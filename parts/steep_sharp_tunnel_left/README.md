@@ -18,3 +18,8 @@ python -m unittest parts.steep_sharp_tunnel_left.test -v
 `cad-build.json` は S02-V11 を明示的に要求するので、右版の形状更新が左版に自動反映される。GitHub Actions Artifact `cad-verified-stl/parts/steep_sharp_tunnel_left/S03-V5/brick.stl` を印刷に使用。
 
 **注意**：鏡映CADと球クリアランスは実機の転がりやサポート不要のスライスを保証しない。左右両方で接続・刻印を試すこと。
+
+
+## PR58 下面の印刷対策
+
+S02-V12 / S03-V6ではE31-05スリット終端中心をZ4.40→Z3.50mmへ短縮。上端Z4.15mmで下面天井Z4.75mmを突き抜けない。リブなし。PR58 B試験片の床・嵌合は良好だが、本パーツの支持なしスライス・実機印刷・保持力は未検証。
