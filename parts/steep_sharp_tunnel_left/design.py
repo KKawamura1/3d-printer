@@ -1,4 +1,4 @@
-"""S03-V6: mirror unmarked S02-V12 geometry, then engrave readable left ID.
+"""S03-V7: mirror unmarked S02-V13 geometry, then engrave readable left ID.
 
 CAD geometry, roof, E31-05 receiver, floor, ramp and circular openings are
 fully shared with the right variant. The only transform is reflection in XZ.
@@ -12,12 +12,13 @@ import math
 import cadquery as cq
 
 from brickcad.ports import Port
+from brickcad.marking import engrave
 from brickcad.standards import BALL_TRACK, DUPLO
 from brickcad.verify import VOLUME_TOL, exact_bounds, intersection, mesh_check
 from parts.steep_drop_hole.design import SteepDrop
 from parts.steep_sharp_curve_tunnel import design as right
 
-PART_ID = "S03-V6"
+PART_ID = "S03-V7"
 SOURCE_RIGHT_ID = right.PART_ID
 SOURCE_DROP_ID = right.SOURCE_DROP_ID
 SHAFT_X = right.SHAFT_X
@@ -32,25 +33,13 @@ def ports(d=SteepDrop(shaft_x=SHAFT_X)):
     )
 
 
-def _south_engraving_tool(label, width):
-    # South-facing normal is -Y. The X direction must be +X when viewed
-    # from outside: otherwise the part ID would read backwards.
-    plane = cq.Plane(origin=(0., -width / 2 + .4, 18.),
-                     xDir=(1, 0, 0), normal=(0, -1, 0))
-    return cq.Workplane(plane).text(
-        label, 3.0, .45, font="DejaVu Sans",
-        kind="bold", combine=False).val()
-
-
 def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), *, label=PART_ID):
     bare_right, p = right.build_tunnel(d, label=None)
     bare_left = bare_right.mirror("XZ")
     if not bare_left.isValid() or len(bare_left.Solids()) != 1:
         raise ValueError("Mirrored left geometry must be one valid solid")
-    cutter = _south_engraving_tool(label, p.depth)
-    left = bare_left.cut(cutter).clean()
-    if not left.isValid() or len(left.Solids()) != 1:
-        raise ValueError("Left engraving invalidated the mirrored body")
+    # Shared 3.0mm/0.4mm standard, only after mirroring the unmarked BRep.
+    left = engrave(bare_left, label, x=0., y=-p.depth / 2, z=18.)
     removed = bare_left.Volume() - left.Volume()
     if removed < .2:
         raise ValueError("Left engraving is not recessed in the south face")
@@ -127,6 +116,8 @@ def export(out=Path("build/steep-sharp-tunnel-left")):
             for x, y in p.studs()),
         gentle_ramp=abs(d.ramp_grade - .25) < 1e-8,
         left_south_engraving=engraving_removed > .2,
+        e31_short_slot=right.SLOT_END_Z == 3.50,
+        e31_full_tube_above_slot=shape.isInside(cq.Vector(6.2, 0., 4.4)),
         mirrored_blank_has_same_volume=abs(
             blank_right.Volume() - blank_left.Volume()) < 1e-3,
     )
@@ -140,6 +131,8 @@ def export(out=Path("build/steep-sharp-tunnel-left")):
         mirror=dict(source=SOURCE_RIGHT_ID, plane="XZ",
                     order="mirror-unmarked-geometry-then-engrave",
                     label=PART_ID, text_size_mm=3.0),
+        marking=dict(face="south", text_height_mm=3.0,
+                     depth_mm=.4, font="DejaVu Sans Bold", order="after-mirror-and-last"),
         mesh=mesh, collapsed_facets_removed=removed_facets,
         engraved_volume_removed_mm3=engraving_removed,
         ball_samples_mm3=samples, ball_sweep_mm3=sweeps,

@@ -1,15 +1,17 @@
-"""Regression tests for S03-V6's mirrored geometry and readable marking."""
+"""Regression tests for S03-V7's mirrored geometry and readable marking."""
 import unittest
 
 import cadquery as cq
 from brickcad.ports import mate, straight_ports
+from brickcad.marking import engrave
+from parts.tunnel.e31_fit import SLOT_END_Z, SLOT_END_RADIUS
 from brickcad.standards import BALL_TRACK, DUPLO
 from brickcad.verify import VOLUME_TOL, intersection
 from parts.steep_drop_hole.design import SteepDrop
 from parts.steep_sharp_curve_tunnel import design as right
 from parts.steep_sharp_tunnel_left.design import (
     PART_ID, SOURCE_RIGHT_ID, SOURCE_DROP_ID, SHAFT_X,
-    build_tunnel, ports, _south_engraving_tool, circular_mouth_checks,
+    build_tunnel, ports, circular_mouth_checks,
     ball_path_collisions, swept_ball_path_collisions,
 )
 
@@ -22,21 +24,22 @@ class MirroredSteepSharpTunnelTests(unittest.TestCase):
 
     def test_both_versions_share_one_geometric_source(self):
         self.assertEqual((PART_ID, SOURCE_RIGHT_ID, SOURCE_DROP_ID),
-                         ("S03-V6", "S02-V12", "S01-V6"))
+                         ("S03-V7", "S02-V13", "S01-V6"))
         bare_right, _ = right.build_tunnel(self.d, label=None)
         bare_left = bare_right.mirror("XZ")
         self.assertTrue(bare_left.isValid())
         self.assertEqual(len(bare_left.Solids()), 1)
-        marked = bare_left.cut(_south_engraving_tool(
-            PART_ID, self.p.depth)).clean()
+        marked = engrave(bare_left, PART_ID,
+                         x=0., y=-self.p.depth / 2, z=18.)
         self.assertLess(abs(marked.Volume() - self.shape.Volume()), .01)
 
     def test_south_engraving_is_cut_after_mirror(self):
-        cutter = _south_engraving_tool(PART_ID, self.p.depth)
-        self.assertLess(intersection(self.shape, cutter), VOLUME_TOL)
         blank, _ = right.build_tunnel(self.d, label=None)
-        self.assertGreater(blank.mirror("XZ").Volume() -
-                           self.shape.Volume(), .2)
+        mirrored = blank.mirror("XZ")
+        self.assertGreater(mirrored.Volume() - self.shape.Volume(), .2)
+        marked = engrave(mirrored, PART_ID,
+                         x=0., y=-self.p.depth / 2, z=18.)
+        self.assertAlmostEqual(marked.Volume(), self.shape.Volume(), places=3)
 
     def test_ports_connect_and_hole_stays_circular(self):
         high, low = ports(self.d)
@@ -64,6 +67,14 @@ class MirroredSteepSharpTunnelTests(unittest.TestCase):
         self.assertTrue(all(self.shape.isInside(
             cq.Vector(x + 3.9, y, self.p.height + 1.))
             for x, y in self.p.studs()))
+
+    def test_mirrored_e31_short_slot_and_support(self):
+        self.assertAlmostEqual(SLOT_END_Z, 3.50)
+        self.assertAlmostEqual(SLOT_END_Z + SLOT_END_RADIUS, 4.15)
+        self.assertGreaterEqual(self.d.receiver_depth -
+                                (SLOT_END_Z + SLOT_END_RADIUS), .6 - 1e-6)
+        self.assertFalse(self.shape.isInside(cq.Vector(6.2, 0., 3.9)))
+        self.assertTrue(self.shape.isInside(cq.Vector(6.2, 0., 4.4)))
 
     def test_gentle_slope_and_ball_clearance(self):
         self.assertAlmostEqual(self.d.ramp_grade, .25)

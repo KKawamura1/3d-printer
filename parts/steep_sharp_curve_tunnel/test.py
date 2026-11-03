@@ -1,8 +1,10 @@
-"""S02-V12: check the right-turn gentle exit from S01-V6."""
+"""S02-V13: check the right-turn gentle exit from S01-V6."""
 import unittest
 import cadquery as cq
 
 from brickcad.ports import mate, straight_ports
+from brickcad.marking import engrave_north
+from parts.tunnel.e31_fit import SLOT_END_Z, SLOT_END_RADIUS
 from brickcad.standards import BALL_TRACK, DUPLO
 from brickcad.verify import VOLUME_TOL, intersection
 from parts.steep_sharp_curve_tunnel.design import (
@@ -21,7 +23,7 @@ class SteepSharpCurveTunnelTests(unittest.TestCase):
 
     def test_grid_roof_studs_and_revision(self):
         self.assertEqual((PART_ID, SOURCE_CURVE_ID, SOURCE_DROP_ID),
-                         ("S02-V12", "C01-V5", "S01-V6"))
+                         ("S02-V13", "C01-V5", "S01-V6"))
         self.assertEqual((self.p.nx, self.p.ny), (2, 2))
         self.assertAlmostEqual(self.p.height, 3 * DUPLO.height)
         self.assertTrue(self.shape.isValid())
@@ -79,6 +81,21 @@ class SteepSharpCurveTunnelTests(unittest.TestCase):
     def test_both_connecting_mouths_stay_circular(self):
         # 33-degree S01-V5 broke the visible opening and adjacent track joining.
         self.assertTrue(all(circular_mouth_checks(self.shape, self.d).values()))
+
+    def test_standard_north_engraving_is_cut_after_shape(self):
+        blank, _ = build_tunnel(self.d, label=None)
+        marked = engrave_north(blank, PART_ID,
+                               x=0., y=self.p.depth / 2, z=18.)
+        self.assertGreater(blank.Volume() - self.shape.Volume(), .2)
+        self.assertAlmostEqual(marked.Volume(), self.shape.Volume(), places=3)
+
+    def test_e31_short_slots_and_tube_roof(self):
+        self.assertAlmostEqual(SLOT_END_Z, 3.50)
+        self.assertAlmostEqual(SLOT_END_Z + SLOT_END_RADIUS, 4.15)
+        self.assertGreaterEqual(self.d.receiver_depth -
+                                (SLOT_END_Z + SLOT_END_RADIUS), .6 - 1e-6)
+        self.assertFalse(self.shape.isInside(cq.Vector(6.2, 0., 3.9)))
+        self.assertTrue(self.shape.isInside(cq.Vector(6.2, 0., 4.4)))
 
     def test_oversized_ball_is_blocked(self):
         oversize = cq.Solid.makeSphere(

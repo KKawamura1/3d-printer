@@ -21,3 +21,16 @@ def engrave_west(shape,label,*,x,y,z,size=3.,depth=.4):
     if not result.isValid() or len(result.Solids())!=1 or shape.Volume()-result.Volume()<.2:
         raise ValueError(f'Failed recessed ID: {label}')
     return result
+
+
+def engrave_north(shape, label, *, x, y, z, size=3., depth=.4):
+    """Standard ID on a north (+Y) face, readable from outside."""
+    plane = cq.Plane(origin=(x, y-depth, z),
+                     xDir=(-1, 0, 0), normal=(0, 1, 0))
+    tool = (cq.Workplane(plane)
+            .text(label, size, depth+.05, font='DejaVu Sans',
+                  kind='bold', combine=False).val())
+    result = shape.cut(tool).clean()
+    if not result.isValid() or len(result.Solids()) != 1 or shape.Volume()-result.Volume() < .2:
+        raise ValueError(f'Failed north-face recessed ID: {label}')
+    return result

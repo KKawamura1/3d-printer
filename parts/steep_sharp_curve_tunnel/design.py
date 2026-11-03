@@ -1,4 +1,4 @@
-"""S02-V12: enclosed 2x2x3 right-turn drop tunnel with a gentle exit.
+"""S02-V13: enclosed 2x2x3 right-turn drop tunnel with a gentle exit.
 
 Uses PR36's west-to-south ports and PR38 S01-V6's roofed shaft with a
 1:4 (~14-degree) southward exit ramp. A complete R16 arc does not coexist
@@ -15,15 +15,17 @@ import struct
 import cadquery as cq
 
 from brickcad.connections import make_studs
+from brickcad.marking import engrave_north
 from brickcad.model import brick_from_fit, receiver
 from brickcad.ports import Port
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
 from parts.sharp_curve.design import SharpCurve
 from parts.steep_drop_hole.design import SteepDrop, ramp_normal_clearance
-from parts.tunnel.e31_fit import add_e31_05_receiver_features
+from parts.tunnel.e31_fit import (add_e31_05_receiver_features,
+                                  SLOT_END_Z, SLOT_END_RADIUS)
 
-PART_ID = "S02-V12"
+PART_ID = "S02-V13"
 SOURCE_CURVE_ID = "C01-V5"
 SOURCE_DROP_ID = "S01-V6"
 SHAFT_X = 0.0
@@ -39,20 +41,6 @@ def ports(d=SteepDrop(shaft_x=SHAFT_X)):
     )
 
 
-def _engrave_north(shape, label, width):
-    plane = cq.Plane(origin=(0., width / 2 - .4, 18.),
-                     xDir=(-1, 0, 0), normal=(0, 1, 0))
-    text_tool = cq.Workplane(plane).text(
-        label, 3.0, .45, font="DejaVu Sans",
-        kind="bold", combine=False).val()
-    result = shape.cut(text_tool).clean()
-    if not result.isValid() or len(result.Solids()) != 1:
-        raise ValueError("Engraving invalidated S02")
-    if shape.Volume() - result.Volume() < .2:
-        raise ValueError("S02 revision did not intersect north face")
-    return result
-
-
 def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), curve=SharpCurve(),
                  *, label=PART_ID):
     if d.low_floor != curve.floor or d.section_radius != curve.section_radius:
@@ -64,9 +52,9 @@ def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), curve=SharpCurve(),
     if abs(d.shaft_x - SHAFT_X) > 1e-8:
         raise ValueError("S02 must use its central landing shaft")
     if not 0. < d.ramp_grade <= .35 or d.ramp_end_x != 13.:
-        raise ValueError("S02-V12 requires the gentle S01-V6 exit")
+        raise ValueError("S02-V13 requires the gentle S01-V6 exit")
     if abs(d.ramp_grade - .25) > 1e-8:
-        raise ValueError("S02-V12 uses the S01-V6 1:4 (14-degree) ramp")
+        raise ValueError("S02-V13 uses the S01-V6 1:4 (14-degree) ramp")
     if d.ramp_grade * (d.ramp_end_x + 15.) > 10.:
         raise ValueError("Run-out would approach the high entrance floor")
     if d.low_floor - d.receiver_depth < 1.6 - 1e-6:
@@ -138,7 +126,7 @@ def build_tunnel(d=SteepDrop(shaft_x=SHAFT_X), curve=SharpCurve(),
     # Never mirror text: the left version engraves its own readable ID after mirroring.
     if label is None:
         return shape, p
-    return _engrave_north(shape, label, p.depth), p
+    return engrave_north(shape, label, x=0., y=p.depth / 2, z=18.), p
 
 
 def _path_centres(d):
@@ -251,6 +239,10 @@ def export(out=Path("build/steep-sharp-curve-tunnel")):
         lower_floor_present=shape.isInside(cq.Vector(0., 0., 6.2)),
         receiver_bore_open=not shape.isInside(cq.Vector(0., 0., 1.)),
         receiver_wall_present=shape.isInside(cq.Vector(3.89, 3.89, 1.)),
+        e31_slot_ceiling_margin=(
+            d.receiver_depth - SLOT_END_Z - SLOT_END_RADIUS >= .6 - 1e-6),
+        e31_slot_cut=not shape.isInside(cq.Vector(6.2, 0., 3.9)),
+        e31_full_tube_above_slot=shape.isInside(cq.Vector(6.2, 0., 4.4)),
         four_upper_studs=all(shape.isInside(
             cq.Vector(x + 3.9, y, p.height + 1.))
             for x, y in p.studs()),
@@ -285,6 +277,12 @@ def export(out=Path("build/steep-sharp-curve-tunnel")):
                         inlet_floor_margin_mm=d.drop - d.ramp_grade * (
                             d.ramp_end_x + 15.),
                         ramp_end_south_mm=d.ramp_end_x),
+        marking=dict(face="north", text_height_mm=3.0,
+                     depth_mm=.4, font="DejaVu Sans Bold", order="last"),
+        e31_receiver=dict(slot_end_z_mm=SLOT_END_Z,
+                          slot_top_z_mm=SLOT_END_Z+SLOT_END_RADIUS,
+                          underside_ceiling_z_mm=d.receiver_depth,
+                          reinforcement_ribs=False),
         mesh=mesh, collapsed_facets_removed=removed,
         ball_samples_mm3=samples, ball_sweep_mm3=sweeps,
         sha256_stl=hashlib.sha256(stl.read_bytes()).hexdigest(),
