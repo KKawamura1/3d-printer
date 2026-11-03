@@ -36,7 +36,7 @@ class LoftFamilyReferenceParityTests(unittest.TestCase):
         cls.temp = tempfile.TemporaryDirectory(prefix="loft-parity-")
         cls.worktrees = {}
         cls.models = [m for m in json.loads(REGISTRY.read_text())["models"]
-                      if m["source"]["kind"] == "configured"]
+                      if m["source"]["kind"] == "configured" and m["source"]["family"] == "loft"]
         cls.root = Path(cls.temp.name)
         try:
             for index,sha in enumerate(sorted({m["source"]["reference"]["sha"]
