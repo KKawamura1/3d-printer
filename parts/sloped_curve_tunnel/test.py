@@ -1,4 +1,4 @@
-"""Targeted geometry tests for SC02-V10 (Issue #37 M31-05)."""
+"""Targeted geometry tests for SC02-V11 (Issue #37 M31-05)."""
 import tempfile
 import unittest
 from pathlib import Path
@@ -42,7 +42,7 @@ class SlopedCurveTunnelTests(unittest.TestCase):
         self.assertTrue(all(circular_mouth_checks(self.shape, self.part_params).values()))
 
     def test_engraved_id_still_visible_after_cover_union(self):
-        self.assertEqual(self.report['marking']['text'], 'SC02-V10')
+        self.assertEqual(self.report['marking']['text'], 'SC02-V11')
         self.assertEqual(self.report['marking']['depth_mm'], MARK_DEPTH)
         self.assertEqual(self.report['marking']['size_mm'], MARK_SIZE)
         self.assertEqual(self.report['marking']['font'], 'DejaVu Sans Bold')
@@ -117,9 +117,9 @@ class SlopedCurveTunnelTests(unittest.TestCase):
         result = self.report["step_roundtrip"]
         self.assertTrue(self.report["checks"]["step_roundtrip"])
         self.assertTrue(result["valid_solid"])
-        self.assertEqual(result["relative_volume_tolerance"], 1e-6)
+        self.assertEqual(result["absolute_volume_tolerance_mm3"], 1e-4)
         self.assertEqual(result["volume_integration"], "brickcad.verify.precise_volume")
-        self.assertLess(result["relative_volume_error"], 1e-6)
+        self.assertLess(result["absolute_volume_error_mm3"], 1e-4)
         self.assertLess(max(result["bounds_delta_mm"]), .02)
 
 if __name__ == '__main__':

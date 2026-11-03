@@ -23,8 +23,8 @@ class SC02LeftTunnelTests(unittest.TestCase):
         cls.tmp.cleanup()
 
     def test_left_stl_and_right_source(self):
-        self.assertEqual(PART_ID, "SC02L-V4")
-        self.assertEqual(SOURCE_RIGHT_ID, "SC02-V10")
+        self.assertEqual(PART_ID, "SC02L-V5")
+        self.assertEqual(SOURCE_RIGHT_ID, "SC02-V11")
         self.assertEqual(self.report["part_id"], PART_ID)
         self.assertTrue(self.report["passed"], self.report["checks"])
         self.assertTrue(self.report["mesh"]["passed"])
@@ -80,9 +80,9 @@ class SC02LeftTunnelTests(unittest.TestCase):
         result = self.report["step_roundtrip"]
         self.assertTrue(self.report["checks"]["step_roundtrip"])
         self.assertTrue(result["valid_solid"])
-        self.assertEqual(result["relative_volume_tolerance"], 1e-6)
+        self.assertEqual(result["absolute_volume_tolerance_mm3"], 1e-4)
         self.assertEqual(result["volume_integration"], "brickcad.verify.precise_volume")
-        self.assertLess(result["relative_volume_error"], 1e-6)
+        self.assertLess(result["absolute_volume_error_mm3"], 1e-4)
         self.assertLess(max(result["bounds_delta_mm"]), .02)
 
 if __name__ == "__main__":

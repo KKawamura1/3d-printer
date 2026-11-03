@@ -1,4 +1,4 @@
-"""SC02L-V4: same unmarked SC02-V10 CAD mirrored across XZ, then engraved.
+"""SC02L-V5: same unmarked SC02-V11 CAD mirrored across XZ, then engraved.
 
 The right shape owns the path, roof, lower receivers and E31 features.
 This wrapper exists only to generate an independently versioned left STL.

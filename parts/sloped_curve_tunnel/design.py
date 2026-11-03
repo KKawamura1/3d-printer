@@ -1,4 +1,4 @@
-"""SC02-V10 / SC02L-V4: 4x4 right R48 downhill tunnel, one DUPLO-course drop.
+"""SC02-V11 / SC02L-V5: 4x4 right R48 downhill tunnel, one DUPLO-course drop.
 
 Reuse S01's rolling floor and the three intact lower receivers. Restore four
 footprint-clipped receiver supports without the previously problematic vertical
@@ -27,8 +27,8 @@ from parts.tunnel.e31_fit import (
     add_e31_05_receiver_features, SLOT_END_Z, SLOT_END_RADIUS,
 )
 
-PART_ID = "SC02-V10"
-LEFT_PART_ID = "SC02L-V4"
+PART_ID = "SC02-V11"
+LEFT_PART_ID = "SC02L-V5"
 TOP_Z = 3 * DUPLO.height  # 57.6 mm: 2 courses cannot clear the high ball inlet
 # Restore four useful partial supports; omit two corners (no material / thin sliver).
 CLIPPED_RECEIVER_TUBES = ((0.,-16.),(-16.,0.),(16.,0.),(0.,16.))
@@ -319,14 +319,14 @@ def export(out=Path('build/sloped-curve-tunnel'), *, side="right"):
     mesh=mesh_check(stl)
     restored=cq.importers.importStep(str(out/'brick.step')).val()
     step_valid_solid = restored.isValid() and len(restored.Solids()) == 1
-    # PR61: adaptive CAD volume integration fixes STEP false negatives
-    # without relaxing the original 1e-6 relative volume tolerance.
-    # Keep the additional strict bounds and valid-single-solid checks.
+    # Use exactly the shared PR61 STEP volume criterion, not a looser
+    # model-specific relative threshold. Preserve the extra bounds check.
     source_precise_volume = precise_volume(shape)
     restored_precise_volume = precise_volume(restored)
-    step_volume_rel_error = abs(restored_precise_volume-source_precise_volume)/source_precise_volume
+    step_volume_error_mm3 = abs(restored_precise_volume - source_precise_volume)
+    step_volume_rel_error = step_volume_error_mm3 / source_precise_volume
     step_bounds_delta = [abs(a-b) for a,b in zip(exact_bounds(restored), bounds)]
-    step_ok = (step_valid_solid and step_volume_rel_error < 1e-6
+    step_ok = (step_valid_solid and step_volume_error_mm3 < 1e-4
                and all(d < .02 for d in step_bounds_delta))
     checks.update(mesh_closed=mesh['passed'], step_roundtrip=step_ok)
     report={
@@ -359,7 +359,8 @@ def export(out=Path('build/sloped-curve-tunnel'), *, side="right"):
         'step_roundtrip':{'valid_solid':step_valid_solid,
                           'relative_volume_error':step_volume_rel_error,
                           'bounds_delta_mm':step_bounds_delta,
-                          'relative_volume_tolerance':1e-6,
+                          'absolute_volume_error_mm3':step_volume_error_mm3,
+                          'absolute_volume_tolerance_mm3':1e-4,
                           'volume_integration':'brickcad.verify.precise_volume',
                           'max_bound_delta_mm':.02},
         'mesh':mesh,'sampled_ball_intersections_mm3':collisions,
@@ -375,7 +376,8 @@ def export(out=Path('build/sloped-curve-tunnel'), *, side="right"):
         'sha256_stl':hashlib.sha256(stl.read_bytes()).hexdigest(),
     }
     (out/'report.json').write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n')
-    print(label,'PASS' if report['passed'] else 'FAIL',checks,flush=True)
+    print(label,'PASS' if report['passed'] else 'FAIL',checks,
+          'STEP diagnostic',report['step_roundtrip'],flush=True)
     if not report['passed']:
         raise RuntimeError(f'{label} CAD verification failed')
     return report
