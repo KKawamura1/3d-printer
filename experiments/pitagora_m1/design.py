@@ -9,7 +9,7 @@ from brickcad.ports import straight_ports, mate
 from parts.straight_rail.design import Rail, build_rail, fit_profile
 from parts.tunnel.design import Tunnel, build_tunnel
 from brickcad.render import viewer, mesh, outlines
-from brickcad.verify import intersection, exact_bounds, VOLUME_TOL
+from brickcad.verify import intersection, exact_bounds, VOLUME_TOL, precise_volume
 
 
 BALL_DIAMETER_MM = 24.26
@@ -71,7 +71,7 @@ def export(out=Path('build/pitagora-m1')):
     report=verify(modules)
     cq.exporters.export(compound,str(out/'assembly.step'))
     restored=cq.importers.importStep(str(out/'assembly.step')).val()
-    report['checks']['step_roundtrip']=restored.isValid() and len(restored.Solids())==4 and abs(restored.Volume()-compound.Volume())<1e-4
+    report['checks']['step_roundtrip']=restored.isValid() and len(restored.Solids())==4 and abs(precise_volume(restored)-precise_volume(compound))<1e-4
     report.update(schema_version=1,kind='pitagora-m1',physical_fit_validated=False,
                   physical_rolling_validated=False,ball_diameter_mm=BALL_DIAMETER_MM,
                   running_lift_mm=RUNNING_LIFT_MM,
