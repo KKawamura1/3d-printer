@@ -28,6 +28,22 @@ class Geometry(unittest.TestCase):
         from brickcad.verify import intersection
         import math
         shape,p=build_part()
+        # Issue #60 / PR58 B: E31 slots must stop below the 4.75 mm
+        # receiver ceiling. Guard both the shared dimensions and the
+        # actual complete tube (not just the nominal CAD parameters).
+        from parts.tunnel.e31_fit import SLOT_END_Z, SLOT_END_RADIUS, BEAD_Z
+        from parts.sharp_downhill_open_right.design import DEPTH
+        self.assertAlmostEqual(SLOT_END_Z, 3.50)
+        self.assertGreaterEqual(DEPTH-SLOT_END_Z-SLOT_END_RADIUS, .60-1e-6)
+        x,y = -16., 0.  # complete inlet-section tube, not a clipped support
+        self.assertIn((x,y),p.tubes())
+        for angle in (0,math.pi/2,math.pi,3*math.pi/2):
+            radial=cq.Vector(x+p.tube_radius*math.cos(angle),
+                             y+p.tube_radius*math.sin(angle),0)
+            self.assertFalse(shape.isInside(cq.Vector(radial.x,radial.y,BEAD_Z)),
+                             "E31 slit must be open at bead height")
+            self.assertTrue(shape.isInside(cq.Vector(radial.x,radial.y,4.40)),
+                            "shortened E31 slit must leave solid under the floor")
         footprint=loft('mask').intersect(
             cq.Workplane('XY').box(p.width,p.depth,100,
                       centered=(True,True,False)).val())
