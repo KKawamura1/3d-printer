@@ -1,9 +1,11 @@
-"""Targeted S01-V7 roofed steep-drop CAD tests; no slicing/dynamics guarantee."""
+"""Targeted S01-V8 roofed steep-drop CAD tests; no slicing/dynamics guarantee."""
 import unittest
+from unittest.mock import patch
 import cadquery as cq
 from brickcad.ports import mate, straight_ports
 from brickcad.standards import BALL_TRACK
 from brickcad.verify import VOLUME_TOL, intersection
+from parts.tunnel.e31_fit import SLOT_END_Z, SLOT_END_RADIUS
 from parts.steep_drop_hole.design import (
     PART_ID, SteepDrop, build_steep_drop, ports, sampled_ball_collisions,
     continuous_ball_path_intersections, ramp_normal_clearance, rolling_ball_path,
@@ -17,7 +19,7 @@ class SteepDropHoleTests(unittest.TestCase):
         cls.shape, cls.p = build_steep_drop(cls.d)
 
     def test_dimensions_and_enclosed_roof(self):
-        self.assertEqual(PART_ID, "S01-V7")
+        self.assertEqual(PART_ID, "S01-V8")
         self.assertEqual((self.p.nx, self.p.ny), (2, 2))
         self.assertAlmostEqual(self.p.height, 57.6)
         self.assertTrue(self.shape.isValid())
@@ -76,9 +78,12 @@ class SteepDropHoleTests(unittest.TestCase):
         # snagging when joined to a tunnel. V4 must retain circular ports.
         import math
         r = self.d.section_radius
+        # Probe near the *visible faces*, not just farther inside the bore.
         section_centres = (
+            (-15.8, self.d.high_centre_z),
             (-15.5, self.d.high_centre_z),
             (15.5, self.d.low_centre_z),
+            (15.8, self.d.low_centre_z),
         )
         for x, zc in section_centres:
             for i in range(16):
@@ -92,6 +97,49 @@ class SteepDropHoleTests(unittest.TestCase):
                         cq.Vector(x, y_in, z_in)))
                     self.assertTrue(self.shape.isInside(
                         cq.Vector(x, y_out, z_out)))
+
+    def test_e31_slot_shortening_preserves_all_four_tube_roofs(self):
+        self.assertAlmostEqual(SLOT_END_Z, 3.50)
+        self.assertAlmostEqual(SLOT_END_RADIUS, .65)
+        self.assertGreaterEqual(
+            self.d.receiver_depth - (SLOT_END_Z + SLOT_END_RADIUS), .59)
+        # Full receiver tube is below the track floor; the four slots must
+        # remain open but stop before the ceiling of the underside cavity.
+        for x, y in ((6.5, 0.), (-6.5, 0.), (0., 6.5), (0., -6.5)):
+            with self.subTest(x=x, y=y):
+                self.assertFalse(self.shape.isInside(cq.Vector(x, y, 2.25)))
+                self.assertTrue(self.shape.isInside(cq.Vector(x, y, 4.20)))
+                self.assertTrue(self.shape.isInside(cq.Vector(x, y, 4.80)))
+
+    def test_standard_final_south_marking_removes_real_outer_wall(self):
+        # The label is engraved *after* all material unions. Rebuild the
+        # identical shape without text to prove the actual final recess.
+        with patch("parts.steep_drop_hole.design.engrave",
+                   side_effect=lambda shape, label, **kwargs: shape) as marking:
+            from parts.steep_drop_hole.design import build_steep_drop
+            blank, _ = build_steep_drop(self.d)
+        marking.assert_called_once()
+        _, kwargs = marking.call_args
+        self.assertEqual(kwargs, dict(x=0., y=-self.p.depth / 2, z=12.))
+        # No size/depth overrides: shared engrave() defaults are 3.0 / 0.4.
+        self.assertGreater(blank.Volume() - self.shape.Volume(), .2)
+        cut = blank.cut(self.shape).clean()
+        self.assertGreater(cut.Volume(), .2)
+        bounds = cut.BoundingBox()
+        self.assertAlmostEqual(bounds.ymin, -self.p.depth / 2, delta=.05)
+        self.assertLessEqual(bounds.ymax, -self.p.depth / 2 + .41)
+
+    def test_full_supports_do_not_intersect_the_enclosed_track(self):
+        # This model has a roof over the studs and a 1.6 mm floor over the
+        # receiver, so no contour-trimmed support is needed at those planes.
+        for x, y in self.p.studs():
+            with self.subTest(stud=(x, y)):
+                self.assertTrue(self.shape.isInside(
+                    cq.Vector(x + 3.9, y, self.p.height + 1.)))
+                self.assertFalse(self.shape.isInside(
+                    cq.Vector(x, y, self.p.height + 1.)))
+        self.assertTrue(self.shape.isInside(
+            cq.Vector(0., 0., self.d.low_floor - .1)))
 
     def test_negative_control_oversized_ball(self):
         ball = cq.Solid.makeSphere(
