@@ -43,10 +43,13 @@ def load_registry(path=REGISTRY):
         if kind not in ("local", "pr", "legacy", "configured"):
             raise ValueError("Missing CAD source kind")
         if kind == "configured":
-            if source.get("family") not in ("loft","sharp_r16","drop","horizontal_r48_tunnel","sloped_r48_tunnel") or not isinstance(source.get("recipe"), dict):
+            if source.get("family") not in ("loft","sharp_r16","drop","horizontal_r48_tunnel","sloped_r48_tunnel","downhill_windowed") or not isinstance(source.get("recipe"), dict):
                 raise ValueError("Configured model needs a real geometry recipe")
             # Cheap catalogue checks run without CadQuery installed.
             recipe = source["recipe"]
+            if source["family"] == "downhill_windowed":
+                if recipe != {"windows":[-16,0,16],"window_width_mm":8,"drop_mm":19.2}:
+                    raise ValueError("Unsupported windowed downhill recipe")
             if source["family"] == "sloped_r48_tunnel":
                 t=recipe
                 if (set(t)!={"direction","drop_mm","roof_top_mm","lip_mm","transition_mm"} or
@@ -202,6 +205,15 @@ def build(models, output, strict_head=False):
                     elif source["family"] == "sloped_r48_tunnel":
                         from brickcad.course_r48_sloped_tunnel import export_course
                         export_course(model["id"],source["recipe"],dest)
+                    elif source["family"] == "downhill_windowed":
+                        from brickcad.course_downhill import export_course
+                        model_name,rev=model["id"].split("-")
+                        windows=[{"side":"south","x_mm":x,
+                                  "width_mm":source["recipe"]["window_width_mm"]}
+                                 for x in source["recipe"]["windows"]]
+                        spec={"id":model_name,"version":rev,
+                              "enclosure":{"kind":"tunnel","windows":windows}}
+                        export_course(spec,dest)
                     else:
                         from brickcad.course_configured_special import export_course
                         export_course(model["id"],source["family"],source["recipe"],dest)

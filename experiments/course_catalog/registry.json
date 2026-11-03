@@ -419,9 +419,23 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "local",
-        "target": "experiments/course_replay_d01",
-        "cad_version": "D01-V3-R1"
+        "kind": "configured",
+        "family": "downhill_windowed",
+        "recipe": {
+          "windows": [
+            -16,
+            0,
+            16
+          ],
+          "window_width_mm": 8,
+          "drop_mm": 19.2
+        },
+        "reference": {
+          "pr": 0,
+          "sha": "fa708cb19382872ef4a501e0f7aa981cc837aca5",
+          "target": "parts/downhill_tunnel",
+          "cad_version": "D01-V3"
+        }
       }
     },
     {

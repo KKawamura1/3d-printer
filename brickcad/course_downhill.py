@@ -17,7 +17,7 @@ from brickcad.marking import engrave
 from brickcad.model import brick_from_fit, receiver
 from brickcad.standards import BALL_TRACK, ROUNDED_EDGES
 from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
-from parts.downhill_tunnel.design import (
+from brickcad.course_downhill_primitives import (
     Downhill, _cut_passage, _window_cutter, floor_z, ball_positions,
     sampled_ball_intersections, ports,
 )
