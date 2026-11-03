@@ -232,7 +232,8 @@ def export_course(model_id,recipe,out):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     shape,p=build_course(model_id,recipe)
     stl=out/"brick.stl"
-    cq.exporters.export(shape,str(stl),tolerance=.01,angularTolerance=.1)
+    # Match the proven PR40 exporter tessellation; geometry is unchanged.
+    cq.exporters.export(shape,str(stl),tolerance=.03,angularTolerance=.2)
     _strip(stl)
     cq.exporters.export(shape,str(out/"brick.step"))
     m=mesh_check(stl)
@@ -256,5 +257,5 @@ def export_course(model_id,recipe,out):
         "physical_fit_validated":False,"slicing_validated":False},
         ensure_ascii=False,indent=2)+"\n")
     if not report["passed"]:
-        raise ValueError("Sloped R48 tunnel CAD check failed: "+str(checks))
+        raise ValueError("Sloped R48 tunnel CAD check failed: "+str(checks)+" mesh="+str(m))
     return report
