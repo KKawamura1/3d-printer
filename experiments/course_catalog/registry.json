@@ -1,0 +1,306 @@
+{
+  "schema": 1,
+  "issue37_categories": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    24,
+    25
+  ],
+  "models": [
+    {
+      "id": "E01-V3",
+      "issue37_no": [
+        7
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 64,
+        "sha": "fee658386d8ce3f94d1b3476ba19673d0d3a4d00",
+        "target": "parts/gentle_curve_tunnel",
+        "cad_version": "E01-V3"
+      }
+    },
+    {
+      "id": "SD04-V10",
+      "issue37_no": [
+        20
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 50,
+        "sha": "1e0092a4854a00323a1a2c50adfb29f0b2450052",
+        "target": "parts/sharp_downhill_tunnel_left",
+        "cad_version": "SD04-V10"
+      }
+    },
+    {
+      "id": "S02-V16",
+      "issue37_no": [
+        24
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 41,
+        "sha": "f18c8086431fbbc6454066eb917628aaac5ee8ef",
+        "target": "parts/steep_sharp_curve_tunnel",
+        "cad_version": "S02-V16"
+      }
+    },
+    {
+      "id": "S01-V8",
+      "issue37_no": [
+        21
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 38,
+        "sha": "6da294f4c3b96c1a61a008f152c9036a4fd463e8",
+        "target": "parts/steep_drop_hole",
+        "cad_version": "S01-V8"
+      }
+    },
+    {
+      "id": "SC03-V5",
+      "issue37_no": [
+        12
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 46,
+        "sha": "4e3f9ea29efd53dfbdd5dccef495aa5abaab862d",
+        "target": "parts/sloped_curve_open_right",
+        "cad_version": "SC03-V5"
+      }
+    },
+    {
+      "id": "GC01-V5",
+      "issue37_no": [
+        2,
+        3
+      ],
+      "reversible_unverified": true,
+      "source": {
+        "kind": "pr",
+        "pr": 43,
+        "sha": "a7fb01fb536d067e99f12a93f63bbe93d5b83d2e",
+        "target": "parts/gentle_curve_open",
+        "cad_version": "GC01-V5"
+      }
+    },
+    {
+      "id": "SD03-V11",
+      "issue37_no": [
+        19
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 50,
+        "sha": "1e0092a4854a00323a1a2c50adfb29f0b2450052",
+        "target": "parts/sharp_downhill_tunnel_right",
+        "cad_version": "SD03-V11"
+      }
+    },
+    {
+      "id": "SD01-V4",
+      "issue37_no": [
+        14
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 48,
+        "sha": "080958c7fe99813949ffecaac7f7bcd2ad29fc7a",
+        "target": "parts/sharp_downhill_open_right",
+        "cad_version": "SD01-V4"
+      }
+    },
+    {
+      "id": "SD02-V4",
+      "issue37_no": [
+        15
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 48,
+        "sha": "080958c7fe99813949ffecaac7f7bcd2ad29fc7a",
+        "target": "parts/sharp_downhill_open_left",
+        "cad_version": "SD02-V4"
+      }
+    },
+    {
+      "id": "D02-V4",
+      "issue37_no": [
+        11
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 44,
+        "sha": "1275e5bc21acae8c73b58ed19b0f024ab8c20545",
+        "target": "parts/downhill_open",
+        "cad_version": "D02-V4"
+      }
+    },
+    {
+      "id": "C02-V8",
+      "issue37_no": [
+        9,
+        10
+      ],
+      "reversible_unverified": true,
+      "source": {
+        "kind": "pr",
+        "pr": 36,
+        "sha": "689db76d4656c580953699e60b91c6ebe75687df",
+        "target": "parts/sharp_curve_tunnel",
+        "cad_version": "C02-V8"
+      }
+    },
+    {
+      "id": "S03-V10",
+      "issue37_no": [
+        25
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 41,
+        "sha": "f18c8086431fbbc6454066eb917628aaac5ee8ef",
+        "target": "parts/steep_sharp_tunnel_left",
+        "cad_version": "S03-V10"
+      }
+    },
+    {
+      "id": "E01L-V1",
+      "issue37_no": [
+        8
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 64,
+        "sha": "fee658386d8ce3f94d1b3476ba19673d0d3a4d00",
+        "target": "parts/gentle_curve_tunnel_left",
+        "cad_version": "E01L-V1"
+      }
+    },
+    {
+      "id": "SC02-V12",
+      "issue37_no": [
+        17
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 40,
+        "sha": "ac1f2d98d42fe299cd7dec78af58dab53aa2c9b1",
+        "target": "parts/sloped_curve_tunnel",
+        "cad_version": "SC02-V12"
+      }
+    },
+    {
+      "id": "SC02L-V6",
+      "issue37_no": [
+        18
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 40,
+        "sha": "ac1f2d98d42fe299cd7dec78af58dab53aa2c9b1",
+        "target": "parts/sloped_curve_tunnel_left",
+        "cad_version": "SC02L-V6"
+      }
+    },
+    {
+      "id": "SC05-V1",
+      "issue37_no": [
+        13
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "pr",
+        "pr": 46,
+        "sha": "4e3f9ea29efd53dfbdd5dccef495aa5abaab862d",
+        "target": "parts/sloped_curve_open_left",
+        "cad_version": "SC05-V1"
+      }
+    },
+    {
+      "id": "D01-V3",
+      "issue37_no": [
+        16
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "local",
+        "target": "experiments/course_replay_d01",
+        "cad_version": "D01-V3-R1"
+      }
+    },
+    {
+      "id": "RAIL-LEGACY",
+      "issue37_no": [
+        1
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "legacy",
+        "module": "parts.straight_rail.design"
+      }
+    },
+    {
+      "id": "C01-V6",
+      "issue37_no": [
+        4,
+        5
+      ],
+      "reversible_unverified": true,
+      "source": {
+        "kind": "pr",
+        "pr": 36,
+        "sha": "689db76d4656c580953699e60b91c6ebe75687df",
+        "target": "parts/sharp_curve",
+        "cad_version": "C01-V6"
+      }
+    },
+    {
+      "id": "T01-V6",
+      "issue37_no": [
+        6
+      ],
+      "reversible_unverified": false,
+      "source": {
+        "kind": "local",
+        "target": "experiments/course_replay_t01",
+        "cad_version": "T01-V6-R1"
+      }
+    }
+  ]
+}
