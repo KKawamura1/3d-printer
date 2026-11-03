@@ -346,11 +346,21 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 40,
-        "sha": "ac1f2d98d42fe299cd7dec78af58dab53aa2c9b1",
-        "target": "parts/sloped_curve_tunnel",
-        "cad_version": "SC02-V12"
+        "kind": "configured",
+        "family": "sloped_r48_tunnel",
+        "recipe": {
+          "direction": "right",
+          "drop_mm": 19.2,
+          "roof_top_mm": 57.6,
+          "lip_mm": 1,
+          "transition_mm": 4
+        },
+        "reference": {
+          "pr": 40,
+          "sha": "ac1f2d98d42fe299cd7dec78af58dab53aa2c9b1",
+          "target": "parts/sloped_curve_tunnel",
+          "cad_version": "SC02-V12"
+        }
       }
     },
     {
@@ -360,11 +370,21 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 40,
-        "sha": "ac1f2d98d42fe299cd7dec78af58dab53aa2c9b1",
-        "target": "parts/sloped_curve_tunnel_left",
-        "cad_version": "SC02L-V6"
+        "kind": "configured",
+        "family": "sloped_r48_tunnel",
+        "recipe": {
+          "direction": "left",
+          "drop_mm": 19.2,
+          "roof_top_mm": 57.6,
+          "lip_mm": 1,
+          "transition_mm": 4
+        },
+        "reference": {
+          "pr": 40,
+          "sha": "ac1f2d98d42fe299cd7dec78af58dab53aa2c9b1",
+          "target": "parts/sloped_curve_tunnel_left",
+          "cad_version": "SC02L-V6"
+        }
       }
     },
     {
