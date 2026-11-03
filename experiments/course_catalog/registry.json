@@ -477,9 +477,19 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "local",
-        "target": "experiments/course_replay_t01",
-        "cad_version": "T01-V6-R1"
+        "kind": "configured",
+        "family": "straight_tunnel",
+        "recipe": {
+          "roof": "transition",
+          "transition_mm": 4,
+          "ceiling_mm": 34.8
+        },
+        "reference": {
+          "pr": 0,
+          "sha": "8a2913a1251ba95db2974c878a12881df1c47e87",
+          "target": "parts/tunnel",
+          "cad_version": "T01-V6"
+        }
       }
     }
   ]
