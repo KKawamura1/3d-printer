@@ -305,9 +305,17 @@ class DeclarativeCourseVersionTests(unittest.TestCase):
             (recipe / "course.json").write_text('{"id":"G01"}\n')
             (engine / "course_generator.py").write_text("SOURCE = 2\n")
             self.assertNotEqual(original, cad.source_fingerprint(root, name))
+            # A shared engine change changes the source fingerprint, but
+            # unchanged experiments are excluded from automatic CI planning.
+            self.assertEqual(cad.select(
+                {name: spec_dict}, 'changed', prior={name: 'G01-V1'},
+                changed=["brickcad/course_generator.py"], root=root), [])
+            # The same engine edit still requires a bump if this experiment's
+            # own recipe is changed in the PR as well.
             with self.assertRaisesRegex(ValueError, "experiments/course_test"):
                 cad.select({name: spec_dict}, 'changed', prior={name: 'G01-V1'},
-                           changed=["brickcad/course_generator.py"], root=root)
+                           changed=[name + '/course.json',
+                                    "brickcad/course_generator.py"], root=root)
             spec_dict["version"] = "G02-V1"
             self.assertEqual(cad.select({name: spec_dict}, 'changed',
                                         prior={name: 'G01-V1'},
