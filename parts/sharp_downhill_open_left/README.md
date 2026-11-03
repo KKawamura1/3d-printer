@@ -13,3 +13,8 @@ Issue #37: sharp_downhill_open_left。独立した刻印・版付きパーツ。
 Actionsの`cad-verified-stl`にSTL/STEP/検証レポートを保存。
 
 STEP往復は適応型Gauss積分（相対誤差1e-9）による体積差0.01mm³未満とソリッド有効性を検査。
+
+
+## SD02-V3 — PR58の床面改善適用
+
+下面E31-05のスリット終端中心をZ4.40→3.50mmへ短縮（上端Z4.15mm）。補強リブなし。PR58 B試験片の印刷結果は良好で、SD02-V3の実印刷・保持力は未検証。
