@@ -1,5 +1,6 @@
-"""Assemble 11 CAD-verified STL files from pinned PR revisions into two A1 mini plates.
+"""Assemble PR-pinned Issue #37 geometry into separately selectable A1 mini plates.
 Only XY translations and 90-degree rotations; geometry/labels are unchanged.
+The 23 course categories map to 20 physical specimens (3 reversible candidates).
 """
 import argparse
 import hashlib
@@ -14,21 +15,31 @@ BED, GAP = 180.0, 4.0
 START = (BED - (2 * 63.8 + 31.8 + 2 * GAP)) / 2
 A, B = START, START + 63.8 + GAP
 C = B + 63.8 + GAP
+# Fixed, explicit locations; each plate is independently printable on A1 mini.
+# Four large 4x4 shapes fit plate 3, with two rotated 2x4 along the right edge.
 SLOTS = {
-    # Plate 01: 6 tunnel designs plus one open sharp-turn downhill control.
-    # Discontinued SG01/SG02 4x4 tunnels are intentionally absent.
-    'big-00': (A, A, 0), 'big-10': (B, A, 0),
-    'big-01': (A, B, 0),
-    'medium-right-0': (C, A, 90), 'medium-right-1': (B, B, 90),
-    'small-bottom-0': (A, C, 0),
-    'small-bottom-1': (A + 31.8 + GAP, C, 0),
-    'small-bottom-2': (A + 2 * (31.8 + GAP), C, 0),
-    'small-bottom-3': (A + 3 * (31.8 + GAP), C, 0),
-    # Plate 02: four open-track specimens (latest mirrored versions included).
-    'p2-big': (8, 8, 0),
-    'p2-big-01': (78, 8, 0),
-    'p2-medium-1': (78, 80, 0),
-    'p2-medium-2': (8, 80, 0)
+    'p1-big': (4, 4, 0),
+    'p1-medium': (72, 4, 0),
+    'p1-small-a': (4, 72, 0),
+    'p1-small-b': (40, 72, 0),
+
+    'p2-big-a': (4, 4, 0),
+    'p2-big-b': (72, 4, 0),
+    'p2-medium-a': (4, 72, 0),
+    'p2-medium-b': (72, 72, 0),
+    'p2-medium-c': (4, 108, 0),
+    'p2-medium-d': (72, 108, 0),
+    'p2-small-a': (140, 4, 0),
+    'p2-small-b': (140, 40, 0),
+
+    'p3-big-a': (4, 4, 0),
+    'p3-big-b': (72, 4, 0),
+    'p3-big-c': (4, 72, 0),
+    'p3-big-d': (72, 72, 0),
+    'p3-side-medium-a': (140, 4, 90),
+    'p3-side-medium-b': (140, 72, 90),
+    'p3-small-a': (4, 140, 0),
+    'p3-small-b': (40, 140, 0),
 }
 
 def read_stl(path):
@@ -77,32 +88,55 @@ def check_rects(items):
             if not clear:
                 raise ValueError(f'Model spacing violated: {first["id"]}, {second["id"]}')
 
-def assemble(manifest_path, source_root, out):
+def parse_plates(spec):
+    if spec == 'all':
+        return (1, 2, 3)
+    if spec not in ('1', '2', '3'):
+        raise ValueError('Select --plates 1, 2, 3, or all')
+    return (int(spec),)
+
+
+def assemble(manifest_path, source_root, out, plates=(1,)):
     manifest = json.loads(Path(manifest_path).read_text())
-    if (manifest.get('schema'), manifest.get('bed_mm'), manifest.get('minimum_gap_mm')) != (1, BED, GAP):
+    if (manifest.get('schema'), manifest.get('bed_mm'), manifest.get('minimum_gap_mm')) != (2, BED, GAP):
         raise ValueError('Unknown plate specification')
-    items = manifest['items']
-    if len(items) != 11 or sum(i['plate'] == 1 for i in items) != 7 or sum(i['plate'] == 2 for i in items) != 4:
-        raise ValueError('Expected 7+4 specimens in two explicit plates')
-    if len({x['id'] for x in items}) != 11 or len({(x['plate'], x['slot']) for x in items}) != 11:
+    planned = manifest['items']
+    expected_counts = {1: 4, 2: 8, 3: 8}
+    if len(planned) != 20 or any(sum(i['plate'] == p for i in planned) != n for p, n in expected_counts.items()):
+        raise ValueError('Expected 4+8+8 specimens over three plates')
+    if len({x['id'] for x in planned}) != len(planned) or len({(x['plate'], x['slot']) for x in planned}) != len(planned):
         raise ValueError('Duplicate ID or plate slot')
+    expected_categories = list(range(1, 22)) + [24, 25]
+    categories = sorted(no for item in planned for no in item['issue37_no'])
+    if categories != expected_categories or manifest.get('issue37_supported_numbers') != expected_categories:
+        raise ValueError(f'Issue #37 category coverage not 23/23: {categories}')
+    if any(x['slot'] not in SLOTS for x in planned):
+        raise ValueError('Unknown plate slot')
+    if set(plates) - {1, 2, 3} or not plates:
+        raise ValueError('Unknown plate selection')
+    items = [item for item in planned if item['plate'] in plates]
+
     validated = []
     for item in items:
         source = Path(source_root) / f'pr{item["pr"]}' / item['path']
-        report_path = source.with_name('report.json')
-        if not source.is_file() or not report_path.is_file():
-            raise FileNotFoundError(f'No source STL or CAD report: {source}')
-        report = json.loads(report_path.read_text())
-        if report.get('passed') is not True or report.get('mesh', {}).get('passed') is not True:
-            raise ValueError(f'CAD validation failed: {item["id"]}')
+        if not source.is_file():
+            raise FileNotFoundError(f'No source STL: {source}')
+        if not item.get('repository_stl'):
+            report_path = source.with_name('report.json')
+            if not report_path.is_file():
+                raise FileNotFoundError(f'No CAD report: {report_path}')
+            report = json.loads(report_path.read_text())
+            if report.get('passed') is not True or report.get('mesh', {}).get('passed') is not True:
+                raise ValueError(f'CAD validation failed: {item["id"]}')
+        elif not item.get('legacy_unverified_e31'):
+            raise ValueError(f'Repository STL requires explicit legacy flag: {item["id"]}')
         sha = hashlib.sha256(source.read_bytes()).hexdigest()
-        if item.get('rebuild_from_source'):
-            if not item.get('head_sha') or len(item['head_sha']) != 40:
-                raise ValueError(f'Unpinned source revision: {item["id"]}')
-            if item.get('sha256') and sha != item['sha256']:
-                raise ValueError(f'Incorrect rebuilt STL for {item["id"]}: {sha}')
-        elif sha != item['sha256']:
+        if not item.get('head_sha') or len(item['head_sha']) != 40:
+            raise ValueError(f'Unpinned source revision: {item["id"]}')
+        if item.get('sha256') and sha != item['sha256']:
             raise ValueError(f'Incorrect pinned source STL for {item["id"]}: {sha}')
+        if not (item.get('rebuild_from_source') or item.get('repository_stl')) and not (item.get('run') and item.get('artifact')):
+            raise ValueError(f'Artifact reference missing: {item["id"]}')
         mesh = read_stl(source)
         x, y, turn = SLOTS[item['slot']]
         moved, lo, hi = place(mesh, x, y, turn)
@@ -110,7 +144,7 @@ def assemble(manifest_path, source_root, out):
                     'source_sha256': sha, 'bounds_min_mm': lo, 'bounds_max_mm': hi,
                     'triangles': len(mesh)}
         validated.append((item, source, moved, metadata))
-    for plate in (1, 2):
+    for plate in plates:
         check_rects([meta for item, _, _, meta in validated if item['plate'] == plate])
 
     out = Path(out)
@@ -119,9 +153,15 @@ def assemble(manifest_path, source_root, out):
         shutil.copyfile(source, out / 'individual' / f'{item["id"]}.stl')
     resolved_sources = [{**item, 'sha256': meta['source_sha256']}
                         for item, _, _, meta in validated]
-    release = {'bed_mm': BED, 'minimum_gap_mm': GAP, 'slicing_validated': False,
-               'physical_fit_validated': False, 'source_manifest': resolved_sources, 'plates': {}}
-    for plate in (1, 2):
+    release = {'bed_mm': BED, 'minimum_gap_mm': GAP,
+               'planned_categories': manifest['issue37_supported_numbers'],
+               'planned_specimens': len(planned), 'selected_plates': list(plates),
+               'printed_categories': sorted(no for item in items for no in item['issue37_no']),
+               'reverse_direction_unverified': manifest['reverse_direction_unverified'],
+               'legacy_unverified_e31_ids': [x['id'] for x in items if x.get('legacy_unverified_e31')],
+               'slicing_validated': False, 'physical_fit_validated': False,
+               'source_manifest': resolved_sources, 'plates': {}}
+    for plate in plates:
         chosen = [(item, moved, meta) for item, _, moved, meta in validated if item['plate'] == plate]
         filename = f'issue37-plate-{plate:02d}-{len(chosen)}parts.stl'
         count = sum(len(mesh) for _, mesh, _ in chosen)
@@ -146,8 +186,9 @@ def main():
     p.add_argument('--manifest', type=Path, default=Path(__file__).with_name('sources.json'))
     p.add_argument('--sources', type=Path, default=Path('build/issue37-sources'))
     p.add_argument('--out', type=Path, default=Path('build/issue37-print-plates'))
+    p.add_argument('--plates', choices=['1', '2', '3', 'all'], default='1')
     args = p.parse_args()
-    assemble(args.manifest, args.sources, args.out)
+    assemble(args.manifest, args.sources, args.out, plates=parse_plates(args.plates))
 
 if __name__ == '__main__':
     main()
