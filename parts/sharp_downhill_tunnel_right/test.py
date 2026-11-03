@@ -30,6 +30,7 @@ class Geometry(unittest.TestCase):
         self.assertGreater(intersection(shape,oversize),VOLUME_TOL)
         # Issue #60 / PR58 B: the four E31 slots must end below the
         # underside ceiling, not cut into the bridge supporting the floor.
+        import math
         from parts.tunnel.e31_fit import SLOT_END_Z, SLOT_END_RADIUS
         from parts.sharp_downhill_tunnel_right.design import loft, DEPTH
         self.assertAlmostEqual(SLOT_END_Z, 3.50)
@@ -40,8 +41,8 @@ class Geometry(unittest.TestCase):
         full_tubes = [
             (tx, ty) for tx, ty in p.tubes()
             if all(mask.isInside(cq.Vector(
-                tx + 6.85 * __import__('math').cos(i * __import__('math').pi / 4),
-                ty + 6.85 * __import__('math').sin(i * __import__('math').pi / 4), 2))
+                tx + 6.85 * math.cos(i * math.pi / 4),
+                ty + 6.85 * math.sin(i * math.pi / 4), 2))
                 for i in range(8))
         ]
         self.assertTrue(full_tubes, "no complete E31 tubes found on right part")
