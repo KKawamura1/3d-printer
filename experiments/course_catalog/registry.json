@@ -445,8 +445,19 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "legacy",
-        "module": "parts.straight_rail.design"
+        "kind": "configured",
+        "family": "legacy_rail",
+        "recipe": {
+          "width_mm": 31.65,
+          "length_mm": 63.8,
+          "fit_profile": "duplo-straight-rail-trial-v1"
+        },
+        "reference": {
+          "pr": 0,
+          "sha": "fa708cb19382872ef4a501e0f7aa981cc837aca5",
+          "target": "parts/straight_rail",
+          "cad_version": "unversioned-legacy"
+        }
       }
     },
     {

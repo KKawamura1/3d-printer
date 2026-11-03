@@ -43,10 +43,15 @@ def load_registry(path=REGISTRY):
         if kind not in ("local", "pr", "legacy", "configured"):
             raise ValueError("Missing CAD source kind")
         if kind == "configured":
-            if source.get("family") not in ("loft","sharp_r16","drop","horizontal_r48_tunnel","sloped_r48_tunnel","downhill_windowed","straight_tunnel") or not isinstance(source.get("recipe"), dict):
+            if source.get("family") not in ("loft","sharp_r16","drop","horizontal_r48_tunnel","sloped_r48_tunnel","downhill_windowed","straight_tunnel","legacy_rail") or not isinstance(source.get("recipe"), dict):
                 raise ValueError("Configured model needs a real geometry recipe")
             # Cheap catalogue checks run without CadQuery installed.
             recipe = source["recipe"]
+            if source["family"] == "legacy_rail":
+                if (model_id != "RAIL-LEGACY" or
+                        recipe != {"width_mm":31.65,"length_mm":63.8,
+                                   "fit_profile":"duplo-straight-rail-trial-v1"}):
+                    raise ValueError("Unsupported legacy rail recipe")
             if source["family"] == "straight_tunnel":
                 if recipe != {"roof":"transition","transition_mm":4,"ceiling_mm":34.8}:
                     raise ValueError("Unsupported straight tunnel recipe")
@@ -164,7 +169,7 @@ def export_one(model, source_root, output):
         shutil.copy2(provenance, dst / "course-manifest.json")
     return {**model, "stl": "models/" + model["id"] + "/brick.stl",
             "stl_info": meta, "geometry_verified": True,
-            "legacy_unverified_e31": src["kind"] == "legacy",
+            "legacy_unverified_e31": model["id"] == "RAIL-LEGACY",
             "physical_fit_validated": False, "physical_rolling_validated": False,
             "slicing_validated": False}
 
@@ -207,6 +212,9 @@ def build(models, output, strict_head=False):
                         export_course(model["id"],source["recipe"],dest)
                     elif source["family"] == "sloped_r48_tunnel":
                         from brickcad.course_r48_sloped_tunnel import export_course
+                        export_course(model["id"],source["recipe"],dest)
+                    elif source["family"] == "legacy_rail":
+                        from brickcad.course_legacy_rail import export_course
                         export_course(model["id"],source["recipe"],dest)
                     elif source["family"] == "straight_tunnel":
                         from brickcad.course_straight_tunnel import export_course

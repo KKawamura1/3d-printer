@@ -16,7 +16,8 @@ class CourseCatalogTests(unittest.TestCase):
         self.assertEqual(sorted(n for m in models for n in m["issue37_no"]),
                          CATEGORIES)
         self.assertEqual(sum(len(m["issue37_no"]) == 2 for m in models), 3)
-        self.assertEqual(sum(m["source"]["kind"] == "legacy" for m in models), 1)
+        self.assertEqual(sum(m["source"]["kind"] == "configured" for m in models), 20)
+        self.assertEqual(sum(m["source"].get("family") == "legacy_rail" for m in models), 1)
 
     def test_select_by_id_and_category(self):
         models = select(self.registry, "2,3")
