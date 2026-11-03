@@ -1,0 +1,22 @@
+{
+  "version": "SC05-V1",
+  "auto": true,
+  "requires": [
+    {
+      "target": "parts/sloped_curve_open_right",
+      "version": "SC03-V5"
+    }
+  ],
+  "command": [
+    "python",
+    "-m",
+    "parts.sloped_curve_open_left.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 2400,
+  "description": "Mirror SC03-V5 unmarked R48 downhill CAD to left and engrave upright SC05-V1 3mm/0.4mm"
+}

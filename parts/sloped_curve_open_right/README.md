@@ -1,20 +1,14 @@
-# SC03-V3
+# SC03-V5 / SC05-V1 — 緩坂×緩カーブ開放レール（左右共通）
 
-Issue #37: sloped_curve_open_right。独立した刻印・版付きパーツ。
+Issue #37 No.12 / No.13、Issue #60対応。**PR #46が左右両方の唯一の実装先**。
 
-- 16mmピッチ、高さ19.2mm、球径24.26mm。落差19.2mm。
-- 天井: False。開放型にはスタッド・高い衝突壁を付けない。
-- 下面の完全チューブにE31-05を移植。曲線輪郭で支持を切り、角の不要な床を除く。
-- 刻印は入口下の非走行面（Z5.55mm、文字高1.1mm）。反転後に刻印するので鏡文字にならない。
-- 連続球通過はレポートの折れ線全体をカプセルで検査。静的通過可能性であり、重力による自然転がりの証明ではない。
-- Bambu Studioスライス・実物の転がり・嵌合は未確認。
+- 右: `parts/sloped_curve_open_right/SC03-V5/brick.stl`。既存SC03-V4の右向きCADを維持。
+- 左: `parts/sloped_curve_open_left/SC05-V1/brick.stl`。右の**無刻印BRep**をXZ鏡映したCADから生成（右のデフォルトは鏡映済みなので、左は共通の鏡映前形状）。
+- 両方向とも半径48mm、4×4×高さ2、落差19.2mm、球径24.26mm、開放レール（高い追加壁・天井・上面スタッドなし）。
+- E31-05は完全チューブだけに適用。曲線で切られた下面チューブは支持材として残す。スリット終端中心はPR #58実験Bに合わせZ=3.50mm（上端4.15mm、天井まで0.60mm）、補強リブなし。
+- 刻印は**鏡映と壁合成がすべて終わってから**各IDを凹刻印。見える西側入口外壁に共通 `brickcad.marking.engrave_west()` 既定値（DejaVu Sans Bold / 文字高3.0mm / 深さ0.4mm）、Z12mm。文字まで鏡映しない。両方向に切削回帰テストを設置。
+- 連続球カプセル掃引、下面支持、BRep、STEP往復、閉鎖STLはCAD/CIで確認する設計。CAD通過は自然転がりの保証ではない。
 
-生成: `python -m parts.sloped_curve_open_right.design --out build/sloped_curve_open_right`。
-Actionsの`cad-verified-stl`にSTL/STEP/検証レポートを保存。
+生成: `python -m parts.sloped_curve_open_right.design --out build/sc03` と `python -m parts.sloped_curve_open_left.design --out build/sc05`。
 
-STEP往復は適応型Gauss積分（相対誤差1e-9）による体積差0.01mm³未満とソリッド有効性を検査。
-
-
-## SC03-V4（PR58床面改善）
-
-下面E31-05のスリット終端中心を4.40→3.50mm、上端を4.15mmへ短縮。補強リブなし。PR58 B試験片は床面合格・嵌合感に違和感なし。SC03-V4のスライス・印刷・保持力は未検証。
+**検証ステータス:** 旧SC03-V3の成功Artifactは本変更の検証結果ではない。最新版についてCAD tests、CAD/STL Artifact、Bambu StudioサポートOFFスライス、実物床面・嵌合・刻印・左右10回転がりはそれぞれ別に確認する。プレート2の旧SC03-V3は未再構成。実機未検証。

@@ -1,5 +1,5 @@
 {
-  "version": "SC03-V4",
+  "version": "SC03-V5",
   "auto": true,
   "command": [
     "python",
@@ -11,5 +11,6 @@
   "stl": [
     "brick.stl"
   ],
-  "timeout": 2400
+  "timeout": 2400,
+  "description": "SC03 right R48 downhill open curve; SC05 left mirror uses unmarked shared geometry; standard 3mm/0.4mm west engraving and PR58 B underside"
 }

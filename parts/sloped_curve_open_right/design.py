@@ -13,7 +13,7 @@ from brickcad.verify import intersection, mesh_check, exact_bounds, VOLUME_TOL
 from brickcad.render import viewer
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SC03-V4'
+PART_ID = 'SC03-V5'
 KIND = 'gentle'
 DROP = 19.2
 TUNNEL = False
@@ -24,6 +24,7 @@ LENGTH = 64. if KIND == 'straight' else (math.pi*R/2 + (32. if KIND == 'sharp' e
 FLOOR = BALL_TRACK.floor
 BALL = BALL_TRACK.ball_diameter
 DEPTH = 4.75
+LABEL_Z = 12.0  # Visible west exterior inlet wall, below the running floor
 
 
 def xy(s):
@@ -87,7 +88,7 @@ def loft(role,a=-.3,b=None,branch='low'):
     return cq.Solid.makeLoft([wire(s,role,branch) for s in stations(a,b)],ruled=True)
 
 
-def build_part(label=PART_ID):
+def build_part(label=PART_ID, *, mirror=MIRROR):
     ny=4 if KIND=='gentle' else 2
     p=replace(brick_from_fit('duplo-e27-play-v1',nx=4,ny=ny,height_units=3 if TUNNEL else (2 if DROP else 1)),tube_radius=6.6)
     clip=cq.Workplane('XY').box(p.width,p.depth,100,centered=(True,True,False)).val()
@@ -114,35 +115,37 @@ def build_part(label=PART_ID):
         studs=make_studs(p.studs(),57.45,p.stud_radius,p.stud_inner_radius,4.65,.5).val().intersect(mask)
         body=body.fuse(studs).clean()
         if STEEP: print('stud body valid',body.isValid(),flush=True)
-    # Mark below the running floor, on the inlet face; avoids mating contact below 4.75.
-    x,y,_,_=xy(0)
-    if MIRROR:
-        body=body.mirror('XZ');y=-y
-    body=engrave_west(body,label,x=-p.width/2,y=y,z=5.55,size=1.1,depth=.3)
+    # Reflect the *unmarked* CAD; engrave readable text on the final visible wall.
+    # engrave_west uses the same standard defaults as engrave: bold 3mm / 0.4mm.
+    _,y,_,_=xy(0)
+    if mirror:
+        body=body.mirror('XZ'); y=-y
+    if label is not None:
+        body=engrave_west(body,label,x=-p.width/2,y=y,z=LABEL_Z)
     if not body.isValid() or len(body.Solids())!=1:raise ValueError('Expected one valid connected solid')
     return body,p
 
 
-def path():
+def path(*, mirror=MIRROR):
     def point(s,branch='low'):
         x,y,_,_=xy(s)
         z=height(s,branch)+BALL/2*math.sqrt(1+slope(s,branch)**2)+.5
-        return cq.Vector(x,-y if MIRROR else y,z)
+        return cq.Vector(x,-y if mirror else y,z)
     if not STEEP:return [point(s) for s in stations(0,LENGTH)]
     return [point(s,'high') for s in stations(0,12)]+[point(s) for s in stations(12,LENGTH)]
 
 
-def ports():
+def ports(*, mirror=MIRROR):
     out=[]
     for s,name,sign in [(0,'inlet',-1),(LENGTH,'outlet',1)]:
         x,y,tx,ty=xy(s)
-        if MIRROR:y=-y;ty=-ty
+        if mirror:y=-y;ty=-ty
         out.append(Port(name,(x,y,FLOOR+(DROP if s==0 else 0)),(sign*tx,sign*ty,0.),BALL_TRACK.radius))
     return out
 
 
-def verify(shape,p):
-    pts=path();r=BALL/2
+def verify(shape,p,*,mirror=MIRROR):
+    pts=path(mirror=mirror);r=BALL/2
     # Union of endpoint spheres and cylinders is the EXACT sweep of a sphere
     # along this explicitly defined continuous polyline (not just samples).
     sphere_errors=[intersection(shape,cq.Solid.makeSphere(r,c,angleDegrees1=-90)) for c in pts]
@@ -155,17 +158,17 @@ def verify(shape,p):
     checks=dict(valid_brep=shape.isValid(),one_solid=len(shape.Solids())==1,
         continuous_sphere_path_clear=max(sphere_errors+segment_errors)<VOLUME_TOL,
         lowered_ball_detected=negative>VOLUME_TOL,
-        drop_matches_grid=abs(ports()[0].floor_xyz_mm[2]-ports()[1].floor_xyz_mm[2]-DROP)<1e-6,
+        drop_matches_grid=abs(ports(mirror=mirror)[0].floor_xyz_mm[2]-ports(mirror=mirror)[1].floor_xyz_mm[2]-DROP)<1e-6,
         receiver_depth=abs(FLOOR-DEPTH-1.6)<1e-6,
-        full_roof=(not TUNNEL or all(shape.isInside(cq.Vector(x,-y if MIRROR else y,57.5)) for x,y,_,_ in [xy(LENGTH*t) for t in (.1,.3,.5,.7,.9)])),
+        full_roof=(not TUNNEL or all(shape.isInside(cq.Vector(x,-y if mirror else y,57.5)) for x,y,_,_ in [xy(LENGTH*t) for t in (.1,.3,.5,.7,.9)])),
         maximum_height=abs(shape.BoundingBox().zmax-(62.1 if TUNNEL else FLOOR+DROP+12.85))<.1)
 
     return checks,dict(sphere_intersections_mm3=sphere_errors,segment_intersections_mm3=segment_errors,lowered_ball_mm3=negative,centres_mm=[c.toTuple() for c in pts],definition='Exact continuous capsule sweep along the reported polyline; not a solved gravity trajectory')
 
 
-def export(out):
+def export(out, *, mirror=MIRROR, part_id=PART_ID):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
-    shape,p=build_part();checks,clearance=verify(shape,p)
+    shape,p=build_part(label=part_id,mirror=mirror);checks,clearance=verify(shape,p,mirror=mirror)
     stl=out/'brick.stl';shape.exportStl(str(stl),tolerance=.03,angularTolerance=.2,relative=False)
     raw=stl.read_bytes();triangles=[]
     for i in range(struct.unpack_from('<I',raw,80)[0]):
@@ -183,7 +186,7 @@ def export(out):
         return props.Mass()
     delta=precise_volume(shape)-precise_volume(restored)
     checks['step_roundtrip']=restored.isValid() and len(restored.Solids())==1 and abs(delta)<.01
-    report=dict(part_id=PART_ID,passed=all(checks.values()),checks=checks,mesh=m,clearance=clearance,ports=[asdict(v) for v in ports()],design=design_manifest(p),bounds_mm=exact_bounds(shape),physical_fit_validated=False,physical_rolling_validated=False,slicer_support_free_validated=False,sha256_stl=hashlib.sha256(stl.read_bytes()).hexdigest())
+    report=dict(part_id=part_id,passed=all(checks.values()),checks=checks,mesh=m,clearance=clearance,ports=[asdict(v) for v in ports(mirror=mirror)],design=design_manifest(p),bounds_mm=exact_bounds(shape),physical_fit_validated=False,physical_rolling_validated=False,slicer_support_free_validated=False,sha256_stl=hashlib.sha256(stl.read_bytes()).hexdigest())
     (out/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     viewer_report={**report,'geometry':dict(bounds_mm=exact_bounds(shape),parameters=asdict(p)),
                    'fit':dict(insertion=[],poses=[])}
@@ -194,7 +197,7 @@ def export(out):
         if name=='aligned':viewer_report['fit']['insertion'].append(dict(row,pair='printed/printed',lift_mm=0))
         else:viewer_report['fit']['poses'].append(row)
     viewer(shape.copy(mesh=False),p,viewer_report,out)
-    print(PART_ID,checks,flush=True)
+    print(part_id,checks,flush=True)
     if not report['passed']:raise ValueError('CAD verification failed')
     return report
 
