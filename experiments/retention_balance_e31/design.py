@@ -13,7 +13,7 @@ import cadquery as cq
 
 from brickcad.marking import engrave
 from brickcad.model import build as build_brick
-from brickcad.verify import exact_bounds
+from brickcad.verify import exact_bounds, precise_volume
 from experiments.full_height_fit.design import export_stl
 from experiments.dual_fit_e29.design import (
     VERSION as E29_VERSION,
@@ -138,8 +138,7 @@ def generate(out=Path("build/e31-retention-balance")):
         cq.exporters.export(shape, str(folder / "brick.step"))
         restored = cq.importers.importStep(str(folder / "brick.step")).val()
         step_ok = (restored.isValid() and len(restored.Solids()) == 1
-                   and abs(restored.Volume() - shape.Volume()) /
-                   shape.Volume() <= 1e-6)
+                   and abs(precise_volume(restored)-precise_volume(shape))/precise_volume(shape) <= 1e-6)
         if not step_ok:
             raise ValueError("STEP roundtrip failed: " + record["id"])
         report = dict(

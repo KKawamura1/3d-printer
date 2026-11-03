@@ -10,7 +10,7 @@ import cadquery as cq
 from experiments.full_height_fit.design import export_stl
 from brickcad.model import nominal_brick, receiver
 from brickcad.render import viewer, preview
-from brickcad.verify import exact_bounds, fit_report, intersection, place
+from brickcad.verify import exact_bounds, fit_report, intersection, place, precise_volume
 
 DEFAULT_PROFILE=Path(__file__).with_name('profile.json')
 
@@ -46,7 +46,7 @@ def export(out=Path('build/duplo-xy-fit-trial-01'),profile_path=DEFAULT_PROFILE)
     m=export_stl(s,out/'brick.stl')
     cq.exporters.export(s,str(out/'brick.step'))
     restored=cq.importers.importStep(str(out/'brick.step')).val()
-    step=restored.isValid() and len(restored.Solids())==1 and abs(restored.Volume()-s.Volume())<1e-4
+    step=restored.isValid() and len(restored.Solids())==1 and abs(precise_volume(restored)-precise_volume(s))<1e-4
     assert step
     fit=fit_report(p,s)
     fit_clear=(not any(r['collision'] for r in fit['insertion']) and

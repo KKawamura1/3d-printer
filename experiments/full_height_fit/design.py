@@ -10,7 +10,7 @@ import cadquery as cq
 from brickcad.model import nominal_brick
 from parts.straight_rail.design import rounded_brick
 from brickcad.render import viewer
-from brickcad.verify import exact_bounds, mesh_check, fit_report
+from brickcad.verify import exact_bounds, mesh_check, fit_report, precise_volume
 
 LAYOUT = (('C','S20','C','T30'), ('W16','C','S32','C'),
           ('C','S36','C','W24'), ('T50','C','S48','C'))  # back (+Y) to front
@@ -138,7 +138,7 @@ def generate(out=Path('build/duplo-experiment-01')):
     cq.exporters.export(plate,str(out/'plate.step'))
     restored=cq.importers.importStep(str(out/'plate.step')).val()
     assert restored.isValid() and len(restored.Solids())==16
-    assert abs(restored.Volume()-plate.Volume())<1e-4
+    assert abs(precise_volume(restored)-precise_volume(plate))<1e-4
     # Standard model-only 3MF: one build item preserves relative positions.
     # It deliberately carries no Bambu print settings or G-code.
     import xml.etree.ElementTree as ET
