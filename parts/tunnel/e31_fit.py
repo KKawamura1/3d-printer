@@ -1,7 +1,9 @@
 """E31-05 underside transfer (standalone geometry; historical experiments stay immutable).
 
 Source: experiments/retention_balance_e31/design.py, specimen E31-05.
-Only applies a bead and four split tube slots to the supplied solid.
+Applies the E31-05 bead and four split tube slots to the supplied solid.
+PR #58 print-tested B variation shortens the slot endpoint from Z4.40 to
+Z3.50 mm without adding support ribs. The original E31 coupon is unchanged.
 Caller must select a tube OD of 13.20 mm (radius 6.60).
 """
 import cadquery as cq
@@ -9,7 +11,7 @@ import cadquery as cq
 BEAD_MINOR_RADIUS = .20
 BEAD_Z = 2.25
 SLOT_WIDTH = 1.10
-SLOT_END_Z = 4.40
+SLOT_END_Z = 3.50  # PR58 B: printed floor passed; preliminary fit felt unchanged
 SLOT_END_RADIUS = .65
 
 
