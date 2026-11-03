@@ -46,6 +46,14 @@ class TunnelTests(unittest.TestCase):
             self.assertFalse(self.shape.isInside(cq.Vector(x, y, 3.5)))
             self.assertTrue(self.shape.isInside(cq.Vector(x, y, 4.4)))
 
+    def test_receiver_depth_selects_brick_or_rail_slots(self):
+        from parts.tunnel.e31_fit import slot_end_z_for_receiver_depth
+        self.assertEqual(slot_end_z_for_receiver_depth(4.75), 3.50)
+        self.assertEqual(slot_end_z_for_receiver_depth(17.60), 4.40)
+        self.assertEqual(slot_end_z_for_receiver_depth(5.65), 4.40)
+        with self.assertRaises(ValueError):
+            slot_end_z_for_receiver_depth(4.74)
+
     def test_round_entry_high_ceiling_style(self):
         from parts.tunnel.design_e31 import PART_ID
         self.assertEqual(PART_ID, 'T01-V5')
