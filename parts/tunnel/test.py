@@ -4,6 +4,7 @@ from pathlib import Path
 import cadquery as cq
 from parts.tunnel.design_e31 import Tunnel, build_tunnel, ball_sweep
 from parts.straight_rail.design import Rail, build_rail
+from brickcad.test_cache import cached_build_part
 from brickcad.verify import intersection, precise_volume, VOLUME_TOL
 
 
@@ -18,7 +19,7 @@ class TunnelTests(unittest.TestCase):
         self.assertGreater(ball_sweep(self.shape,self.p,self.t,28),VOLUME_TOL)
 
     def test_join_with_existing_rail(self):
-        rail,_=build_rail()
+        rail,_=cached_build_part(build_rail)
         # DUPLO grid: centres 48 mm apart leaves the usual 0.2 mm body gap.
         assembly=self.shape.fuse(rail.translate((-48,0,0)))
         self.assertEqual(self.t.floor,Rail().floor)
