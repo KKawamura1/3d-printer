@@ -1,0 +1,22 @@
+{
+  "version": "SC02L-V4",
+  "auto": true,
+  "requires": [
+    {
+      "target": "parts/sloped_curve_tunnel",
+      "version": "SC02-V10"
+    }
+  ],
+  "command": [
+    "python",
+    "-m",
+    "parts.sloped_curve_tunnel_left.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "SC02L-V4 left R48 downhill tunnel: mirror unmarked SC02-V10 source before 3mm post-engraving"
+}
