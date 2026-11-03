@@ -70,6 +70,49 @@ class VersionSelectionTests(unittest.TestCase):
         self.assertEqual(cad.select(self.specs, 'changed', prior=self.prior,
                                     changed=['experiments/trial/cad-build.json']), [])
 
+    def test_shared_cad_refactor_does_not_touch_unchanged_experiment(self):
+        # Regression: PR56 changed only a shared CAD engine and previously
+        # triggered an unversioned-change error for five historical trials.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            trial = root / 'experiments/trial'
+            shared = root / 'brickcad'
+            trial.mkdir(parents=True)
+            shared.mkdir(parents=True)
+            (trial / 'design.py').write_text(
+                'from brickcad.course_sharp_curve import export_course\n')
+            (shared / 'course_sharp_curve.py').write_text(
+                'def export_course(): pass\n')
+            self.specs['experiments/trial']['auto'] = True
+            self.prior['parts/alpha'] = 'A02-V1'
+            self.prior['experiments/trial'] = 'X01-V1'
+            self.assertEqual(cad.select(
+                self.specs, 'changed', prior=self.prior,
+                changed=['brickcad/course_sharp_curve.py'], root=root), [])
+
+    def test_old_experiment_version_is_not_retried_without_direct_change(self):
+        # A retry can compare across earlier commits on a long-running PR;
+        # historical version differences alone never select old experiments.
+        self.specs['experiments/trial']['auto'] = True
+        self.prior['parts/alpha'] = 'A02-V1'
+        self.assertEqual(cad.select(
+            self.specs, 'changed', prior=self.prior,
+            changed=['brickcad/course_sharp_curve.py']), [])
+
+    def test_direct_experiment_design_change_requires_version_bump(self):
+        self.prior['parts/alpha'] = 'A02-V1'
+        self.prior['experiments/trial'] = 'X01-V1'
+        with self.assertRaisesRegex(ValueError, 'experiments/trial'):
+            cad.select(self.specs, 'changed', prior=self.prior,
+                       changed=['experiments/trial/design.py'])
+
+    def test_direct_experiment_course_recipe_change_requires_version_bump(self):
+        self.prior['parts/alpha'] = 'A02-V1'
+        self.prior['experiments/trial'] = 'X01-V1'
+        with self.assertRaisesRegex(ValueError, 'experiments/trial'):
+            cad.select(self.specs, 'changed', prior=self.prior,
+                       changed=['experiments/trial/course.json'])
+
     def test_unbumped_geometry_edit_fails_instead_of_stale_output(self):
         with self.assertRaisesRegex(ValueError, 'parts/beta'):
             cad.select(self.specs, 'changed', prior=self.prior,
