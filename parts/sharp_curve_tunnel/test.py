@@ -1,4 +1,4 @@
-"""C02-V5: retain the physically promising C02-V2 turn guidance."""
+"""C02-V6: retain the physically promising C02-V2 turn guidance."""
 import unittest
 import cadquery as cq
 from brickcad.ports import mate, straight_ports
@@ -15,7 +15,7 @@ class SharpCurveTunnelTests(unittest.TestCase):
         cls.shape,cls.p=build_tunnel(cls.c)
 
     def test_height_and_top_studs(self):
-        self.assertEqual(PART_ID,"C02-V5")
+        self.assertEqual(PART_ID,"C02-V6")
         self.assertEqual((self.p.nx,self.p.ny),(2,2))
         self.assertAlmostEqual(self.p.height,2*DUPLO.height)
         self.assertTrue(self.shape.isValid())
