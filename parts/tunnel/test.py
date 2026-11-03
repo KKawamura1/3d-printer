@@ -1,8 +1,10 @@
 import unittest
+import tempfile
+from pathlib import Path
 import cadquery as cq
 from parts.tunnel.design_e31 import Tunnel, build_tunnel, ball_sweep
 from parts.straight_rail.design import Rail, build_rail
-from brickcad.verify import intersection, VOLUME_TOL
+from brickcad.verify import intersection, precise_volume, VOLUME_TOL
 
 
 class TunnelTests(unittest.TestCase):
@@ -35,6 +37,17 @@ class TunnelTests(unittest.TestCase):
             self.assertTrue(self.shape.isInside(cq.Vector(x+4.69,y,39.5)))
             self.assertFalse(self.shape.isInside(cq.Vector(x+4.71,y,39.5)))
             self.assertFalse(self.shape.isInside(cq.Vector(x,y,39.5)))
+
+    def test_step_roundtrip_precise_volume(self):
+        # PR59: the short-slot model is geometrically unchanged by STEP
+        # serialization, but ordinary Volume() exceeds 1e-4 mm^3 difference.
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'tunnel.step'
+            cq.exporters.export(self.shape, str(path))
+            restored = cq.importers.importStep(str(path)).val()
+        self.assertTrue(restored.isValid())
+        self.assertEqual(len(restored.Solids()), 1)
+        self.assertLess(abs(precise_volume(restored)-precise_volume(self.shape)), 1e-4)
 
     def test_pr58_short_slots_preserve_receiver_roof(self):
         # PR58: short-slot/no-rib B printed cleanly; the original long slots
