@@ -1,4 +1,4 @@
-# C02-V7 2×2×高さ2 急カーブトンネル（右90°）
+# C02-V8 2×2×高さ2 急カーブトンネル（右90°）
 
 ## 2026-11-01 実物結果
 
@@ -24,14 +24,14 @@ python -m parts.sharp_curve_tunnel.design --out build/sharp-curve-tunnel
 python -m unittest parts.sharp_curve_tunnel.test -v
 ```
 
-`cad-build.json` は現行 **C02-V7 / auto:true**（依存元 C01-V6）。Actionsの `cad-verified-stl` Artifact 内 `parts/sharp_curve_tunnel/C02-V7/brick.stl` が生成対象。生成成功とスライサーでの安全な造形を確認してから印刷する。STLはGitには格納しない。
+`cad-build.json` は現行 **C02-V8 / auto:true**（依存元 C01-V6）。Actionsの `cad-verified-stl` Artifact 内 `parts/sharp_curve_tunnel/C02-V8/brick.stl` が生成対象。生成成功とスライサーでの安全な造形を確認してから印刷する。STLはGitには格納しない。
 
 
 ## PR58 改善適用（C02-V6）
 
 E31-05下面のスリット終端中心をZ4.40→Z3.50mm（R0.65mmを維持し上端Z4.15mm）。PR58 B試験片では床面合格・嵌合感に違和感なし。補強リブは追加せず、走路・刻印の位置を維持。今回の複雑なパーツの実印刷・保持力・耐久は未検証。
 
-## Issue #60 横断診断（C02-V7）
+## Issue #60 横断診断（C02-V8）
 
 - 走路はバリ除去後にスムーズに転がった旧V2のR16連続案内溝を**維持**。V4/C02Rの大きな転回室には戻さない。
 - #58 B条件に従い、下面E31-05スリット終端Z3.50mm・R0.65mm、受け天井Z4.75mmまでの余裕0.60mm。補強リブなし。完全中央チューブのみE31加工。矩形2×2で下面チューブは切断されず、切断チューブの追加は不要。
