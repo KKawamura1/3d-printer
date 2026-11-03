@@ -1,4 +1,4 @@
-"""D01-V2: DUPLO 2x4, three-course enclosed straight downhill with side observation windows.
+"""D01-V3: DUPLO 2x4, three-course enclosed straight downhill with side observation windows.
 
 All dimensions mm. Z is up. The high/low floor ports differ by one 19.2 mm course.
 The E31-05 receiver is an unvalidated transfer from a calibration coupon.
@@ -19,7 +19,7 @@ from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "D01-V2"
+PART_ID = "D01-V3"
 
 
 @dataclass(frozen=True)
@@ -40,7 +40,7 @@ class Downhill:
 
     def __post_init__(self):
         if abs(self.length - 63.8) > 1e-6:
-            raise ValueError("D01-V2 length is fixed to the DUPLO 2x4 grid")
+            raise ValueError("D01-V3 length is fixed to the DUPLO 2x4 grid")
         if self.inside_radius >= (31.8/2 - 1.6):
             raise ValueError("Inner radius leaves insufficient side wall")
         if self.low_floor - self.receiver_depth < 1.6 - 1e-6:
@@ -143,9 +143,10 @@ def build_downhill(d=Downhill()):
                        p.stud_inner_radius,p.stud_height,
                        ROUNDED_EDGES.stud_lip_radius)
     shape = body.union(studs).val().clean()
-    shape = add_e31_05_receiver_features(shape,p.tubes(),p.tube_radius)
+    shape = add_e31_05_receiver_features(shape,p.tubes(),p.tube_radius,
+                                         receiver_depth=d.receiver_depth)
     if not shape.isValid() or len(shape.Solids()) != 1:
-        raise ValueError("D01-V2 must be a single valid connected BRep")
+        raise ValueError("D01-V3 must be a single valid connected BRep")
     # Engraving stays on the windowed side, below the running passage.
     shape = engrave(shape,PART_ID,x=0,y=-p.depth/2,z=9.)
     return shape,p
@@ -211,9 +212,9 @@ def export(out=Path("build/downhill-tunnel")):
         "sha256_stl":hashlib.sha256(stl.read_bytes()).hexdigest()
     }
     (out/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n")
-    print("D01-V2", "PASS" if report["passed"] else "FAIL",checks,flush=True)
+    print("D01-V3", "PASS" if report["passed"] else "FAIL",checks,flush=True)
     if not report["passed"]:
-        raise RuntimeError("D01-V2 geometry verification failed")
+        raise RuntimeError("D01-V3 geometry verification failed")
     return report
 
 

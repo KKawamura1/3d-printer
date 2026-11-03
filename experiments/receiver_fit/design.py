@@ -10,7 +10,7 @@ from experiments.full_height_fit.design import coupon, export_stl
 from brickcad.model import nominal_brick, receiver
 from parts.straight_rail.design import rounded_brick
 from brickcad.render import viewer
-from brickcad.verify import exact_bounds, fit_report
+from brickcad.verify import exact_bounds, fit_report, precise_volume
 
 
 def plan():
@@ -54,7 +54,7 @@ def generate(out):
         cq.exporters.export(s,str(folder/'brick.step'))
         restored=cq.importers.importStep(str(folder/'brick.step')).val()
         assert restored.isValid() and len(restored.Solids())==1
-        assert abs(restored.Volume()-s.Volume())<1e-4
+        assert abs(precise_volume(restored)-precise_volume(s))<1e-4
         # fit_report's wall-gap shorthand assumes an isotropic cavity.
         fit=fit_report(p,s)
         fit.pop('self_wall_gap_mm')
@@ -76,7 +76,7 @@ def generate(out):
     cq.exporters.export(plate,str(out/'plate.step'))
     restored=cq.importers.importStep(str(out/'plate.step')).val()
     assert restored.isValid() and len(restored.Solids())==3
-    assert abs(restored.Volume()-plate.Volume())<1e-4
+    assert abs(precise_volume(restored)-precise_volume(plate))<1e-4
     report=dict(passed=True,physical_fit_validated=False,slicing_validated=False,
                 variants=records,bounds_mm=exact_bounds(plate),plate_mesh=mesh,
                 step_roundtrip_passed=True,bed_size_mm=[180,180],
