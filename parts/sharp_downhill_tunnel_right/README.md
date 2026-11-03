@@ -17,3 +17,8 @@ python -m parts.sharp_downhill_tunnel_left.design --out build/sharp_downhill_tun
 ```
 
 PR #51 は独立生成コードを引き継いだため統合後にクローズする。PR #55 の旧一括プレートはこの版を含まない。
+
+
+## PR58転用（SD03-V9 / SD04-V8）
+
+スリット終端中心Z4.40→3.50mm、上端Z4.15mm（下面天井より0.60mm下）。リブなし。左右の共通形状と、反転後に標準刻印を刻む手順は維持。PR58の2×2試験片Bは印刷・嵌合感良好、当モデルは実印刷未検証。
