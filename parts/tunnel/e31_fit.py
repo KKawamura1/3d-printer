@@ -9,7 +9,7 @@ import cadquery as cq
 BEAD_MINOR_RADIUS = .20
 BEAD_Z = 2.25
 SLOT_WIDTH = 1.10
-SLOT_END_Z = 4.40
+SLOT_END_Z = 3.50  # PR58 B: clean floor without support ribs
 SLOT_END_RADIUS = .65
 
 
