@@ -13,3 +13,8 @@ GC01-V3はV2で検証した曲線レール形状を引き継ぎ、球のオー�
 
 生成: `python -m parts.gentle_curve_open.design --out build/gentle_curve_open`。
 Actionsの`cad-verified-stl`にSTL/STEP/検証レポートを保存。
+
+
+## GC01-V4（PR58床面改善）
+
+下面E31-05のスリット終端中心を4.40→3.50mm、上端を4.15mmへ短縮。補強リブなし。PR58 B試験片は床面合格・嵌合感に違和感なし。GC01-V4のスライス・印刷・保持力は未検証。
