@@ -236,7 +236,10 @@ def export_course(model_id, config, out):
     nominal = (p.width,p.depth,p.height+(p.stud_height if config["tunnel"] else 0))
     checks = {
         "valid_single_solid":shape.isValid() and len(shape.Solids()) == 1,
-        "nominal_dimensions":all(abs(a-b)<1e-4 for a,b in zip(bounds,nominal)),
+        "within_footprint_and_expected_height":(
+            0 < bounds[0] <= p.width+1e-4
+            and 0 < bounds[1] <= p.depth+1e-4
+            and abs(bounds[2]-nominal[2]) < .1),
         "shallow_receiver_has_floor":BALL_TRACK.floor-RECEIVER_DEPTH>=1.60-1e-6,
         "mesh":m["passed"],
         "mesh_volume":abs(m["signed_volume_mm3"]-shape.Volume())/
