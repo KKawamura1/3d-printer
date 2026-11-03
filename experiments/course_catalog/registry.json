@@ -33,11 +33,21 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 64,
-        "sha": "fee658386d8ce3f94d1b3476ba19673d0d3a4d00",
-        "target": "parts/gentle_curve_tunnel",
-        "cad_version": "E01-V3"
+        "kind": "configured",
+        "family": "horizontal_r48_tunnel",
+        "recipe": {
+          "direction": "right",
+          "radius_mm": 48,
+          "ceiling_mm": 34.8,
+          "lip_mm": 1,
+          "transition_mm": 4
+        },
+        "reference": {
+          "pr": 64,
+          "sha": "fee658386d8ce3f94d1b3476ba19673d0d3a4d00",
+          "target": "parts/gentle_curve_tunnel",
+          "cad_version": "E01-V3"
+        }
       }
     },
     {
@@ -312,11 +322,21 @@
       ],
       "reversible_unverified": false,
       "source": {
-        "kind": "pr",
-        "pr": 64,
-        "sha": "fee658386d8ce3f94d1b3476ba19673d0d3a4d00",
-        "target": "parts/gentle_curve_tunnel_left",
-        "cad_version": "E01L-V1"
+        "kind": "configured",
+        "family": "horizontal_r48_tunnel",
+        "recipe": {
+          "direction": "left",
+          "radius_mm": 48,
+          "ceiling_mm": 34.8,
+          "lip_mm": 1,
+          "transition_mm": 4
+        },
+        "reference": {
+          "pr": 64,
+          "sha": "fee658386d8ce3f94d1b3476ba19673d0d3a4d00",
+          "target": "parts/gentle_curve_tunnel_left",
+          "cad_version": "E01L-V1"
+        }
       }
     },
     {

@@ -43,10 +43,16 @@ def load_registry(path=REGISTRY):
         if kind not in ("local", "pr", "legacy", "configured"):
             raise ValueError("Missing CAD source kind")
         if kind == "configured":
-            if source.get("family") not in ("loft","sharp_r16","drop") or not isinstance(source.get("recipe"), dict):
+            if source.get("family") not in ("loft","sharp_r16","drop","horizontal_r48_tunnel") or not isinstance(source.get("recipe"), dict):
                 raise ValueError("Configured model needs a real geometry recipe")
             # Cheap catalogue checks run without CadQuery installed.
             recipe = source["recipe"]
+            if source["family"] == "horizontal_r48_tunnel":
+                t=recipe
+                if (set(t)!={"direction","radius_mm","ceiling_mm","lip_mm","transition_mm"} or
+                        t["direction"] not in ("right","left") or t["radius_mm"]!=48 or
+                        t["ceiling_mm"]!=34.8 or t["lip_mm"]!=1 or t["transition_mm"]!=4):
+                    raise ValueError("Unsupported R48 roofed course recipe")
             if source["family"] == "sharp_r16":
                 if recipe not in ({"enclosure":"open"},{"enclosure":"tunnel"}):
                     raise ValueError("Unsupported R16 recipe")
@@ -182,6 +188,9 @@ def build(models, output, strict_head=False):
                     dest = ROOT / "build/course-catalog-configured" / model["id"]
                     if source["family"] == "loft":
                         from brickcad.course_loft_family import export_course
+                        export_course(model["id"],source["recipe"],dest)
+                    elif source["family"] == "horizontal_r48_tunnel":
+                        from brickcad.course_r48_tunnel import export_course
                         export_course(model["id"],source["recipe"],dest)
                     else:
                         from brickcad.course_configured_special import export_course
