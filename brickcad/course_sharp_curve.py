@@ -9,15 +9,15 @@ from pathlib import Path
 import hashlib
 import json
 import math
+import struct
 import cadquery as cq
-from brickcad.course_artifacts import export_geometry
 
 from brickcad.connections import make_studs
 from brickcad.marking import engrave
 from brickcad.model import brick_from_fit, receiver
 from brickcad.ports import Port
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
-from brickcad.verify import exact_bounds, intersection, VOLUME_TOL
+from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
 from parts.tunnel.e31_fit import (add_e31_05_receiver_features, SLOT_END_Z, SLOT_END_RADIUS)
 
 
@@ -175,6 +175,18 @@ def checks(shape,p,path,kind):
     return c,nominal,oversize,bounds
 
 
+def _normalize_stl(stl):
+    raw=stl.read_bytes()
+    if len(raw)<84 or len(raw)!=84+50*struct.unpack_from("<I",raw,80)[0]:
+        raise ValueError("Malformed binary STL")
+    kept=[]
+    for i in range(struct.unpack_from("<I",raw,80)[0]):
+        tri=raw[84+50*i:134+50*i]
+        v=struct.unpack("<12fH",tri)[3:12]
+        if len({tuple(v[j:j+3]) for j in (0,3,6)})==3:
+            kept.append(tri)
+    if len(kept)<struct.unpack_from("<I",raw,80)[0]:
+        stl.write_bytes(raw[:80]+struct.pack("<I",len(kept))+b"".join(kept))
 
 
 def export_course(spec,out):
@@ -183,7 +195,11 @@ def export_course(spec,out):
     shape,p,path=build_course(spec)
     kind=spec["enclosure"]["kind"]
     valid,nominal,oversize,bounds=checks(shape,p,path,kind)
-    stl,mesh=export_geometry(shape,out,tolerance=.01,angular_tolerance=.1)
+    stl=out/"brick.stl"
+    cq.exporters.export(shape,str(stl),tolerance=.01,angularTolerance=.1)
+    _normalize_stl(stl)
+    cq.exporters.export(shape,str(out/"brick.step"))
+    mesh=mesh_check(stl)
     valid["watertight_mesh"]=mesh["passed"]
     valid["mesh_volume"]=abs(
         mesh["signed_volume_mm3"]-shape.Volume())/shape.Volume()<.001

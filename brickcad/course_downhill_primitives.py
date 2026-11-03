@@ -6,7 +6,6 @@ No historical part generator is imported.
 from dataclasses import dataclass,replace
 import math
 import cadquery as cq
-from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_expanded
 from brickcad.standards import BALL_TRACK,DUPLO
 from brickcad.ports import Port
 from brickcad.verify import intersection
@@ -43,7 +42,7 @@ class Downhill:
 
 def floor_z(x,d=Downhill()):
     t=max(0.,min(1.,(x+d.length/2)/d.length))
-    return d.low_floor+d.drop*(smoothstep_fall(t))
+    return d.low_floor+d.drop*(1-3*t*t+2*t*t*t)
 
 
 def floor_slope(x,d=Downhill()):
@@ -54,7 +53,7 @@ def floor_slope(x,d=Downhill()):
 def _roof_blend(x,d):
     distance=min(abs(x+d.length/2),abs(x-d.length/2))
     u=max(0.,min(1.,(distance-d.circular_lip)/d.roof_transition))
-    return min(.995,smoothstep_rise_expanded(u))
+    return min(.995,3*u*u-2*u*u*u)
 
 
 def _passage_wire(x,blend,d):

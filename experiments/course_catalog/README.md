@@ -49,9 +49,21 @@ COURSE_PARITY_MODELS=GC01-V5 python -m unittest tests.test_course_catalog_parity
 `brickcad/course_geometry.py` に水平/下り坂のsmoothstep補間と
 円形口→屋根の遷移補間を共通化した。数値演算順序は従来と一致させるため、
 expanded/factoredを明示的に分けている。
-`brickcad/course_artifacts.py` は全CAD生成ファミリーに共通する
+`brickcad/course_artifacts.py` はカタログの主要出力ファミリーに共通する
 STL/STEP出力、float32退化三角形除去とメッシュ検証を担う。
 **各ファミリーのメッシュ精度（特に下りR48の .02/.15）、
 形状構築、刻印座標、E31支持の切断仕様、レシピおよび出力レポートは変更しない。**
 `tests/test_course_shared_primitives.py` で演算値、メッシュ正規化と出力を回帰テストする。
 フル20個のBRep一致は従来どおり全件パリティCIで別途確認する。
+
+### 旧バージョン固定実験の境界
+
+`experiments/course_curve_open`/`course_curve_tunnel`、
+`course_drop_east`/`course_drop_south`、
+`course_windows_w01` は旧 `cad-build.json` の版を固定している。
+これらが直接importする `course_sharp_curve.py`、`course_steep_drop.py`、
+`course_downhill.py`、`course_downhill_primitives.py` のコードは
+履歴再現性のため変更しない。新版カタログの R16/急落下は
+`course_configured_special.py` で出力を共通化する。
+D01坂トンネルの生成・出力は引き続き旧実験と共通の
+`course_downhill.py` を用い、形状変更なしの安全な共通化を優先する。
