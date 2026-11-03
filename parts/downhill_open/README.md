@@ -11,3 +11,8 @@ Issue #37: downhill_open。独立した刻印・版付きパーツ。
 
 生成: `python -m parts.downhill_open.design --out build/downhill_open`。
 Actionsの`cad-verified-stl`にSTL/STEP/検証レポートを保存。
+
+
+## D02-V3（PR58床面改善）
+
+下面E31-05のスリット終端中心を4.40→3.50mm、上端を4.15mmへ短縮。補強リブなし。PR58 B試験片は床面合格・嵌合感に違和感なし。D02-V3のスライス・印刷・保持力は未検証。
