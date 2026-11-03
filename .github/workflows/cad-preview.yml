@@ -1,8 +1,6 @@
 name: CAD preview and print artifacts
 on:
-  # Re-plan on every PR update, including test-only fixes and earlier missing STL.
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+  # Keep regular builds version-driven. Missing artifacts are repaired on demand.
   push:
     paths:
       - 'parts/**/*.py'
@@ -45,7 +43,7 @@ permissions:
   actions: read
   pull-requests: read
 concurrency:
-  group: cad-artifacts-${{ github.event.pull_request.number || inputs.repair_pr || github.ref }}
+  group: cad-artifacts-${{ inputs.repair_pr || github.ref }}
   cancel-in-progress: true
 jobs:
   generate:
@@ -80,7 +78,7 @@ jobs:
           echo "Repairing PR #$REPAIR_PR at $(jq -r .head.sha "$pr")"
       - uses: actions/checkout@v4
         with:
-          ref: ${{ steps.recovery.outputs.head_sha || github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ steps.recovery.outputs.head_sha || github.sha }}
           fetch-depth: 0
       - name: Check incremental planner
         run: |
@@ -98,23 +96,25 @@ jobs:
       - name: Plan changed models
         id: plan
         env:
-          BEFORE_SHA: ${{ steps.recovery.outputs.base_sha || github.event.pull_request.base.sha || github.event.before }}
+          BEFORE_SHA: ${{ steps.recovery.outputs.base_sha || github.event.before }}
           EVENT_NAME: ${{ github.event_name }}
           INPUT_TARGETS: ${{ inputs.targets }}
           RETRY_BASE: ${{ steps.retry.outputs.retry_base }}
           REPAIR_PR: ${{ inputs.repair_pr }}
         run: |
           set -euo pipefail
-          if [ "$EVENT_NAME" = pull_request ] || [ -n "$REPAIR_PR" ]; then
-            # The PR base may have advanced; use the actual common ancestor.
-            if [ "$EVENT_NAME" = workflow_dispatch ] && [ "$INPUT_TARGETS" != changed ]; then
-              python scripts/cad_versions.py --mode plan --targets "$INPUT_TARGETS"
-            else
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+            if [ "$INPUT_TARGETS" = changed ]; then
+              if [ -z "$REPAIR_PR" ]; then
+                echo "::error::Specify repair_pr or explicit targets for manual STL regeneration."
+                exit 1
+              fi
+              # A PR's base may have advanced; compare from the merge-base.
               base="$(git merge-base HEAD "$BEFORE_SHA")"
               python scripts/cad_versions.py --mode plan --base "$base"
+            else
+              python scripts/cad_versions.py --mode plan --targets "$INPUT_TARGETS"
             fi
-          elif [ "$EVENT_NAME" = workflow_dispatch ]; then
-            python scripts/cad_versions.py --mode plan --targets "$INPUT_TARGETS"
           else
             if [ -n "$RETRY_BASE" ]; then
               python scripts/cad_versions.py --mode plan --base "$BEFORE_SHA" --retry-base "$RETRY_BASE"
@@ -128,8 +128,8 @@ jobs:
           echo "::error::No STL targets selected. Set targets to a part path (including auto:false models) or all."
           exit 1
       - name: Explain when no new STL is expected
-        if: github.event_name != 'workflow_dispatch' && steps.plan.outputs.has_models != 'true'
-        run: echo "::notice::No new or bumped CAD revisions in this diff; no STL artifact is expected."
+        if: github.event_name == 'push' && steps.plan.outputs.has_models != 'true'
+        run: echo "::notice::No new or bumped CAD revisions in this push; no STL artifact is expected."
       - uses: actions/setup-python@v5
         if: steps.plan.outputs.has_models == 'true'
         with:
