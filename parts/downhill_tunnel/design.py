@@ -143,7 +143,8 @@ def build_downhill(d=Downhill()):
                        p.stud_inner_radius,p.stud_height,
                        ROUNDED_EDGES.stud_lip_radius)
     shape = body.union(studs).val().clean()
-    shape = add_e31_05_receiver_features(shape,p.tubes(),p.tube_radius)
+    shape = add_e31_05_receiver_features(shape,p.tubes(),p.tube_radius,
+                                         receiver_depth=d.receiver_depth)
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError("D01-V3 must be a single valid connected BRep")
     # Engraving stays on the windowed side, below the running passage.
