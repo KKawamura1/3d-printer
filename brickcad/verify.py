@@ -6,9 +6,25 @@ import struct
 import cadquery as cq
 from OCP.Bnd import Bnd_Box
 from OCP.BRepBndLib import BRepBndLib
+from OCP.BRepGProp import BRepGProp
+from OCP.GProp import GProp_GProps
 from .model import Brick, build, nominal_brick
 
 VOLUME_TOL = 1e-5  # mm^3; numerical classification only, NOT a print tolerance
+
+
+def precise_volume(shape, relative_tolerance=1e-7):
+    """Compute CAD volume with adaptive integration for accurate STEP comparisons.
+
+    Standard BRepGProp volume integration can differ slightly after STEP
+    serialization, even for geometrically identical valid solids. Using
+    adaptive quadrature avoids relaxing the existing 1e-4 mm^3 threshold.
+    """
+    props = GProp_GProps()
+    BRepGProp.VolumeProperties_s(
+        shape.wrapped, props, relative_tolerance, True, False
+    )
+    return props.Mass()
 
 
 def intersection(a, b):

@@ -7,7 +7,7 @@ import json
 import cadquery as cq
 from brickcad.render import viewer
 from brickcad.provenance import design_manifest
-from brickcad.verify import intersection, exact_bounds, VOLUME_TOL
+from brickcad.verify import intersection, exact_bounds, VOLUME_TOL, precise_volume
 from parts.tunnel.design import build_tunnel, Tunnel, ball_sweep
 from parts.sloped_curve.design import build_curve, curve_profile, RAIL, RADIUS, RETAINED_TUBES, curved_footprint, receiver_audit, ball_centre, BALL
 from parts.play_set.design import export_stl
@@ -113,7 +113,7 @@ def export(out=Path('build/pr20-comparison'), *, only=None):
         cq.exporters.export(s,str(folder/'brick.step'))
         mesh=export_stl(s,folder/'brick.stl')
         restored=cq.importers.importStep(str(folder/'brick.step')).val()
-        assert restored.isValid() and len(restored.Solids())==1 and abs(restored.Volume()-s.Volume())/s.Volume()<1e-7
+        assert restored.isValid() and len(restored.Solids())==1 and abs(precise_volume(restored)-precise_volume(s))/precise_volume(s)<1e-7
         r=dict(passed=True,id=label,geometry=dict(bounds_mm=exact_bounds(s),parameters=asdict(p)),
             fit=dict(insertion=[],poses=[]),mesh=mesh,details=reports[label],
             design=design_manifest(p),source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),

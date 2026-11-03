@@ -8,7 +8,7 @@ from brickcad.model import brick_from_fit, build as build_brick
 from brickcad.provenance import design_manifest
 from brickcad.render import viewer
 from brickcad.standards import ROUNDED_EDGES
-from brickcad.verify import exact_bounds, fit_report
+from brickcad.verify import exact_bounds, fit_report, precise_volume
 from experiments.full_height_fit.design import export_stl
 
 
@@ -62,7 +62,7 @@ def generate(out):
         cq.exporters.export(shape, str(folder/'brick.step'))
         restored = cq.importers.importStep(str(folder/'brick.step')).val()
         assert restored.isValid() and len(restored.Solids()) == 1
-        assert abs(restored.Volume()-shape.Volume()) < 1e-4
+        assert abs(precise_volume(restored)-precise_volume(shape)) < 1e-4
         manifest = design_manifest(p, finish=ROUNDED_EDGES)
         source = Path(__file__)
         manifest['source_files']['experiments/tube_fit_e27/design.py'] = hashlib.sha256(source.read_bytes()).hexdigest()
