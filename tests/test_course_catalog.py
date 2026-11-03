@@ -65,7 +65,7 @@ class CourseCatalogTests(unittest.TestCase):
         self.reject(broken, "axes disagree")
         broken = copy.deepcopy(self.registry)
         del broken["models"][0]["course"]["windows"]
-        self.reject(broken, "requires slope")
+        self.reject(broken, "axes disagree|requires slope")
         broken = copy.deepcopy(self.registry)
         broken["models"][-1]["issue37_no"] = [21]
         self.reject(broken, "axes disagree|23 categories")

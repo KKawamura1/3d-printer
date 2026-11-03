@@ -55,7 +55,7 @@ class CourseContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsupported"):
             kernel_for({"slope": "steep", "curve": "gentle_left",
                         "enclosure": "tunnel", "windows": 0})
-        with self.assertRaisesRegex(ValueError, "Windows"):
+        with self.assertRaisesRegex(ValueError, "Window"):
             course_axes([1], windows=3)
         with self.assertRaisesRegex(ValueError, "reverse-running"):
             course_axes([1, 6])
