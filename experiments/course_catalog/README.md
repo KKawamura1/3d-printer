@@ -18,11 +18,11 @@
 ## 形状ファミリーと共通部品
 
 - **断面Loft（8モデル）:** 水平／19.2mm下り、直進／R16／R48、開放／トンネル、左右反転、後刻印。入口端と内部断面の変化、切断支持を共通化（`brickcad/course_loft_family.py`）。
-- **水平R16急カーブ（2モデル）:** R16 quarter-torusの走路、開放・トンネルと局所屋根（`brickcad/course_sharp_curve.py`）。
-- **急落下（3モデル）:** 共通シャフト、約14°の出口坂、東／南／北（南の鏡映）と正像刻印（`brickcad/course_steep_drop.py`）。
+- **水平R16急カーブ（2モデル）:** R16 quarter-torusの走路、開放・トンネルと局所屋根（`brickcad/course_prod_sharp_curve.py`）。
+- **急落下（3モデル）:** 共通シャフト、約14°の出口坂、東／南／北（南の鏡映）と正像刻印（`brickcad/course_prod_steep_drop.py`）。
 - **水平R48トンネル（2モデル）:** 円形口→屋根遷移のカーブトンネル、無刻印形状の左右鏡映（`brickcad/course_r48_tunnel.py`）。
 - **緩坂R48トンネル（2モデル）:** 高さ変化・高天井・切断上面スタッド・完全チューブと切断下面支持の区別（`brickcad/course_r48_sloped_tunnel.py`）。
-- **直線坂トンネル（1モデル）:** smoothstep床・可変窓・真円口・屋根・E31（`brickcad/course_downhill.py` と `course_downhill_primitives.py`）。
+- **直線坂トンネル（1モデル）:** smoothstep床・可変窓・真円口・屋根・E31（`brickcad/course_prod_downhill.py` と `course_downhill_primitives.py`）。
 - **水平直進トンネル（1モデル）:** 2×2×高さ2、円形口→屋根遷移（`brickcad/course_straight_tunnel.py`）。
 - **水平直進開放レール（1モデル）:** 同じ共通嵌合・刻印契約から `R01-V1` を生成する（`brickcad/course_straight_rail.py`）。
 
@@ -78,8 +78,8 @@ STL/STEP出力、float32退化三角形除去とメッシュ検証を担う。
 `course_downhill.py`、`course_downhill_primitives.py` のコードは
 履歴再現性のため変更しない。新版カタログの R16/急落下は
 `course_configured_special.py` で出力を共通化する。
-D01坂トンネルの生成・出力は引き続き旧実験と共通の
-`course_downhill.py` を用い、形状変更なしの安全な共通化を優先する。
+D01坂トンネルの本番生成は `course_prod_downhill.py` を利用し、
+旧実験の `course_downhill.py` は不変に保つ。
 
 ## 不変の旧実験との境界
 
@@ -90,3 +90,7 @@ D01坂トンネルの生成・出力は引き続き旧実験と共通の
 `scripts/course_catalog.py build` は各形状の実生成を `audited_production_course(ID)` で囲み、共通 `course_fit`、浅いE31加工、IDに一致する**最終刻印をちょうど1回**実行したかを確認する。単に生成器が関数をimportした、レポートがPASSを自己申告した、という状態では合格しない。欠落、別ID、仮刻印、二重刻印は生成を失敗させる。通過結果はカタログ `manifest.json` に `contract_evidence` として記録される。
 
 `SC02-V12/SC02L-V6` の下地 `open_curve()` にあった固定の中間刻印を削除し、鏡映後の完成形状に1回だけ刻印する方式へ修正。これによって本番生成の契約が統一される。原典BRepとの差分検査で造形形状が不変かを確認する。
+
+## 全20形状の生成時チェック
+
+`[course-all]` 付きコミットでカタログCIが20形状を再生成する。各モデルの`contract_evidence`がE31-05・受け深さ・ID一致の単一最終刻印を確認できなければ失敗する。BRep一致CIは別の比較（原典SHA固定）であり、生成成功と混同しない。旧実験のバージョン固定は変更しない。
