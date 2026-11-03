@@ -1,5 +1,5 @@
 {
-  "version": "T01-V6",
+  "version": "T01-V6-R1",
   "auto": true,
   "command": [
     "python",
@@ -14,5 +14,5 @@
     "brick.stl"
   ],
   "timeout": 1200,
-  "description": "Issue #39 config-driven legacy CAD geometry replay (not new physical verification)"
+  "description": "Issue #39 config-driven legacy CAD geometry replay (not new physical verification) Replay artifact revision R1: adapter split for isolated source fingerprints; underlying physical part remains T01-V6."
 }
