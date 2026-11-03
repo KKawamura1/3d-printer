@@ -17,7 +17,7 @@ class SharpCurveTunnelTests(unittest.TestCase):
         cls.shape,cls.p=build_tunnel(cls.c)
 
     def test_height_and_top_studs(self):
-        self.assertEqual(PART_ID,"C02-V7")
+        self.assertEqual(PART_ID,"C02-V8")
         self.assertEqual(SOURCE_CURVE_ID,"C01-V6")
         self.assertEqual((self.p.nx,self.p.ny),(2,2))
         self.assertAlmostEqual(self.p.height,2*DUPLO.height)
