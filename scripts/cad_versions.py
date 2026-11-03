@@ -263,6 +263,12 @@ def select(specs, target, *, changed=(), prior=None, root=None, prior_specs=None
     changed = set(changed)
     selected, errors = [], []
     for name, spec in sorted(specs.items()):
+        # Experiments are opt-in to incremental CI: shared CAD changes must not
+        # force historical experiment revisions to be revalidated or rebuilt.
+        # Direct changes to an experiment remain version-controlled below.
+        if name.startswith('experiments/') and not any(
+                path.startswith(name + '/') for path in changed):
+            continue
         old = prior.get(name)
         bumped = old != spec['version']
         # A geometry source edit must be accompanied by a new revision.
