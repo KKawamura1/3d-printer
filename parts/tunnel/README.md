@@ -20,3 +20,8 @@ E31-05試験片の凹高さは通常ブロック、今回のトンネルは4.75m
 
 生成：`python -m parts.tunnel.design_e31 --out build/tunnel`
 テスト：`python -m unittest parts.tunnel.test -v`
+
+
+## PR #58 印刷フィードバック反映（T01-V5）
+
+E31-05下面スリット終端中心を Z4.40→Z3.50mm に短縮（上端Z4.15mm、下面空洞天井Z4.75mmから0.60mm下）。PR58の2×2試験片Bは床面合格・嵌合感に違和感なし。補強リブは追加しない。T01-V5実物の支持なしスライス・印刷・耐久は未検証。
