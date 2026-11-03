@@ -2,11 +2,11 @@
 from pathlib import Path
 import hashlib
 import json
-import struct
 import cadquery as cq
+from brickcad.course_artifacts import export_geometry
 
 from brickcad.marking import engrave
-from brickcad.verify import mesh_check, exact_bounds
+from brickcad.verify import exact_bounds
 from brickcad.course_sharp_curve import build_course as build_sharp, checks as sharp_checks
 from brickcad.course_steep_drop import build_course as build_drop, geometry_checks as drop_checks
 
@@ -41,32 +41,13 @@ def build_course(model_id, family, recipe, *, mark=True):
     return shape,p,validations
 
 
-def strip_degenerate_triangles(stl):
-    raw=stl.read_bytes()
-    if len(raw)<84:
-        raise ValueError("Malformed STL")
-    n=struct.unpack_from("<I",raw,80)[0]
-    if n==0 or len(raw)!=84+50*n:
-        raise ValueError("Invalid STL triangles")
-    retained=[]
-    for i in range(n):
-        tri=raw[84+50*i:134+50*i]
-        vs=struct.unpack("<12fH",tri)[3:12]
-        if len({tuple(vs[j:j+3]) for j in (0,3,6)})==3:
-            retained.append(tri)
-    if len(retained)!=n:
-        stl.write_bytes(raw[:80]+struct.pack("<I",len(retained))+b"".join(retained))
 
 
 def export_course(model_id,family,recipe,out):
     out=Path(out)
     out.mkdir(parents=True,exist_ok=True)
     shape,p,validations=build_course(model_id,family,recipe)
-    stl=out/"brick.stl"
-    cq.exporters.export(shape,str(stl),tolerance=.01,angularTolerance=.1)
-    strip_degenerate_triangles(stl)
-    cq.exporters.export(shape,str(out/"brick.step"))
-    mesh=mesh_check(stl)
+    stl,mesh=export_geometry(shape,out,tolerance=.01,angular_tolerance=.1)
     checks={**validations,
             "valid_single_solid":shape.isValid() and len(shape.Solids())==1,
             "watertight_mesh":mesh["passed"]}

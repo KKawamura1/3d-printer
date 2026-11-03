@@ -8,17 +8,17 @@ from dataclasses import asdict, dataclass, replace
 import hashlib
 import json
 import math
-import struct
 from pathlib import Path
 
 import cadquery as cq
+from brickcad.course_artifacts import export_geometry
 
 from brickcad.connections import make_studs
 from brickcad.marking import engrave
 from brickcad.model import brick_from_fit, receiver
 from brickcad.ports import Port
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
-from brickcad.verify import VOLUME_TOL, exact_bounds, intersection, mesh_check
+from brickcad.verify import VOLUME_TOL, exact_bounds, intersection
 from parts.tunnel.e31_fit import (add_e31_05_receiver_features, SLOT_END_Z, SLOT_END_RADIUS)
 
 
@@ -237,17 +237,6 @@ def geometry_checks(shape,p,d,direction):
     return checks,samples,sweeps,bounds
 
 
-def _strip_collapsed_facets(stl):
-    raw=stl.read_bytes()
-    if len(raw)<84 or len(raw)!=84+struct.unpack_from("<I",raw,80)[0]*50:
-        raise ValueError("Invalid binary STL")
-    retained=[]
-    for i in range(struct.unpack_from("<I",raw,80)[0]):
-        tri=raw[84+50*i:134+50*i]
-        v=struct.unpack("<12fH",tri)[3:12]
-        if len({tuple(v[j:j+3]) for j in (0,3,6)})==3:
-            retained.append(tri)
-    stl.write_bytes(raw[:80]+struct.pack("<I",len(retained))+b"".join(retained))
 
 
 def export_course(spec,out):
@@ -256,11 +245,7 @@ def export_course(spec,out):
     shape,p,d=build_course(spec)
     direction=spec["geometry"]["exit"]
     checks,samples,sweeps,bounds=geometry_checks(shape,p,d,direction)
-    stl=out/"brick.stl"
-    cq.exporters.export(shape,str(stl),tolerance=.03,angularTolerance=.2)
-    _strip_collapsed_facets(stl)
-    cq.exporters.export(shape,str(out/"brick.step"))
-    mesh=mesh_check(stl)
+    stl,mesh=export_geometry(shape,out,tolerance=.03,angular_tolerance=.2)
     checks["mesh_watertight"]=mesh["passed"]
     report={
         "part_id":spec["id"]+"-"+spec["version"],

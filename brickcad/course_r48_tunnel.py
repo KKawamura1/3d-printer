@@ -8,14 +8,15 @@ from pathlib import Path
 import hashlib
 import json
 import math
-import struct
 import cadquery as cq
+from brickcad.course_artifacts import export_geometry
+from brickcad.course_geometry import smoothstep_rise_factored
 
 from brickcad.model import brick_from_fit,receiver
 from brickcad.connections import make_studs
 from brickcad.marking import engrave
 from brickcad.standards import BALL_TRACK,ROUNDED_EDGES
-from brickcad.verify import mesh_check,exact_bounds
+from brickcad.verify import exact_bounds
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
 TURN_CENTRE=(-32.,32.,0.)
@@ -61,7 +62,7 @@ class RoofSettings:
 
 def blend(distance,p):
     u=min(1.,max(0.,(distance-p.lip_mm)/p.transition_mm))
-    return u*u*(3-2*u)
+    return smoothstep_rise_factored(u)
 
 
 def section(angle,progress,p):
@@ -133,19 +134,6 @@ def build_course(model_id,recipe,*,marked=True):
     return shape,fit
 
 
-def _strip(stl):
-    raw=stl.read_bytes()
-    n=struct.unpack_from("<I",raw,80)[0]
-    if n<1 or len(raw)!=84+50*n:
-        raise ValueError("Invalid STL")
-    kept=[]
-    for i in range(n):
-        facet=raw[84+50*i:134+50*i]
-        vertices=struct.unpack("<12fH",facet)[3:12]
-        if len({tuple(vertices[j:j+3]) for j in (0,3,6)})==3:
-            kept.append(facet)
-    if len(kept)!=n:
-        stl.write_bytes(raw[:80]+struct.pack("<I",len(kept))+b"".join(kept))
 
 
 def export_course(model_id,recipe,out):
@@ -153,11 +141,7 @@ def export_course(model_id,recipe,out):
     shape,fit=build_course(model_id,recipe)
     if not shape.isValid() or len(shape.Solids())!=1:
         raise ValueError("Invalid configured E31 R48 BRep")
-    stl=out/"brick.stl"
-    cq.exporters.export(shape,str(stl),tolerance=.01,angularTolerance=.1)
-    _strip(stl)
-    cq.exporters.export(shape,str(out/"brick.step"))
-    m=mesh_check(stl)
+    stl,m=export_geometry(shape,out,tolerance=.01,angular_tolerance=.1)
     checks={"valid_single_solid":shape.isValid() and len(shape.Solids())==1,
             "watertight":m["passed"],
             "mesh_volume":abs(m["signed_volume_mm3"]-shape.Volume())/shape.Volume()<.001}

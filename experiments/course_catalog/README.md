@@ -43,3 +43,15 @@ COURSE_PARITY_MODELS=GC01-V5 python -m unittest tests.test_course_catalog_parity
 以前の `scripts/course_catalog.py` は原典PRの`cad-build.json`を固定SHAで呼び直すだけだったため、当初の共通CADの目的を満たしていなかった。現行の全20モデルは `source.kind=configured` に変更し、**本番では元パーツの生成コードを呼ばない**。参照元のSHAはテストの基準にのみ残す。
 
 #58/#59/#60の床・刻印・左右反転ルールを維持。ただし旧いRAIL-LEGACYにはこれらを自動適用しない。設計上不採用の急落下×緩カーブ2方向（#52/#53）を含まない。
+
+## ファミリー横断の共通化（形状不変）
+
+`brickcad/course_geometry.py` に水平/下り坂のsmoothstep補間と
+円形口→屋根の遷移補間を共通化した。数値演算順序は従来と一致させるため、
+expanded/factoredを明示的に分けている。
+`brickcad/course_artifacts.py` は全CAD生成ファミリーに共通する
+STL/STEP出力、float32退化三角形除去とメッシュ検証を担う。
+**各ファミリーのメッシュ精度（特に下りR48の .02/.15）、
+形状構築、刻印座標、E31支持の切断仕様、レシピおよび出力レポートは変更しない。**
+`tests/test_course_shared_primitives.py` で演算値、メッシュ正規化と出力を回帰テストする。
+フル20個のBRep一致は従来どおり全件パリティCIで別途確認する。

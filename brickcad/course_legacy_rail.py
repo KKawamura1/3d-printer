@@ -8,12 +8,12 @@ from pathlib import Path
 import hashlib
 import json
 import math
-import struct
 import cadquery as cq
+from brickcad.course_artifacts import export_geometry
 
 from brickcad.model import brick_from_fit,receiver
 from brickcad.standards import BALL_TRACK
-from brickcad.verify import mesh_check,exact_bounds
+from brickcad.verify import exact_bounds
 
 
 @dataclass(frozen=True)
@@ -67,29 +67,12 @@ def build_course(recipe):
     return shape,p
 
 
-def _strip(stl):
-    raw=stl.read_bytes()
-    n=struct.unpack_from("<I",raw,80)[0]
-    if n<1 or len(raw)!=84+50*n:
-        raise ValueError("Malformed STL")
-    keep=[]
-    for i in range(n):
-        tri=raw[84+50*i:134+50*i]
-        points=struct.unpack("<12fH",tri)[3:12]
-        if len({tuple(points[j:j+3]) for j in (0,3,6)})==3:
-            keep.append(tri)
-    if len(keep)!=n:
-        stl.write_bytes(raw[:80]+struct.pack("<I",len(keep))+b"".join(keep))
 
 
 def export_course(model_id,recipe,out):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     shape,p=build_course(recipe)
-    stl=out/"brick.stl"
-    cq.exporters.export(shape,str(stl),tolerance=.01,angularTolerance=.1)
-    _strip(stl)
-    cq.exporters.export(shape,str(out/"brick.step"))
-    m=mesh_check(stl)
+    stl,m=export_geometry(shape,out,tolerance=.01,angular_tolerance=.1)
     checks={"valid_single_solid":shape.isValid() and len(shape.Solids())==1,
             "watertight":m["passed"],
             "mesh_volume":abs(m["signed_volume_mm3"]-shape.Volume())/

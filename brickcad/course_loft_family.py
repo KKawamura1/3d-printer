@@ -9,14 +9,15 @@ from pathlib import Path
 import hashlib
 import json
 import math
-import struct
 
 import cadquery as cq
+from brickcad.course_artifacts import export_geometry
+from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_expanded
 from brickcad.connections import make_studs
 from brickcad.marking import engrave, engrave_west
 from brickcad.model import brick_from_fit, receiver
 from brickcad.standards import BALL_TRACK
-from brickcad.verify import exact_bounds, mesh_check
+from brickcad.verify import exact_bounds
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
 RECEIVER_DEPTH = 4.75
@@ -88,7 +89,7 @@ def xy(s, config):
 
 def height(s, config):
     t = max(0., min(1., s/config.length))
-    return BALL_TRACK.floor+config.drop_mm*(1-3*t*t+2*t*t*t)
+    return BALL_TRACK.floor+config.drop_mm*(smoothstep_fall(t))
 
 
 def section_plane(s, config):
@@ -108,7 +109,7 @@ def wire(s, role, config):
     # retain their original linear 5mm radius blend.
     if config.tunnel:
         u = max(0.,min(1.,(distance-1.)/4.))
-        blend = min(.995,3*u*u-2*u*u*u)
+        blend = min(.995,smoothstep_rise_expanded(u))
     else:
         blend = min(1.,distance/5.)
     radius = BALL_TRACK.radius+(14.-BALL_TRACK.radius)*blend
@@ -208,18 +209,6 @@ def build_course(config, *, label=None):
     return body,p
 
 
-def _remove_degenerate_triangles(stl):
-    raw = stl.read_bytes()
-    if len(raw) < 84 or len(raw) != 84+50*struct.unpack_from("<I",raw,80)[0]:
-        raise ValueError("Malformed binary STL")
-    kept = []
-    for i in range(struct.unpack_from("<I",raw,80)[0]):
-        tri = raw[84+50*i:134+50*i]
-        v = struct.unpack("<12fH",tri)[3:12]
-        if len({tuple(v[j:j+3]) for j in (0,3,6)}) == 3:
-            kept.append(tri)
-    if len(kept) < struct.unpack_from("<I",raw,80)[0]:
-        stl.write_bytes(raw[:80]+struct.pack("<I",len(kept))+b"".join(kept))
 
 
 def export_course(model_id, config, out):
@@ -227,11 +216,7 @@ def export_course(model_id, config, out):
     out = Path(out)
     out.mkdir(parents=True,exist_ok=True)
     shape,p = build_course(config,label=model_id)
-    stl = out/"brick.stl"
-    cq.exporters.export(shape,str(stl),tolerance=.01,angularTolerance=.1)
-    _remove_degenerate_triangles(stl)
-    cq.exporters.export(shape,str(out/"brick.step"))
-    m = mesh_check(stl)
+    stl,m=export_geometry(shape,out,tolerance=.01,angular_tolerance=.1)
     bounds = exact_bounds(shape)
     nominal = (p.width,p.depth,p.height+(p.stud_height if config["tunnel"] else 0))
     checks = {

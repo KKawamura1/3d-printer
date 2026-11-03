@@ -4,13 +4,14 @@ from pathlib import Path
 import hashlib
 import json
 import math
-import struct
 import cadquery as cq
+from brickcad.course_artifacts import export_geometry
+from brickcad.course_geometry import smoothstep_rise_expanded
 from brickcad.model import brick_from_fit,receiver
 from brickcad.connections import make_studs
 from brickcad.marking import engrave
 from brickcad.standards import BALL_TRACK,ROUNDED_EDGES
-from brickcad.verify import mesh_check,exact_bounds
+from brickcad.verify import exact_bounds
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
 
@@ -67,7 +68,7 @@ def build_course(model_id,recipe,*,marked=True):
     stations=[(-p.width/2-1,0),(-p.width/2+1,0)]
     for i in range(1,9):
         u=i/8
-        stations.append((-p.width/2+1+4*u,3*u*u-2*u*u*u))
+        stations.append((-p.width/2+1+4*u,smoothstep_rise_expanded(u)))
     stations += [(-x,b) for x,b in reversed(stations)]
     cut=cq.Solid.makeLoft([passage_wire(x,progress,t) for x,progress in stations],
                           ruled=True)
@@ -93,31 +94,12 @@ def build_course(model_id,recipe,*,marked=True):
     return shape,p
 
 
-def remove_collapsed(stl):
-    raw=stl.read_bytes()
-    if len(raw)<84:
-        raise ValueError("Bad STL")
-    n=struct.unpack_from("<I",raw,80)[0]
-    if n<1 or len(raw)!=84+50*n:
-        raise ValueError("Bad STL size")
-    keep=[]
-    for i in range(n):
-        tri=raw[84+50*i:134+50*i]
-        v=struct.unpack("<12fH",tri)[3:12]
-        if len({tuple(v[j:j+3]) for j in (0,3,6)})==3:
-            keep.append(tri)
-    if len(keep)!=n:
-        stl.write_bytes(raw[:80]+struct.pack("<I",len(keep))+b"".join(keep))
 
 
 def export_course(model_id,recipe,out):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     shape,p=build_course(model_id,recipe)
-    stl=out/"brick.stl"
-    cq.exporters.export(shape,str(stl),tolerance=.01,angularTolerance=.1)
-    remove_collapsed(stl)
-    cq.exporters.export(shape,str(out/"brick.step"))
-    m=mesh_check(stl)
+    stl,m=export_geometry(shape,out,tolerance=.01,angular_tolerance=.1)
     checks={"single_valid_solid":shape.isValid() and len(shape.Solids())==1,
             "watertight":m["passed"],
             "mesh_volume":abs(shape.Volume()-m["signed_volume_mm3"])/shape.Volume()<.001}

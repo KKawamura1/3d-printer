@@ -8,14 +8,15 @@ from pathlib import Path
 import hashlib
 import json
 import math
-import struct
 import cadquery as cq
+from brickcad.course_artifacts import export_geometry
+from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
 
 from brickcad.standards import BALL_TRACK,DUPLO
 from brickcad.model import brick_from_fit
 from brickcad.connections import make_receiver,make_studs
 from brickcad.marking import engrave_west
-from brickcad.verify import mesh_check,exact_bounds
+from brickcad.verify import exact_bounds
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
 RADIUS=48.
@@ -43,7 +44,7 @@ def spec(recipe):
 
 
 def height(t):
-    return DROP*(1-3*t*t+2*t*t*t)
+    return DROP*(smoothstep_fall(t))
 
 
 def _position(w,t):
@@ -119,7 +120,7 @@ def _zshift(t):
 def _blend(t,p):
     distance=min(t,1-t)*RADIUS*math.pi/2
     u=max(0.,min(1.,(distance-p["lip_mm"])/p["transition_mm"]))
-    return min(.995,u*u*(3-2*u))
+    return min(.995,smoothstep_rise_factored(u))
 
 
 def _outer_wire(t):
@@ -213,32 +214,12 @@ def build_course(model_id,recipe,*,marked=True):
     return shape,p
 
 
-def _strip(stl):
-    raw=stl.read_bytes()
-    n=struct.unpack_from("<I",raw,80)[0]
-    if n<1 or len(raw)!=84+50*n:
-        raise ValueError("Malformed binary STL")
-    kept=[]
-    for i in range(n):
-        facet=raw[84+50*i:134+50*i]
-        vs=struct.unpack("<12fH",facet)[3:12]
-        if len({tuple(vs[j:j+3]) for j in (0,3,6)})==3:
-            kept.append(facet)
-    if len(kept)!=n:
-        stl.write_bytes(raw[:80]+struct.pack("<I",len(kept))+b"".join(kept))
 
 
 def export_course(model_id,recipe,out):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     shape,p=build_course(model_id,recipe)
-    stl=out/"brick.stl"
-    # Intermediate tessellation passes both manifold and volume checks: .01/.10
-    # was nonmanifold and PR40's .03/.20 exceeded the mesh-volume tolerance.
-    # This changes only STL sampling, never the independently tested BRep.
-    cq.exporters.export(shape,str(stl),tolerance=.02,angularTolerance=.15)
-    _strip(stl)
-    cq.exporters.export(shape,str(out/"brick.step"))
-    m=mesh_check(stl)
+    stl,m=export_geometry(shape,out,tolerance=.02,angular_tolerance=.15)
     checks={"valid_solid":shape.isValid() and len(shape.Solids())==1,
             "watertight_mesh":m["passed"],
             "mesh_volume":abs(m["signed_volume_mm3"]-shape.Volume())/

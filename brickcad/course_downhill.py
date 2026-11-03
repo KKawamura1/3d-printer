@@ -7,16 +7,16 @@ Historical D01-V3 is intentionally not modified.
 from dataclasses import asdict, replace
 import hashlib
 import json
-import struct
 from pathlib import Path
 
 import cadquery as cq
+from brickcad.course_artifacts import export_geometry
 
 from brickcad.connections import make_studs
 from brickcad.marking import engrave
 from brickcad.model import brick_from_fit, receiver
 from brickcad.standards import BALL_TRACK, ROUNDED_EDGES
-from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
+from brickcad.verify import exact_bounds, intersection, VOLUME_TOL
 from brickcad.course_downhill_primitives import (
     Downhill, _cut_passage, _window_cutter, floor_z, ball_positions,
     sampled_ball_intersections, ports,
@@ -77,17 +77,6 @@ def geometry_checks(shape, p, d, windows):
     return checks, collisions, bounds
 
 
-def _remove_float32_collapsed_triangles(stl):
-    raw = stl.read_bytes()
-    if len(raw) < 84 or len(raw) != 84 + struct.unpack_from("<I",raw,80)[0]*50:
-        raise ValueError("Malformed binary STL")
-    triangles = []
-    for i in range(struct.unpack_from("<I",raw,80)[0]):
-        tri = raw[84+50*i:134+50*i]
-        coords = struct.unpack("<12fH",tri)[3:12]
-        if len({tuple(coords[j:j+3]) for j in (0,3,6)}) == 3:
-            triangles.append(tri)
-    stl.write_bytes(raw[:80] + struct.pack("<I", len(triangles)) + b"".join(triangles))
 
 
 def export_course(spec, out):
@@ -96,11 +85,7 @@ def export_course(spec, out):
     shape, p, d = build_course(spec)
     windows = spec["enclosure"]["windows"]
     checks, collisions, bounds = geometry_checks(shape,p,d,windows)
-    stl = out/"brick.stl"
-    cq.exporters.export(shape, str(stl), tolerance=.03, angularTolerance=.2)
-    _remove_float32_collapsed_triangles(stl)
-    cq.exporters.export(shape, str(out/"brick.step"))
-    mesh = mesh_check(stl)
+    stl,mesh=export_geometry(shape,out,tolerance=.03,angular_tolerance=.2)
     restored = cq.importers.importStep(str(out/"brick.step")).val()
     checks["mesh_closed"] = mesh["passed"]
     checks["step_roundtrip"] = (
