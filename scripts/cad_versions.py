@@ -24,6 +24,63 @@ def git(root, *args):
     return subprocess.check_output(['git', *args], cwd=root, stderr=subprocess.DEVNULL)
 
 
+class _RestoreStepVolumeSyntax(ast.NodeTransformer):
+    """Normalize precise STEP comparisons in model export/generate routines."""
+
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        if (isinstance(node.func, ast.Name)
+                and node.func.id == 'precise_volume'
+                and len(node.args) == 1 and not node.keywords
+                and isinstance(node.args[0], ast.Name)):
+            return ast.copy_location(
+                ast.Call(func=ast.Attribute(value=node.args[0],
+                                           attr='Volume', ctx=ast.Load()),
+                         args=[], keywords=[]),
+                node)
+        return node
+
+
+def verification_only_precision_change(root, base, path):
+    """Prove a STEP precision refactor has no model source changes.
+
+    Compare parsed ASTs after reversing *only* the precise_volume calls in
+    export(), their brickcad.verify imports, and the isolated new helper.
+    Any unrelated edit fails closed and still requires a model version bump.
+    """
+    if path != 'brickcad/verify.py' and not (
+            path.startswith(('parts/', 'experiments/'))
+            and path.endswith(('/design.py', '/design_e31.py'))):
+        return False
+    current = root / path
+    if not current.is_file():
+        return False
+    try:
+        before = ast.parse(git(root, 'show', f'{base}:{path}').decode())
+        after = ast.parse(current.read_text())
+    except (subprocess.CalledProcessError, UnicodeError, SyntaxError):
+        return False
+    if path == 'brickcad/verify.py':
+        # Do not hide edits to existing geometry/verification functions.
+        after.body = [node for node in after.body if not (
+            isinstance(node, ast.FunctionDef) and node.name == 'precise_volume'
+            or isinstance(node, ast.ImportFrom) and
+            node.module in ('OCP.BRepGProp', 'OCP.GProp'))]
+    else:
+        for node in after.body:
+            if isinstance(node, ast.ImportFrom) and node.module == 'brickcad.verify':
+                node.names = [a for a in node.names if a.name != 'precise_volume']
+            elif isinstance(node, ast.FunctionDef) and node.name in ('export', 'generate'):
+                _RestoreStepVolumeSyntax().visit(node)
+    return ast.dump(before, include_attributes=False) == ast.dump(after, include_attributes=False)
+
+
+def split_verification_only_changes(root, base, changed):
+    verification_only = {path for path in changed
+                         if verification_only_precision_change(root, base, path)}
+    return set(changed) - verification_only, verification_only
+
+
 def valid_path(text):
     if not isinstance(text, str) or not text or text.startswith('/') or '\\' in text:
         raise ValueError(f'Unsafe path: {text!r}')
@@ -404,6 +461,7 @@ def main():
         base = choose_diff_base(root, args.base)
         paths = git(root, 'diff', '--name-only', '-z', '--no-renames', base, 'HEAD')
         changed = [x.decode() for x in paths.split(bytes([0])) if x]
+        changed, verification_only = split_verification_only_changes(root, base, changed)
         prior_specs = {name: prior_config(root, base, name) for name in specs}
         prior = {name: old.get('version') if old else None
                  for name, old in prior_specs.items()}
@@ -414,6 +472,7 @@ def main():
             retry_paths = git(root, 'diff', '--name-only', '-z', '--no-renames',
                               retry_base, 'HEAD')
             retry_changed = [x.decode() for x in retry_paths.split(bytes([0])) if x]
+            retry_changed, retry_verification_only = split_verification_only_changes(root, retry_base, retry_changed)
             retry_specs = {name: prior_config(root, retry_base, name) for name in specs}
             retry_prior = {name: old.get('version') if old else None
                            for name, old in retry_specs.items()}

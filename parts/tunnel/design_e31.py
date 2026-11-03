@@ -16,7 +16,7 @@ from brickcad.marking import engrave
 
 PART_ID = "T01-V5"
 from brickcad.render import viewer, mesh, outlines, preview
-from brickcad.verify import intersection, exact_bounds, mesh_check, place, VOLUME_TOL
+from brickcad.verify import intersection, exact_bounds, mesh_check, place, precise_volume, VOLUME_TOL
 
 
 @dataclass(frozen=True)
@@ -156,7 +156,7 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
     checks=dict(valid_brep=shape.isValid(),one_solid=len(shape.Solids())==1,
         dimensions=all(abs(a-b)<1e-6 for a,b in zip(bounds,[31.8,31.8,42.9])),
         mesh=m['passed'],mesh_volume=abs(m['signed_volume_mm3']-shape.Volume())/shape.Volume()<.001,
-        step_roundtrip=restored.isValid() and len(restored.Solids())==1 and abs(restored.Volume()-shape.Volume())<1e-4,
+        step_roundtrip=restored.isValid() and len(restored.Solids())==1 and abs(precise_volume(restored)-precise_volume(shape))<1e-4,
         continuous_ball_path_clear=sweep<VOLUME_TOL,oversize_ball_detected=negative>VOLUME_TOL,
         floor_present=shape.isInside(cq.Vector(0,0,t.floor-.1)),
         floor_open=not shape.isInside(cq.Vector(0,0,t.floor+.1)),

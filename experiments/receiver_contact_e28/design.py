@@ -10,7 +10,7 @@ from brickcad.marking import engrave
 from brickcad.model import brick_from_fit, build as build_brick
 from brickcad.provenance import design_manifest
 from brickcad.standards import ROUNDED_EDGES
-from brickcad.verify import exact_bounds
+from brickcad.verify import exact_bounds, precise_volume
 from experiments.full_height_fit.design import export_stl
 
 VERSION = "E28-V1"
@@ -75,7 +75,7 @@ def generate(out=Path("build/receiver-contact-e28")):
         cq.exporters.export(shape,str(folder/"brick.step"))
         restored=cq.importers.importStep(str(folder/"brick.step")).val()
         step_ok=(restored.isValid() and len(restored.Solids())==1
-                 and abs(restored.Volume()-shape.Volume())<1e-4)
+                 and abs(precise_volume(restored)-precise_volume(shape))<1e-4)
         if not step_ok:
             raise ValueError("STEP roundtrip failed for "+record["id"])
         report=dict(
