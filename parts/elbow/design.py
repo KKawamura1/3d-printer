@@ -15,7 +15,7 @@ PART_ID = "E01-V2"
 from parts.straight_rail.design import fit_profile, build_rail
 from parts.tunnel.design import Tunnel
 from brickcad.ports import Port, straight_ports, mate
-from brickcad.verify import intersection, exact_bounds, mesh_check, VOLUME_TOL
+from brickcad.verify import intersection, exact_bounds, mesh_check, VOLUME_TOL, precise_volume
 from brickcad.render import viewer, mesh, outlines
 
 
@@ -145,7 +145,7 @@ def export(out=Path('build/duplo-elbow-trial-01')):
         mesh=mesh_report['passed'],
         mesh_volume=abs(mesh_report['signed_volume_mm3']-shape.Volume())/shape.Volume()<.001,
         step_roundtrip=restored.isValid() and len(restored.Solids())==1
-                       and abs(restored.Volume()-shape.Volume())/shape.Volume()<1e-7
+                       and abs(precise_volume(restored)-precise_volume(shape))/precise_volume(shape)<1e-7
                        and all(abs(a-b)<1e-5 for a,b in zip(exact_bounds(restored),exact_bounds(shape))),
         tube_holes=all(not shape.isInside(cq.Vector(x, y, 1)) for x, y in p.tubes()),
         tube_walls=all(shape.isInside(cq.Vector(x+5.5, y, 1)) for x, y in p.tubes()),
@@ -155,7 +155,7 @@ def export(out=Path('build/duplo-elbow-trial-01')):
         tunnel=asdict(t), turn_radius_mm=TURN_RADIUS, ports=[asdict(v) for v in ports(t)],
         ball_diameter_mm=BALL_DIAMETER, running_lift_mm=LIFT, mesh=mesh_report,
         stl_tessellation=dict(linear_tolerance_mm=.03,angular_tolerance_radians=.2),
-        step_volume_delta_mm3=restored.Volume()-shape.Volume(),
+        step_volume_delta_mm3=precise_volume(restored)-precise_volume(shape),
         step_volume_relative_tolerance=1e-7,
         collapsed_stl_triangles_removed=removed,
         physical_fit_validated=False, physical_rolling_validated=False,

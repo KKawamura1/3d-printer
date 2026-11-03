@@ -12,7 +12,7 @@ import cadquery as cq
 
 from brickcad.marking import engrave
 from brickcad.model import brick_from_fit, build as build_brick
-from brickcad.verify import exact_bounds
+from brickcad.verify import exact_bounds, precise_volume
 from experiments.full_height_fit.design import export_stl
 
 VERSION = "E29-V3"
@@ -138,7 +138,7 @@ def generate(out=Path("build/dual-fit-e29")):
         cq.exporters.export(shape, str(folder / "brick.step"))
         restored = cq.importers.importStep(str(folder / "brick.step")).val()
         if (not restored.isValid() or len(restored.Solids()) != 1 or
-                abs(restored.Volume() - shape.Volume()) / shape.Volume() > 1e-6):
+                abs(precise_volume(restored)-precise_volume(shape))/precise_volume(shape) > 1e-6):
             raise ValueError(f"STEP roundtrip failed: {record['id']}")
         report = dict(
             passed=mesh["mesh"]["passed"], id=record["id"],

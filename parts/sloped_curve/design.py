@@ -19,7 +19,7 @@ from brickcad.marking import engrave_west
 
 PART_ID = "S01-V2"
 from brickcad.ports import Port, straight_ports, mate
-from brickcad.verify import intersection, exact_bounds, mesh_check, VOLUME_TOL
+from brickcad.verify import intersection, exact_bounds, mesh_check, VOLUME_TOL, precise_volume
 from brickcad.render import viewer, mesh, outlines
 
 RADIUS = 48.0
@@ -322,7 +322,7 @@ def export(out=Path('build/duplo-sloped-curve-trial-02')):
     m = mesh_check(out/'brick.stl')
     report['checks'].update(mesh=m['passed'],mesh_volume=abs(m['signed_volume_mm3']-shape.Volume())/shape.Volume()<.001,
         step_roundtrip=restored.isValid() and len(restored.Solids())==1
-        and abs(restored.Volume()-shape.Volume())/shape.Volume()<1e-7)
+        and abs(precise_volume(restored)-precise_volume(shape))/precise_volume(shape)<1e-7)
     report.update(kind='duplo-sloped-curve-trial-02',passed=all(report['checks'].values()),
         geometry=dict(bounds_mm=[m['bounds_mm'][1][i]-m['bounds_mm'][0][i] for i in range(3)],
                       brep_conservative_bounds_mm=exact_bounds(shape),volume_mm3=shape.Volume(),parameters=asdict(p)),
