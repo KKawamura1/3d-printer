@@ -10,3 +10,8 @@ Issue #37。左右の形状構築は **PR #48 の `parts/sharp_downhill_open_rig
 
 生成：`python -m parts.sharp_downhill_open_right.design --out build/sharp_downhill_open_right` または `python -m parts.sharp_downhill_open_left.design --out build/sharp_downhill_open_left`。
 Actionsの`cad-verified-stl`が両方のSTL/STEP/検証レポートを保存する。
+
+
+## SD01-V3（PR58床面改善）
+
+下面E31-05のスリット終端中心を4.40→3.50mm、上端を4.15mmへ短縮。補強リブなし。PR58 B試験片は床面合格・嵌合感に違和感なし。SD01-V3のスライス・印刷・保持力は未検証。
