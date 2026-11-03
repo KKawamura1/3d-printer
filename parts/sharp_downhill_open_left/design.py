@@ -1,4 +1,4 @@
-"""SD02-V3 open left curve: reflect SD01's unmarked BRep, then engrave.
+"""SD02-V4 open left curve: reflect SD01's unmarked BRep, then engrave.
 
 All geometry, receiver, sweep and STL logic lives in the right-hand
 implementation. Mirror the undecorated solid before adding a readable,
@@ -6,8 +6,8 @@ left-specific standard 3mm/0.4mm recessed marking.
 """
 from parts.sharp_downhill_open_right import design as shared
 
-PART_ID = 'SD02-V3'
-SOURCE_VERSION = 'SD01-V3'
+PART_ID = 'SD02-V4'
+SOURCE_VERSION = 'SD01-V4'
 if shared.PART_ID != SOURCE_VERSION:
     raise ValueError(
         f'{PART_ID} requires shared geometry {SOURCE_VERSION}, '
