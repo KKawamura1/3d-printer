@@ -2,7 +2,8 @@
 
 References are explicit Git SHAs of the latest reviewed independent PR heads
 on 2026-11-03. Both shapes have NO marking before comparison. Equality is
-checked in both directions, rather than comparing STL bounds or visual plots.
+checked in both directions and by absolute volume difference; BREP avoids
+STEP re-serialization precision changes.
 
 Run after updating reference PR SHAs if their heads move.
 """
@@ -60,7 +61,7 @@ elif kind == "C02":
 else:
     raise ValueError(kind)
 assert model.isValid() and len(model.Solids()) == 1, kind
-cq.exporters.export(model, path)
+model.exportBrep(path)
 '''
 
 
@@ -112,19 +113,22 @@ class CrossPrUnmarkedParityTests(unittest.TestCase):
         self.assertEqual(len(generated.Solids()), 1, label)
         only_reference = original.cut(generated).Volume()
         only_generated = generated.cut(original).Volume()
+        volume_delta = abs(original.Volume() - generated.Volume())
         print(
             f"UNMARKED BREP PARITY {label}: "
             f"ref={original.Volume():.9f} generated={generated.Volume():.9f} "
-            f"missing={only_reference:.9f} extra={only_generated:.9f} mm3",
+            f"missing={only_reference:.9f} extra={only_generated:.9f} "
+            f"absolute_volume_delta={volume_delta:.9f} mm3",
             flush=True,
         )
+        self.assertLessEqual(volume_delta, tolerance, (label, "volume delta", volume_delta))
         self.assertLessEqual(only_reference, tolerance, (label, "missing", only_reference))
         self.assertLessEqual(only_generated, tolerance, (label, "extra", only_generated))
 
     def original(self, kind):
         sha = PINNED_REFERENCES[kind]
         root = self.references[sha]
-        target = self.root / (kind + ".step")
+        target = self.root / (kind + ".brep")
         env = os.environ.copy()
         env["PYTHONPATH"] = str(root)
         proc = subprocess.run(
@@ -132,7 +136,7 @@ class CrossPrUnmarkedParityTests(unittest.TestCase):
             cwd=root, env=env, capture_output=True, text=True, timeout=180,
         )
         self.assertEqual(proc.returncode, 0, (kind, proc.stdout, proc.stderr))
-        shape = cq.importers.importStep(str(target)).val()
+        shape = cq.Shape.importBrep(str(target))
         self.assertTrue(shape.isValid(), kind)
         return shape
 
