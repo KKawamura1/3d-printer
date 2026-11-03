@@ -140,8 +140,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build/cad-artifacts
-          key: cad-v3-${{ runner.os }}-${{ hashFiles('parts/**/cad-build.json', 'experiments/**/cad-build.json') }}
+          # Include CAD source inputs: only changed geometry keys get fresh caches.
+          # Restore v3 temporarily for unchanged versions; stale fingerprints
+          # will be rebuilt instead of accepted, then saved under v4.
+          key: cad-v4-${{ runner.os }}-${{ hashFiles('parts/**/cad-build.json', 'experiments/**/cad-build.json', 'brickcad/**/*.py', 'parts/**/design*.py', 'experiments/**/design*.py', 'profiles/**/*.json', 'requirements.txt') }}
           restore-keys: |
+            cad-v4-${{ runner.os }}-
             cad-v3-${{ runner.os }}-
       - name: Install CAD dependencies
         if: steps.plan.outputs.has_models == 'true'

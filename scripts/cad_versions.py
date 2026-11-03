@@ -169,6 +169,21 @@ def model_sources(root, name):
     return sources
 
 
+def cache_source_state(identity, current_sha, legacy_sha=None):
+    """Never reuse an artifact whose source does not match its build inputs.
+
+    A compatible auto:false -> auto:true metadata migration can retain its
+    existing STL. Other source differences are cache misses, not evidence of
+    an invalid version bump: the Git diff planner enforces version policy.
+    """
+    old_sha = identity.get('source_sha256')
+    if old_sha == current_sha:
+        return 'current'
+    if legacy_sha is not None and old_sha == legacy_sha:
+        return 'auto_migration'
+    return 'stale'
+
+
 def source_fingerprint(root, name, *, auto_override=None):
     """Fingerprint model source, declarative recipe, transitive imports and shared inputs."""
     relevant = model_sources(root, name)
@@ -404,11 +419,17 @@ def build(root, specs, requested, previews=False):
                     legacy = (source_fingerprint(checkout, name, auto_override=False)
                               if name.startswith('experiments/') and spec.get('auto', True)
                               else None)
-                    if identity.get('source_sha256') != legacy:
-                        raise ValueError(f'{name}@{version}: cached source fingerprint changed without version bump')
-                    identity['source_sha256'] = fingerprint
-                    stamp.write_text(json.dumps(identity, indent=2) + chr(10))
-                cached = identity.get('version') == version and all(
+                    if cache_source_state(identity, fingerprint, legacy) == 'auto_migration':
+                        identity['source_sha256'] = fingerprint
+                        stamp.write_text(json.dumps(identity, indent=2) + chr(10))
+                    else:
+                        # Restored caches may be from earlier shared-engine or
+                        # source-fingerprint revisions. Rebuild only this model;
+                        # never accept mismatched geometry or stamp it as valid.
+                        print('CAD CACHE STALE', name, version,
+                              'source fingerprint differs; regenerating', flush=True)
+                        identity = None
+                cached = identity is not None and identity.get('version') == version and all(
                     (out / rel).exists() and
                     json.loads((out / rel).parent.joinpath('report.json').read_text()).get('passed') is True and
                     verify_stl(out / rel)['sha256'] == identity['sha256'][rel]

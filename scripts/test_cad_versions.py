@@ -132,6 +132,17 @@ class VersionSelectionTests(unittest.TestCase):
             self.assertEqual(original, cad.source_fingerprint(
                 root, 'experiments/trial', auto_override=False))
 
+    def test_stale_cache_rebuilds_instead_of_reusing_old_geometry(self):
+        current = {'source_sha256': 'current-hash'}
+        old = {'source_sha256': 'old-hash'}
+        self.assertEqual(cad.cache_source_state(current, 'current-hash'), 'current')
+        self.assertEqual(cad.cache_source_state(old, 'current-hash'), 'stale')
+        self.assertEqual(cad.cache_source_state(old, 'current-hash', 'old-hash'),
+                         'auto_migration')
+        # An unrelated legacy hash must never authorize reusing stale geometry.
+        self.assertEqual(cad.cache_source_state(old, 'current-hash', 'other-hash'),
+                         'stale')
+
     def test_source_fingerprint_changes_with_geometry(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
