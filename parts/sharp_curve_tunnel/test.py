@@ -1,10 +1,12 @@
-"""C02-V6: retain the physically promising C02-V2 turn guidance."""
+"""C02-V7: retain the physically promising C02-V2 turn guidance."""
 import unittest
+import math
+from unittest.mock import patch
 import cadquery as cq
 from brickcad.ports import mate, straight_ports
 from brickcad.standards import BALL_TRACK, DUPLO
 from brickcad.verify import VOLUME_TOL
-from parts.sharp_curve_tunnel.design import PART_ID, build_tunnel
+from parts.sharp_curve_tunnel.design import PART_ID, build_tunnel, _engrave_north, SOURCE_CURVE_ID
 from parts.sharp_curve.design import SharpCurve, ball_intersections, ports
 
 
@@ -15,7 +17,8 @@ class SharpCurveTunnelTests(unittest.TestCase):
         cls.shape,cls.p=build_tunnel(cls.c)
 
     def test_height_and_top_studs(self):
-        self.assertEqual(PART_ID,"C02-V6")
+        self.assertEqual(PART_ID,"C02-V7")
+        self.assertEqual(SOURCE_CURVE_ID,"C01-V6")
         self.assertEqual((self.p.nx,self.p.ny),(2,2))
         self.assertAlmostEqual(self.p.height,2*DUPLO.height)
         self.assertTrue(self.shape.isValid())
@@ -55,6 +58,39 @@ class SharpCurveTunnelTests(unittest.TestCase):
         # Solid in V2; V4 removed these surfaces and produced a ball trap.
         self.assertTrue(self.shape.isInside(cq.Vector(0., 12.5, 20.)))
         self.assertTrue(self.shape.isInside(cq.Vector(12.5, 0., 20.)))
+
+    def test_e31_short_slot_clear_of_receiver_ceiling(self):
+        from parts.tunnel.e31_fit import SLOT_END_Z, SLOT_END_RADIUS
+        self.assertAlmostEqual(SLOT_END_Z,3.50)
+        self.assertAlmostEqual(SLOT_END_Z+SLOT_END_RADIUS,4.15)
+        self.assertGreaterEqual(self.c.receiver_depth-(SLOT_END_Z+SLOT_END_RADIUS),.60-1e-6)
+        for x,y in ((6.5,0.),(0.,6.5),(-6.5,0.),(0.,-6.5)):
+            self.assertFalse(self.shape.isInside(cq.Vector(x,y,2.25)))
+            self.assertTrue(self.shape.isInside(cq.Vector(x,y,4.3)))
+
+    def test_visible_ports_have_round_openings(self):
+        # Verify visible entrances on 12 rays rather than only roof height.
+        radius=self.c.section_radius
+        center_z=self.c.floor+radius
+        for angle in range(0,360,30):
+            a=math.radians(angle)
+            for r,is_solid in ((radius-.45,False),(radius+.45,True)):
+                lateral=r*math.cos(a)
+                z=center_z+r*math.sin(a)
+                for xyz in ((-15.8,lateral,z),(lateral,-15.8,z)):
+                    self.assertEqual(self.shape.isInside(cq.Vector(*xyz)),is_solid,
+                                     msg=f"port={xyz}, r={r}, angle={angle}")
+
+    def test_standard_engraving_on_finished_north_wall(self):
+        from brickcad.marking import engrave
+        blank=cq.Workplane("XY").box(31.8,31.8,38.4,
+                        centered=(True,True,False)).val()
+        with patch("parts.sharp_curve_tunnel.design.engrave",wraps=engrave) as marker:
+            marked=_engrave_north(blank,PART_ID,31.8)
+        self.assertEqual(marker.call_count,1)
+        self.assertEqual(marker.call_args.kwargs,dict(x=0,y=-15.9,z=18.0))
+        self.assertTrue(marked.isValid())
+        self.assertGreater(blank.Volume()-marked.Volume(),.2)
 
 
 if __name__=="__main__":
