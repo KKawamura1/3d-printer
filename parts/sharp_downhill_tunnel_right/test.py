@@ -28,6 +28,32 @@ class Geometry(unittest.TestCase):
         oversize=cq.Solid.makeSphere(
             14., centres[len(centres)//2], angleDegrees1=-90)
         self.assertGreater(intersection(shape,oversize),VOLUME_TOL)
+        # Issue #60 / PR58 B: the four E31 slots must end below the
+        # underside ceiling, not cut into the bridge supporting the floor.
+        from parts.tunnel.e31_fit import SLOT_END_Z, SLOT_END_RADIUS
+        from parts.sharp_downhill_tunnel_right.design import loft, DEPTH
+        self.assertAlmostEqual(SLOT_END_Z, 3.50)
+        self.assertGreaterEqual(DEPTH - (SLOT_END_Z + SLOT_END_RADIUS), .60 - 1e-6)
+        mask = loft('mask').intersect(
+            cq.Workplane('XY').box(p.width, p.depth, 100,
+                                   centered=(True, True, False)).val())
+        full_tubes = [
+            (tx, ty) for tx, ty in p.tubes()
+            if all(mask.isInside(cq.Vector(
+                tx + 6.85 * __import__('math').cos(i * __import__('math').pi / 4),
+                ty + 6.85 * __import__('math').sin(i * __import__('math').pi / 4), 2))
+                for i in range(8))
+        ]
+        self.assertTrue(full_tubes, "no complete E31 tubes found on right part")
+        for tx, ty in full_tubes:
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                with self.subTest(tube=(tx, ty), direction=(dx, dy)):
+                    # Radius 6.5 is within the nominal 6.6 mm tube wall.
+                    point = lambda z: cq.Vector(tx + 6.5*dx, ty + 6.5*dy, z)
+                    self.assertFalse(shape.isInside(point(3.5)),
+                                     "E31 slit not open on complete tube")
+                    self.assertTrue(shape.isInside(point(4.3)),
+                                    "E31 slit cuts too far into floor ceiling")
         for fraction in (.15,.35,.65,.85):
             s=LENGTH*fraction
             x,y,_,_=xy(s)
