@@ -146,7 +146,7 @@ def build_steep_drop(d=SteepDrop(), *, label=PART_ID):
                        (left, floor + d.ramp_grade * (d.ramp_end_x - left))))
             .close().extrude(14., both=True).val())
     shape = shape.fuse(ramp).clean()
-    shape = add_e31_05_receiver_features(shape, p.tubes(), p.tube_radius)
+    shape = add_e31_05_receiver_features(shape, p.tubes(), p.tube_radius, receiver_depth=d.receiver_depth)
     studs = make_studs(
         p.studs(), p.height, p.stud_radius - p.clearance,
         p.stud_inner_radius, p.stud_height,
