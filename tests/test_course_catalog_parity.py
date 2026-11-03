@@ -16,6 +16,9 @@ import importlib,sys
 from unittest.mock import patch
 ident,mark,module,path=sys.argv[1:]
 m=importlib.import_module(module)
+if ident=="T01-V6":
+    assert module=="parts.tunnel.design_e31", (ident,module)
+    assert m.PART_ID==ident, (ident,m.PART_ID)
 marked=mark=="marked"
 if ident.startswith("SC02"):
     shared=importlib.import_module("parts.sloped_curve_tunnel.design")
@@ -129,7 +132,7 @@ class PinnedCADParityTests(unittest.TestCase):
         src=m["source"]["reference"]
         wd=self.worktrees[src["sha"]]
         path=self.root/(m["id"]+("-marked" if marked else "-bare")+".brep")
-        module=src["target"].replace("/",".")+".design"
+        module=src.get("module") or src["target"].replace("/",".")+".design"
         args=[sys.executable,"-c",REFERENCE,m["id"],
               "marked" if marked else "unmarked",module,str(path)]
         proc=subprocess.run(args,cwd=wd,env={**os.environ,"PYTHONPATH":str(wd)},
