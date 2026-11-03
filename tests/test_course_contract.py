@@ -128,8 +128,11 @@ class CourseContractTests(unittest.TestCase):
             calls = {n.func.id for n in ast.walk(tree)
                      if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
             self.assertIn("course_fit", calls, name)
-            self.assertIn("add_e31_05_receiver_features", calls, name)
-            self.assertTrue({"engrave", "engrave_west"} & calls, name)
+            self.assertTrue(
+                {"add_e31_05_receiver_features", "add_course_receiver_features"} & calls,
+                name,
+            )
+            self.assertTrue({"engrave", "engrave_west", "engrave_course", "engrave_course_west"} & calls, name)
             # The only profile selector in a production geometry builder is course_fit.
             src = path.read_text()
             self.assertNotIn("duplo-straight-rail-trial-v1", src, name)
