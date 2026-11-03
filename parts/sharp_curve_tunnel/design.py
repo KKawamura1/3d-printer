@@ -1,4 +1,4 @@
-"""C02-V5: recover C02-V2's guided R16 tunnel after printed-part testing.
+"""C02-V6: recover C02-V2's guided R16 tunnel after printed-part testing.
 
 C02-V4's flat turning chamber traps the ball; C02R-V1 loses exit momentum.
 The original C02-V2 print rolled smoothly after removing an internal burr.
@@ -22,7 +22,7 @@ from brickcad.verify import exact_bounds, mesh_check, VOLUME_TOL
 from parts.sharp_curve.design import SharpCurve, _curve_cut, ball_intersections, ports
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = "C02-V5"
+PART_ID = "C02-V6"
 SOURCE_CURVE_ID = "C01-V5"
 FIT_PROFILE_ID = "duplo-e27-play-v1"
 BODY_COURSES = 2
