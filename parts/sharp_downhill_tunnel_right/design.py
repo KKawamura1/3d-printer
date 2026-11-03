@@ -125,7 +125,7 @@ def build_part(label=PART_ID, *, mirror=False):
     full=[]
     for x,y in p.tubes():
         if all(mask.isInside(cq.Vector(x+6.85*math.cos(a),y+6.85*math.sin(a),2)) for a in [i*math.pi/4 for i in range(8)]):full.append((x,y))
-    if full: body=add_e31_05_receiver_features(body,full,p.tube_radius)
+    if full: body=add_e31_05_receiver_features(body, full, p.tube_radius, receiver_depth=DEPTH)
     if TUNNEL:
         # Preserve footprint-clipped hollow studs (SC02-V5 approach), including
         # useful partial studs. The stud root overlaps the roof by 0.15 mm.
