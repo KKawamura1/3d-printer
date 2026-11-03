@@ -499,6 +499,7 @@
           "pr": 0,
           "sha": "8a2913a1251ba95db2974c878a12881df1c47e87",
           "target": "parts/tunnel",
+          "module": "parts.tunnel.design_e31",
           "cad_version": "T01-V6"
         }
       }
