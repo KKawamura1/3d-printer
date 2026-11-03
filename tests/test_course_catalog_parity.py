@@ -18,10 +18,12 @@ ident,mark,module,path=sys.argv[1:]
 m=importlib.import_module(module)
 marked=mark=="marked"
 if ident.startswith("SC02"):
-    shape=m.build_part(side="left" if ident.startswith("SC02L") else "right",marked=marked)[0]
+    shared=importlib.import_module("parts.sloped_curve_tunnel.design")
+    shape=shared.build_part(side="left" if ident.startswith("SC02L") else "right",marked=marked)[0]
 elif ident.startswith("E01"):
     side="left" if ident.startswith("E01L") else "right"
-    shape=m.build_part(side)[0] if marked else m.build_unmarked()[0]
+    shared=importlib.import_module("parts.gentle_curve_tunnel.design")
+    shape=shared.build_part(side)[0] if marked else shared.build_unmarked()[0]
     if not marked and side=="left":shape=shape.mirror("XZ")
 elif ident=="T01-V6":
     if marked:shape=m.build_tunnel()[0]
