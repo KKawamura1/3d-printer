@@ -1,3 +1,4 @@
+import ast
 import copy
 import json
 from pathlib import Path
@@ -33,6 +34,23 @@ class CourseCatalogTests(unittest.TestCase):
             p.write_text(json.dumps(broken))
             with self.assertRaisesRegex(ValueError, "23 categories"):
                 load_registry(p)
+
+    def test_no_historical_builders_in_production_engines(self):
+        from pathlib import Path
+        root=Path(__file__).resolve().parents[1]
+        names=("course_loft_family","course_configured_special",
+               "course_r48_tunnel","course_r48_sloped_tunnel",
+               "course_downhill","course_downhill_primitives",
+               "course_straight_tunnel","course_legacy_rail")
+        for name in names:
+            tree=ast.parse((root/"brickcad"/(name+".py")).read_text())
+            for node in ast.walk(tree):
+                if isinstance(node,ast.ImportFrom) and node.module:
+                    self.assertFalse(node.module.startswith("parts.") and
+                                     node.module.endswith(".design"),name)
+                if isinstance(node,ast.Import):
+                    self.assertFalse(any(x.name.startswith("parts.") and
+                                x.name.endswith(".design") for x in node.names),name)
 
     def test_reject_unknown_model(self):
         with self.assertRaisesRegex(ValueError, "Unknown"):
