@@ -3,13 +3,14 @@
 GitHub Actions push events only contain the latest commit delta.  If that delta
 only fixes a test, the version bump from the failed run is not present there.
 This helper finds the failed streak since the last *delivered* CAD artifact and
-provides a wider comparison base, without rebuilding on every normal push.
+provides the failed push's parent as a narrow comparison base. This avoids
+mistaking unrelated older experiments for unversioned changes.
 """
 import json
 import os
-from pathlib import Path
+import re
 import subprocess
-from urllib.parse import quote, urlencode
+from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 
@@ -46,18 +47,29 @@ def unrecovered_runs(runs, current_number, has_artifact):
     return failed
 
 
-def get_pr_base(repo, branch, token):
-    owner = repo.split("/", 1)[0]
-    query = urlencode({"state": "open", "head": owner + ":" + branch, "per_page": 30})
-    prs = api_get("/repos/" + repo + "/pulls?" + query, token)
-    matching = [pr for pr in prs if pr.get("head", {}).get("ref") == branch]
-    if len(matching) > 1:
-        raise RuntimeError("Ambiguous open PRs for branch " + branch)
-    return matching[0]["base"]["sha"] if matching else None
-
-
 def git(*args):
     return subprocess.check_output(["git", *args], stderr=subprocess.DEVNULL).decode().strip()
+
+
+def failed_attempt_parent(failures):
+    """Retry only commits from failed attempts still present in this history.
+
+    Comparing all the way to a PR's merge-base with main causes unrelated
+    *historical* model changes to appear unversioned when a later retry fails.
+    The earliest failed push's parent includes its version bumps, but excludes
+    preceding successful work. After a force-push, ignore attempts from the
+    discarded history rather than broadening to the PR's fork point.
+    """
+    for attempt in reversed(failures):
+        sha = attempt.get("head_sha", "")
+        if not re.fullmatch(r"[0-9a-fA-F]{40}", sha):
+            continue
+        try:
+            git("merge-base", "--is-ancestor", sha, "HEAD")
+            return git("rev-parse", sha + "^")
+        except subprocess.CalledProcessError:
+            continue
+    return ""
 
 
 def retry_base(repo, branch, current_number, token, default_branch="main"):
@@ -77,15 +89,12 @@ def retry_base(repo, branch, current_number, token, default_branch="main"):
     failures = unrecovered_runs(runs, current_number, has_artifact)
     if not failures:
         return "", 0
-    # The earliest unresolved attempt may contain the only version bump.
-    earliest = failures[-1]
-    pr_base = get_pr_base(repo, branch, token)
-    if pr_base:
-        base = git("merge-base", "HEAD", pr_base)
-    elif branch == default_branch:
-        base = git("rev-parse", earliest["head_sha"] + "^")
-    else:
-        base = git("merge-base", "HEAD", "origin/" + default_branch)
+    base = failed_attempt_parent(failures)
+    if not base:
+        print("::warning::Previous failed CAD attempts are absent from current "
+              "branch history. Skipping automatic broad PR-base retry; "
+              "use explicit workflow_dispatch targets for any missing STL.",
+              flush=True)
     return base, len(failures)
 
 
