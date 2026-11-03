@@ -84,3 +84,5 @@ D01坂トンネルの生成・出力は引き続き旧実験と共通の
 ## 不変の旧実験との境界
 
 `brickcad/course_sharp_curve.py` / `course_steep_drop.py` / `course_downhill.py` は歴史的実験IDの再現コードとして**変更せず保持**。PR56本番のR16/急落下/窓付き坂には対応する `brickcad/course_prod_*.py` を利用し、共通 `course_contract` からE31・刻印の設定を得る。既存の固定版実験をCIのバージョン更新対象にしない。
+
+<!-- R01-V1 build probe: exercises the catalogue and archive export path. -->
