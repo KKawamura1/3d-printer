@@ -10,11 +10,11 @@ from brickcad.model import receiver, nominal_brick, build, brick_from_fit
 from parts.straight_rail.design import Rail
 from brickcad.standards import BALL_TRACK, ROUNDED_EDGES
 from brickcad.connections import make_studs
-from parts.tunnel.e31_fit import add_e31_05_receiver_features
+from parts.tunnel.e31_fit import add_e31_05_receiver_features, SLOT_END_Z
 from brickcad.provenance import design_manifest
 from brickcad.marking import engrave
 
-PART_ID = "T01-V4"
+PART_ID = "T01-V5"
 from brickcad.render import viewer, mesh, outlines, preview
 from brickcad.verify import intersection, exact_bounds, mesh_check, place, VOLUME_TOL
 
@@ -105,7 +105,8 @@ def build_tunnel(t=Tunnel(), *, roof='transition', transition=4., label=None):
     studs=make_studs(p.studs(), p.height, p.stud_radius-p.clearance,
                      p.stud_inner_radius, p.stud_height, lip_radius=ROUNDED_EDGES.stud_lip_radius)
     shape=result.union(studs).val().clean()
-    shape=add_e31_05_receiver_features(shape,p.tubes(),p.tube_radius)
+    shape=add_e31_05_receiver_features(shape,p.tubes(),p.tube_radius,
+                                       receiver_depth=t.cavity_height)
     if not shape.isValid() or len(shape.Solids())!=1:
         raise ValueError('Tunnel must be one valid solid')
     shape=engrave(shape,label or PART_ID,x=0,y=-p.depth/2,z=10.)
@@ -174,7 +175,7 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
         mesh=m,collapsed_stl_triangles_removed=collapsed,
         finish_detail=dict(outer_corner_radius_mm=.8,stud_lip_radius_mm=.5,receiver_entry_chamfer_mm=.3,mouth_radius_mm=.3),
         e31_05_receiver=dict(tube_od_mm=13.20,bead_minor_radius_mm=.20,bead_z_mm=2.25,
-                             slot_width_mm=1.10,slot_end_z_mm=4.40,
+                             slot_width_mm=1.10,slot_end_z_mm=SLOT_END_Z,
                              transfer_to_shallow_tunnel_unvalidated=True),
         roof_style=dict(mouth='circular',inner='high_teardrop',circular_lip_mm=1.,transition_mm=4.),
         stl_tessellation=dict(linear_tolerance_mm=.03,angular_tolerance_radians=.2),
