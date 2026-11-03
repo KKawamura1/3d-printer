@@ -1,5 +1,6 @@
 name: CAD preview and print artifacts
 on:
+  # Keep regular builds version-driven. Missing artifacts are repaired on demand.
   push:
     paths:
       - 'parts/**/*.py'
@@ -25,10 +26,14 @@ on:
       - '.github/workflows/cad-preview.yml'
   workflow_dispatch:
     inputs:
-      targets:
-        description: 'all or comma-separated model paths, e.g. parts/tunnel'
+      repair_pr:
+        description: 'Optional open PR number; build its latest head instead of the selected workflow branch'
         type: string
-        default: parts/tunnel
+        default: ''
+      targets:
+        description: 'changed (PR diff), all, or comma-separated model paths, e.g. parts/tunnel'
+        type: string
+        default: changed
       previews:
         description: 'Capture Chromium views for generated models'
         type: boolean
@@ -38,15 +43,42 @@ permissions:
   actions: read
   pull-requests: read
 concurrency:
-  group: cad-artifacts-${{ github.event.pull_request.number || github.ref }}
+  group: cad-artifacts-${{ inputs.repair_pr || github.ref }}
   cancel-in-progress: true
 jobs:
   generate:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
+      - name: Resolve manually requested PR
+        id: recovery
+        if: github.event_name == 'workflow_dispatch' && inputs.repair_pr != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPAIR_PR: ${{ inputs.repair_pr }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$REPAIR_PR" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::repair_pr must be a positive PR number"
+            exit 1
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$REPAIR_PR" > "$RUNNER_TEMP/cad-repair-pr.json"
+          pr="$RUNNER_TEMP/cad-repair-pr.json"
+          if [ "$(jq -r .state "$pr")" != open ]; then
+            echo "::error::PR #$REPAIR_PR is not open"
+            exit 1
+          fi
+          if [ "$(jq -r .head.repo.full_name "$pr")" != "$GITHUB_REPOSITORY" ]; then
+            echo "::error::PR #$REPAIR_PR must have a branch in this repository"
+            exit 1
+          fi
+          echo "head_sha=$(jq -r .head.sha "$pr")" >> "$GITHUB_OUTPUT"
+          echo "base_sha=$(jq -r .base.sha "$pr")" >> "$GITHUB_OUTPUT"
+          echo "Repairing PR #$REPAIR_PR at $(jq -r .head.sha "$pr")"
       - uses: actions/checkout@v4
         with:
+          ref: ${{ steps.recovery.outputs.head_sha || github.sha }}
           fetch-depth: 0
       - name: Check incremental planner
         run: |
@@ -64,13 +96,25 @@ jobs:
       - name: Plan changed models
         id: plan
         env:
-          BEFORE_SHA: ${{ github.event.before || github.event.pull_request.before || github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ steps.recovery.outputs.base_sha || github.event.before }}
           EVENT_NAME: ${{ github.event_name }}
           INPUT_TARGETS: ${{ inputs.targets }}
           RETRY_BASE: ${{ steps.retry.outputs.retry_base }}
+          REPAIR_PR: ${{ inputs.repair_pr }}
         run: |
+          set -euo pipefail
           if [ "$EVENT_NAME" = workflow_dispatch ]; then
-            python scripts/cad_versions.py --mode plan --targets "$INPUT_TARGETS"
+            if [ "$INPUT_TARGETS" = changed ]; then
+              if [ -z "$REPAIR_PR" ]; then
+                echo "::error::Specify repair_pr or explicit targets for manual STL regeneration."
+                exit 1
+              fi
+              # A PR's base may have advanced; compare from the merge-base.
+              base="$(git merge-base HEAD "$BEFORE_SHA")"
+              python scripts/cad_versions.py --mode plan --base "$base"
+            else
+              python scripts/cad_versions.py --mode plan --targets "$INPUT_TARGETS"
+            fi
           else
             if [ -n "$RETRY_BASE" ]; then
               python scripts/cad_versions.py --mode plan --base "$BEFORE_SHA" --retry-base "$RETRY_BASE"
@@ -78,6 +122,14 @@ jobs:
               python scripts/cad_versions.py --mode plan --base "$BEFORE_SHA"
             fi
           fi
+      - name: Fail rather than report a successful empty manual repair
+        if: github.event_name == 'workflow_dispatch' && steps.plan.outputs.has_models != 'true'
+        run: |
+          echo "::error::No STL targets selected. Set targets to a part path (including auto:false models) or all."
+          exit 1
+      - name: Explain when no new STL is expected
+        if: github.event_name == 'push' && steps.plan.outputs.has_models != 'true'
+        run: echo "::notice::No new or bumped CAD revisions in this push; no STL artifact is expected."
       - uses: actions/setup-python@v5
         if: steps.plan.outputs.has_models == 'true'
         with:

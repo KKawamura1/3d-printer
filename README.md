@@ -54,6 +54,8 @@ build/         中間生成物（Git管理外）
 
 手動生成ではGitHub Actionsの **Run workflow** で対象ブランチを選び、`targets=parts/play_set` や `targets=experiments/pr20_comparison` を指定する。`targets=all` は `auto:true` のパーツと実験を列挙する。`auto:false` を明示した8個セットなどは指定したときだけ生成する。`previews=true` でChromium画像もArtifactに追加できるが、撮影成功を人間の目視確認済みとは扱わない。
 
+**STLの欠落は必要なときだけ復旧：** PRの更新ごとにSTLを生成し直すことはしない。通常のpushでは従来通り、`auto:true`のモデルに新規追加・版更新がある場合だけ自動生成する（失敗・キャンセルされたCAD生成を次の関連pushで回復する既存の仕組みは維持）。**CAD tests成功はSTL生成成功を意味しない**ため、必要なときは次の手動実行を使う。キャッシュに有効な同一版出力が残っていれば再利用し、欠けていれば再生成する。Artifactは`cad-verified-stl`として14日間公開する。\n\n**既存PRを手動復旧：** [CAD preview and print artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) → **Run workflow**（ワークフローのブランチは`main`でよい）で`repair_pr=40`のように開いているPR番号を入力し、`targets=changed`のまま実行する。対象PRの最新headとbaseから、PRで新規追加・版更新された生成対象を求め、版番号を変えずに再生成・STL検証・Artifact公開する。**この処理はRun workflowを押したときだけ実行され、通常のPR更新では走らない。**複数あるうち一部だけ必要なら`targets=parts/name`のように対象を絞り、重い一括ビルドを避ける。PR番号を省略する場合は`targets=parts/...`等の明示指定が必須。`auto:false`のモデル、PRのベースとの差分に版更新が存在しないモデル、過去のSTLを再公開したいモデルは**`targets=parts/name`や`experiments/name`を明示する**（カンマ区切り対応）。手動で対象が0件の場合は失敗として扱い、空の成功を報告しない。別リポジトリからのfork PR番号による手動復旧は非対応。これはSTLの生成・幾何検証であり、実機印刷検証ではない。
+
 **失敗時の自動復旧：** CAD previewワークフローが失敗・キャンセルされた場合、次のpushでは直近のpush差分だけでなく、最後にSTL Artifactを正常公開した実行以降の未復旧モデルを再選択する。例えば「新バージョンの生成失敗 → `test.py`のみ修正」でも、**バージョン番号を増やさず**同じモデルの生成・検証を再試行する。成功済みの実行を巻き戻さず、別パーツの版・固定依存実験を巻き添えにしない。PRのあるブランチはそのPRのベースとの差分から候補を絞る。正常な生成済み成果物はCADキャッシュで再利用する。失敗が発生した瞬間に同じ壊れたコードを無限再試行するものではなく、**次のpush時に復旧**する。`workflow_dispatch`の明示的な対象指定は従来通り使える。
 
 生成済みのSTL・STEPと検証結果はバージョン別にGitHub Actionsキャッシュで可能な限り再利用する。キャッシュがない場合も、同一版の過去の設計コミットから再生成できる。キャッシュ・Artifactはいずれも永続保管を保証しないため、採用確定した印刷用STLは別途保管する。
