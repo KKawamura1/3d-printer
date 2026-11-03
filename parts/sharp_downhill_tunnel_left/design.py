@@ -1,4 +1,4 @@
-"""SD04-V9 left-hand tunnel: mirror the shared SD03 geometry, then engrave.
+"""SD04-V10 left-hand tunnel: mirror the shared SD03 geometry, then engrave.
 
 Geometry, receiver, studs, port sampling and STL validation have one
 authoritative implementation in parts.sharp_downhill_tunnel_right.design.
@@ -6,8 +6,8 @@ Keep this thin adapter to preserve a separately identifiable left STL.
 """
 from parts.sharp_downhill_tunnel_right import design as shared
 
-PART_ID = 'SD04-V9'
-SOURCE_VERSION = 'SD03-V10'
+PART_ID = 'SD04-V10'
+SOURCE_VERSION = 'SD03-V11'
 if shared.PART_ID != SOURCE_VERSION:
     raise ValueError(
         f'{PART_ID} requires right-hand geometry {SOURCE_VERSION}, '
