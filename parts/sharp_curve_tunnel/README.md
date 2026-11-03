@@ -25,3 +25,8 @@ python -m unittest parts.sharp_curve_tunnel.test -v
 ```
 
 `cad-build.json` は **C02-V5 / auto:true**。Actionsの `cad-verified-stl` Artifact 内 `parts/sharp_curve_tunnel/C02-V5/brick.stl` に生成予定。生成成功とスライサーでの安全な造形を確認してから印刷する。STLはGitには格納しない。
+
+
+## PR58 改善適用（C02-V6）
+
+E31-05下面のスリット終端中心をZ4.40→Z3.50mm（R0.65mmを維持し上端Z4.15mm）。PR58 B試験片では床面合格・嵌合感に違和感なし。補強リブは追加せず、走路・刻印の位置を維持。今回の複雑なパーツの実印刷・保持力・耐久は未検証。
