@@ -4,6 +4,7 @@ on:
     paths:
       - "brickcad/course_windows.py"
       - "brickcad/course_double_windows.py"
+      - "brickcad/course_lancet_windows.py"
       - "scripts/course_followup_print.py"
       - "scripts/course_overnight_plate.py"
       - "experiments/course_validation_plate/**"
@@ -11,12 +12,14 @@ on:
       - "tests/test_course_followup_print.py"
       - "tests/test_course_overnight_plate.py"
       - "tests/test_course_double_windows.py"
+      - "tests/test_course_lancet_windows.py"
       - "tests/test_course_validation_plate.py"
       - ".github/workflows/course-followup-plates.yml"
   pull_request:
     paths:
       - 'brickcad/course_windows.py'
       - 'brickcad/course_double_windows.py'
+      - 'brickcad/course_lancet_windows.py'
       - 'scripts/course_followup_print.py'
       - 'scripts/course_overnight_plate.py'
       - 'experiments/course_validation_plate/**'
@@ -24,6 +27,7 @@ on:
       - 'tests/test_course_followup_print.py'
       - 'tests/test_course_overnight_plate.py'
       - 'tests/test_course_double_windows.py'
+      - 'tests/test_course_lancet_windows.py'
       - 'tests/test_course_validation_plate.py'
       - '.github/workflows/course-followup-plates.yml'
   workflow_dispatch:
@@ -49,7 +53,7 @@ jobs:
       - run: python -m pip install -r requirements.txt
       - run: python -m pip install "opencv-python-headless>=4.12,<5"
       - name: Validate both plate plans without slow geometry
-        run: python -m unittest tests.test_course_followup_print tests.test_course_double_windows tests.test_course_overnight_plate tests.test_course_validation_plate tests.test_course_catalog tests.test_course_contract -v
+        run: python -m unittest tests.test_course_followup_print tests.test_course_double_windows tests.test_course_lancet_windows tests.test_course_overnight_plate tests.test_course_validation_plate tests.test_course_catalog tests.test_course_contract -v
       - run: python scripts/course_catalog.py --mode validate
   missing:
     if: (github.event_name == 'workflow_dispatch' && (inputs.set == 'all' || inputs.set == 'missing')) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[missing]'))
