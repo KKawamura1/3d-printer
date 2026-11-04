@@ -1,0 +1,16 @@
+{
+  "version": "SB03-V2",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.one_way_drop_start.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1800,
+  "description": "DUPLO 2x2x2 vertical R16 smooth 90-degree drop to east outlet, 25.74mm top hole, E31-05 underside"
+}
