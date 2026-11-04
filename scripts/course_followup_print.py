@@ -134,7 +134,7 @@ def prepare_sources(selection, base):
     for ident, path in paths.items():
         if not path.is_file():
             raise FileNotFoundError(str(path))
-        if not stl_info(path)["triangle_count"]:
+        if not stl_info(path)["triangles"]:
             raise ValueError("Mesh contains zero triangles: " + ident)
     return paths, model_meta
 
