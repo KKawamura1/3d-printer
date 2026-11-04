@@ -8,7 +8,7 @@ against A1 mini bed bounds and conservative 4 mm spacing. If regenerated CAD
 changes enough to violate the witness, abort instead of publishing a stale STL.
 
 All three open PR56 meshes remain unchanged; all four formerly unprinted
-closed courses use separately versioned two-sided windows. One single-sided
+closed courses use separately versioned two-sided tall pointed windows. One single-sided
 SD04 is retained as a physical comparison. No new window has a print approval.
 """
 import hashlib
@@ -25,7 +25,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from brickcad.course_windows import build_window_variant
-from brickcad.course_double_windows import DOUBLE_VERSIONS, build_dual_window_variant
+from brickcad.course_lancet_windows import LANCET_DUAL_IDS, build_lancet_variant
 from experiments.course_validation_plate.assemble import DTYPE, load_mesh
 from scripts.course_followup_print import EXPECTED_MISSING
 from scripts.course_catalog import load_registry, select, build
@@ -40,26 +40,26 @@ MIN_RASTER_DISTANCE_MM = 4.49  # 0.5-mm raster overestimates actual clearance.
 # clockwise* in the array; equivalently a clockwise rotation in Cartesian XY.
 # Verified with the 2026-11-04 CAD/STL generation artifacts for PR73.
 OVERNIGHT_LAYOUT = (
-    (0,   1, "SD04-V12", 1),     # two-sided steep-sharp-left pilot
-    (0,  74, "E01-V5",   1),     # two-sided large horizontal R48 tunnel
-    (138, 0, "SD04-V11", 2),    # 1-window control, compare to SD04-V12
-    (138,141, "S01-V9",  1),    # two-sided 2x2 vertical-shaft tunnel
+    (0,   1, "SD04-V14", 1),     # two-sided steep-sharp-left pilot
+    (0,  74, "E01-V6",   1),     # two-sided large horizontal R48 tunnel
+    (138, 0, "SD04-V13", 2),    # 1-window control, compare to SD04-V12
+    (138,141, "S01-V10",  1),    # two-sided 2x2 vertical-shaft tunnel
     (0, 212, "SC03-V5",  1),    # unchanged open course
-    (215, 0, "SC02-V14", 3),    # two-sided sloped R48 tunnel
+    (215, 0, "SC02-V15", 3),    # two-sided sloped R48 tunnel
     (130,215, "GC01-V5", 0),    # unchanged open course
     (207,113, "SC05-V1", 1),    # unchanged open course
-    (267,217, "SD03-V13", 2),   # two-sided steep-sharp-right pilot
+    (267,217, "SD03-V14", 2),   # two-sided steep-sharp-right pilot
 )
 WINDOWED_ON_PLATE = {
-    "SD04-V12": "SD04-V10",
-    "E01-V5": "E01-V3",
-    "SD04-V11": "SD04-V10",  # original single-side window as control
-    "S01-V9": "S01-V8",
-    "SC02-V14": "SC02-V12",
-    "SD03-V13": "SD03-V11",
+    "SD04-V14": "SD04-V10",
+    "E01-V6": "E01-V3",
+    "SD04-V13": "SD04-V10",  # pointed 3-window one-sided control
+    "S01-V10": "S01-V8",
+    "SC02-V15": "SC02-V12",
+    "SD03-V14": "SD03-V11",
 }
-DUAL_ON_PLATE = set(WINDOWED_ON_PLATE) & set(DOUBLE_VERSIONS.values())
-OPEN_UNPRINTED = EXPECTED_MISSING - set(DOUBLE_VERSIONS)
+DUAL_ON_PLATE = set(WINDOWED_ON_PLATE) & set(LANCET_DUAL_IDS.values())
+OPEN_UNPRINTED = EXPECTED_MISSING - set(LANCET_DUAL_IDS)
 
 
 def transform_for_plate(mesh, row, col, quarter_turns):
@@ -130,10 +130,8 @@ def build_overnight(output):
              for m in open_result["models"]}
     for new_id, parent_id in WINDOWED_ON_PLATE.items():
         out = source_root / "windows" / new_id
-        if new_id in DUAL_ON_PLATE:
-            build_dual_window_variant(parent_id, out)
-        else:
-            build_window_variant(parent_id, out)
+        build_lancet_variant(
+            parent_id, out, sides=2 if new_id in DUAL_ON_PLATE else 1)
         paths[new_id] = out / "brick.stl"
     requested = [item[2] for item in OVERNIGHT_LAYOUT]
     if (len(requested) != len(set(requested)) or len(requested) != 9
