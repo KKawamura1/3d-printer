@@ -31,15 +31,15 @@ jobs:
           cache: pip
       - name: Install one-SD04 dependencies
         run: python -m pip install -r requirements.txt
-      - name: Verify architectural facade design without slow CAD
-        run: python -m unittest experiments.course_window_rhythm.test -v
-      - name: Generate exactly ONE printable shape and geometry proof
-        run: python -m experiments.course_window_rhythm.design --out build/course-window-rhythm
-      - name: Render actual STL in four views (not a mock-up; see opposite face)
-        run: python scripts/stl_snapshot.py --stl build/course-window-rhythm/brick.stl --out build/course-window-rhythm/preview-4views.png
+      - name: Verify 12 equal segments and original three-window control
+        run: python -m unittest experiments.course_window_rhythm.test experiments.course_window_rhythm.test_curve_facade -v
+      - name: Generate exactly ONE candidate SD04-V19 and CAD sightline proof
+        run: python -m experiments.course_window_rhythm.curve_facade --out build/course-window-curve
+      - name: Render actual curved-wall STL in four views
+        run: python scripts/stl_snapshot.py --stl build/course-window-curve/brick.stl --out build/course-window-curve/preview-4views.png
       - uses: actions/upload-artifact@v4
         with:
-          name: SD04-V18-aesthetic-pilot-${{ github.run_id }}
-          path: build/course-window-rhythm/
+          name: SD04-V19-12section-facade-${{ github.run_id }}
+          path: build/course-window-curve/
           retention-days: 14
           if-no-files-found: error
