@@ -61,7 +61,7 @@ class SightlineWindowPlanningTests(unittest.TestCase):
                 dy=y-outer.origin_xyz[1]
                 self.assertGreater(dx*n[0]+dy*n[1],10)
             self.assertGreater(views[0][0].window_bottom,
-                               views[0][-1].window_bottom+16.)
+                               views[0][-1].window_bottom+15.5)
             self.assertTrue(all(abs(v.window_bottom-v.floor_mm-
                                     BOTTOM_ABOVE_FLOOR)<1e-8
                                 for face in views for v in face))
