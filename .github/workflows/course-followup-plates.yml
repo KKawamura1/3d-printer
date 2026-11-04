@@ -1,0 +1,75 @@
+name: Issue37 follow-up printable plates
+on:
+  push:
+    paths:
+      - "brickcad/course_windows.py"
+      - "scripts/course_followup_print.py"
+      - "experiments/course_validation_plate/**"
+      - "experiments/course_followup_plate/**"
+      - "tests/test_course_followup_print.py"
+      - "tests/test_course_validation_plate.py"
+      - ".github/workflows/course-followup-plates.yml"
+  workflow_dispatch:
+    inputs:
+      set:
+        description: "Which print set: all, missing seven, or large tunnel window variants?"
+        required: true
+        default: all
+        type: choice
+        options: [all, missing, windows]
+permissions:
+  contents: read
+jobs:
+  plan-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Validate both plate plans without slow geometry
+        run: python -m unittest tests.test_course_followup_print tests.test_course_validation_plate tests.test_course_catalog tests.test_course_contract -v
+      - run: python scripts/course_catalog.py --mode validate
+  missing:
+    if: github.event_name == 'push' || inputs.set == 'all' || inputs.set == 'missing'
+    needs: plan-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Independently regenerate all seven PR56 models missing real-world verification
+        run: python scripts/course_followup_print.py --set missing
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue37-followup-missing-${{ github.run_id }}
+          path: build/course-followup-plates/missing/
+          retention-days: 14
+          if-no-files-found: error
+  windows:
+    if: github.event_name == 'push' || inputs.set == 'all' || inputs.set == 'windows'
+    needs: plan-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Generate six separately versioned large tunnel window pilot meshes
+        run: python scripts/course_followup_print.py --set windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue37-followup-windows-${{ github.run_id }}
+          path: build/course-followup-plates/windows/
+          retention-days: 14
+          if-no-files-found: error
