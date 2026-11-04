@@ -1,4 +1,4 @@
-name: Issue37 follow-up printable plates
+name: Issue37 follow-up plates (fast CI, manual CAD build)
 on:
   push:
     paths:
@@ -59,8 +59,9 @@ jobs:
       - name: Validate both plate plans without slow geometry
         run: python -m unittest tests.test_course_followup_print tests.test_course_double_windows tests.test_course_lancet_windows tests.test_course_visibility_windows tests.test_course_overnight_plate tests.test_course_validation_plate tests.test_course_catalog tests.test_course_contract -v
       - run: python scripts/course_catalog.py --mode validate
+  # Avoid accidental multi-minute STL runs from commit-message flags.
   missing:
-    if: (github.event_name == 'workflow_dispatch' && (inputs.set == 'all' || inputs.set == 'missing')) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[missing]'))
+    if: github.event_name == 'workflow_dispatch' && (inputs.set == 'all' || inputs.set == 'missing')
     needs: plan-tests
     runs-on: ubuntu-latest
     timeout-minutes: 300
@@ -98,8 +99,11 @@ jobs:
           path: build/course-followup-plates/windows/
           retention-days: 14
           if-no-files-found: error
+  # Full 9-part OCC/BRep + STL generation takes ~11 minutes. It is intentionally
+  # manual-only; ordinary PR/push checks run plan-tests (~30 seconds) instead.
+  # Use Actions > workflow_dispatch (set=overnight/all) to regenerate print assets.
   overnight:
-    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && (inputs.set == 'all' || inputs.set == 'overnight'))
+    if: github.event_name == 'workflow_dispatch' && (inputs.set == 'all' || inputs.set == 'overnight')
     needs: plan-tests
     runs-on: ubuntu-latest
     timeout-minutes: 300
