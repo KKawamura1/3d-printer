@@ -1,5 +1,5 @@
 {
-  "version": "SB03-V1",
+  "version": "SB03-V2",
   "auto": true,
   "command": [
     "python",
@@ -11,6 +11,6 @@
   "stl": [
     "brick.stl"
   ],
-  "timeout": 1200,
-  "description": "Single-piece DUPLO 2x2x2 one-way top-drop start; 25.74mm round inlet, east outlet, E31-05 shallow receiver"
+  "timeout": 1800,
+  "description": "DUPLO 2x2x2 vertical R16 smooth 90-degree drop to east outlet, 25.74mm top hole, E31-05 underside"
 }
