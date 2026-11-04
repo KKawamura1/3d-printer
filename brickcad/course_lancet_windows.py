@@ -141,7 +141,13 @@ def _choices(family, prefer):
 def _make_face(shape, original, source_id, surf, family, *, prefer=3):
     side, probe_coord, origin, depth = surf
     bottom, shoulder, peak = LEVELS[family]
-    for seq in _choices(family, prefer):
+    # An east-facing exterior wall runs along Y=+8..+24, unlike the
+    # inlet's X=-24..-8. Never reuse inlet X positions on the east face.
+    sequences = (
+        ((8., 16., 24.), (8., 24.), (16.,))
+        if side == "x+" else _choices(family, prefer)
+    )
+    for seq in sequences:
         if len(seq) > prefer:
             continue
         candidate = shape
