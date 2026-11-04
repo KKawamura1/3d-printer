@@ -9,6 +9,10 @@ on:
       - ".github/workflows/course-window-rhythm-pilot.yml"
   workflow_dispatch:
 
+concurrency:
+  group: sd04-window-pilot-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
