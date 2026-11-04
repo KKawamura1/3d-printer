@@ -7,7 +7,8 @@ identical in local proportions and evenly spaced, with identical edge
 margins. The slope is sampled continuously under the five polygon vertices,
 following the already validated D01 geometry language.
 
-The curved 90-degree exit and the opposite side are unperforated. No other
+The curved 90-degree exit and the opposite side are unperforated.
+The facade is on SOUTH (-Y), opposite the circular bend exit visible on NORTH (+Y). No other
 catalogue variants or existing PR73 plate meshes are modified.
 """
 import hashlib
@@ -26,16 +27,16 @@ from brickcad.standards import BALL_TRACK
 from brickcad.verify import exact_bounds
 from scripts.course_catalog import load_registry
 
-PART_ID = "SD04-V17"
+PART_ID = "SD04-V18"
 SOURCE_ID = "SD04-V10"
 # The straight section is x=-32..0. This layout is centred EXACTLY in it.
 # Left/right free margin = 5.25 mm; adjacent solid rib = 2.5 mm.
 CENTRES_X_MM = (-24.0, -16.0, -8.0)
 WIDTH_MM = 5.5
 STRAIGHT_SECTION = (-32.0, 0.0)
-FRONT_WALL_Y = 15.9  # mirror=True: use the +Y face only
-CUT_START_Y = FRONT_WALL_Y + 1.6
-CUT_DEPTH_MM = 18.0  # enter existing passage but never reach back wall
+FRONT_WALL_Y = -15.9  # place the attractive facade on -Y, AWAY from the round exit
+CUT_START_Y = FRONT_WALL_Y - 1.6
+CUT_DEPTH_MM = -18.0  # from -Y exterior into the passage, not across back wall
 BOTTOM_OFFSET_MM = 7.0
 SHOULDER_OFFSET_MM = 18.0
 APEX_OFFSET_MM = 22.0
@@ -106,8 +107,8 @@ def design_windows(cfg=None):
 
 
 def cut_pentagon(window):
-    # XZ plane positive extrusion points in -Y; cut from the visible
-    # exterior to just past the existing channel's ball centreline.
+    # XZ plane negative extrusion points in +Y; cut from the visible
+    # south exterior to just past the existing channel's ball centreline.
     return (cq.Workplane("XZ",origin=(0,CUT_START_Y,0))
             .polyline(window.outline_xz).close()
             .extrude(CUT_DEPTH_MM).val())
@@ -131,7 +132,7 @@ def optical_probe(shape_before,shape_after,window):
         raise ValueError("Window was cut into empty space rather than the tunnel wall")
     # continuous low guard under the side view; positive X/-X receiver,
     # top roof and studs must not be affected by this cut.
-    guard=cq.Vector(x,14.,window.floor_z+3.)
+    guard=cq.Vector(x,-14.,window.floor_z+3.)
     if not shape_before.isInside(guard) or not shape_after.isInside(guard):
         raise ValueError("The lower ball-retaining wall was cut away")
     return {"original_opaque_samples":old_wall,
@@ -167,8 +168,8 @@ def build(output):
                 "optical_proof":proof,
             })
             current=changed
-        # Old source marked on the SOUTH face, which remains a blank,
-        # clean surface. No engraving cuts through the window series.
+        # Existing engraving stays near the SOUTH lower edge (Z=12), safely
+        # below the lowest pointed window (Z>25); neither overlaps.
         current=engrave_course(current,PART_ID,x=-16.,
                                y=-fit.depth/2,z=12.)
     bounds=exact_bounds(current)
@@ -205,7 +206,7 @@ def build(output):
             "windows":evidence,
             "bounds_mm":bounds,
             "volume_mm3":current.Volume(),
-            "front_face":"north (+Y)",
+            "front_face":"south (-Y)",
             "other_faces_unperforated":True,
             "window_count":WINDOW_COUNT,
             "opening_width_mm":WIDTH_MM,
