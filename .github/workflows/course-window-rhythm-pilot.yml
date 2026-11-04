@@ -31,11 +31,11 @@ jobs:
         run: python -m unittest experiments.course_window_rhythm.test -v
       - name: Generate exactly ONE printable shape and geometry proof
         run: python -m experiments.course_window_rhythm.design --out build/course-window-rhythm
-      - name: Render actual STL in four views (not a mock-up)
+      - name: Render actual STL in four views (not a mock-up; see opposite face)
         run: python scripts/stl_snapshot.py --stl build/course-window-rhythm/brick.stl --out build/course-window-rhythm/preview-4views.png
       - uses: actions/upload-artifact@v4
         with:
-          name: SD04-V17-aesthetic-pilot-${{ github.run_id }}
+          name: SD04-V18-aesthetic-pilot-${{ github.run_id }}
           path: build/course-window-rhythm/
           retention-days: 14
           if-no-files-found: error
