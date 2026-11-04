@@ -216,7 +216,7 @@ def build(out):
         raise ValueError("External dimensions changed")
     stl,mesh=export_geometry(body,out,tolerance=.01,angular_tolerance=.1)
     checks={
-        "correct_12_section_intervals":tuple(x["dividers"] for x in evidence)
+        "correct_12_section_intervals":tuple(tuple(x["dividers"]) for x in evidence)
                                        == SEGMENTS,
         "three_nonoverlapping_pentagonal_windows":len(evidence)==3,
         "straight_and_bent_facade":([x["wall_type"] for x in evidence]
