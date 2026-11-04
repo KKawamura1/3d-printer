@@ -13,7 +13,7 @@ class PassiveSplitBoxTests(unittest.TestCase):
         cls.shape, cls.p = build_split_start(cls.config)
 
     def test_size_fit_and_single_print_part(self):
-        self.assertEqual(PART_ID,'SB02-V1')
+        self.assertEqual(PART_ID,'SB02-V2')
         self.assertEqual((self.p.nx,self.p.ny),(4,2))
         self.assertAlmostEqual(self.p.height,2*DUPLO.height)
         self.assertTrue(self.shape.isValid())
@@ -78,9 +78,21 @@ class PassiveSplitBoxTests(unittest.TestCase):
         inflated=cq.Solid.makeSphere(14.,cq.Vector(31.6,0,6.35+14.),angleDegrees1=-90)
         self.assertGreater(intersection(self.shape,inflated),VOLUME_TOL)
 
+    def test_flattened_roof_and_round_exit_clearance(self):
+        c=self.config
+        self.assertAlmostEqual(c.roof_height,36.5)
+        self.assertAlmostEqual(2*DUPLO.height-c.roof_height,1.9)
+        for x in (-20.,-16.,16.,20.):
+            self.assertFalse(self.shape.isInside(cq.Vector(x,0,c.roof_height-.3)))
+            self.assertTrue(self.shape.isInside(cq.Vector(x,0,c.roof_height+.3)))
+        # Interior sphere collision checks span both branches.
+        samples=ball_clearance(c,self.shape,count=41)
+        self.assertLess(max(v['intersection_mm3'] for v in samples),VOLUME_TOL)
+
     def test_reject_incompatible_dimensions(self):
         for changes in (dict(cells_x=5),dict(entry_diameter=30),dict(receiver_depth=5.),
-                        dict(center_ridge_floor=20),dict(hole_bottom=18)):
+                        dict(center_ridge_floor=20),dict(hole_bottom=18),
+                        dict(roof_height=35.5),dict(roof_height=38.0)):
             with self.subTest(changes=changes),self.assertRaises(ValueError):SplitStart(**changes)
 
 if __name__=='__main__':unittest.main()

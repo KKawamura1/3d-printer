@@ -1,5 +1,5 @@
 {
-  "version": "SB02-V1",
+  "version": "SB02-V2",
   "auto": true,
   "command": ["python", "-m", "parts.passive_split_box.design", "--out", "{out}"],
   "stl": ["brick.stl"],
