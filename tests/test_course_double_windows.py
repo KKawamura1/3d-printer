@@ -27,8 +27,9 @@ class DoubleWindowCourseTests(unittest.TestCase):
                 self.assertNotEqual(new_id, original)
                 a,b = dual_cutters(original)
                 box1,box2 = a.BoundingBox(),b.BoundingBox()
-                self.assertLess(box1.ymin,0)
-                self.assertGreater(box2.ymax,0)
+                self.assertLess(
+                    (box1.ymin + box1.ymax)*(box2.ymin + box2.ymax), 0,
+                    "Two cuts must be on opposite global Y faces")
                 self.assertGreaterEqual(box1.zmin,19.)
                 self.assertGreaterEqual(box2.zmin,19.)
                 self.assertLessEqual(box1.zmax,48.)
