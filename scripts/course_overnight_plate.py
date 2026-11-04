@@ -7,8 +7,9 @@ reapplies the witness, and independently checks the physical output triangles
 against A1 mini bed bounds and conservative 4 mm spacing. If regenerated CAD
 changes enough to violate the witness, abort instead of publishing a stale STL.
 
-Seven PR56 meshes remain unchanged. The two additional window prototypes are
-separately versioned and have NOT yet passed physical print tests.
+All three open PR56 meshes remain unchanged; all four formerly unprinted
+closed courses use separately versioned two-sided windows. One single-sided
+SD04 is retained as a physical comparison. No new window has a print approval.
 """
 import hashlib
 import json
@@ -16,7 +17,6 @@ from pathlib import Path
 import struct
 import sys
 
-import cv2
 import numpy as np
 from PIL import Image, ImageDraw
 
@@ -25,8 +25,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from brickcad.course_windows import build_window_variant
+from brickcad.course_double_windows import DOUBLE_VERSIONS, build_dual_window_variant
 from experiments.course_validation_plate.assemble import DTYPE, load_mesh
-from scripts.course_followup_print import EXPECTED_MISSING, prepare_sources
+from scripts.course_followup_print import EXPECTED_MISSING
+from scripts.course_catalog import load_registry, select, build
 
 BED_MM = 180.0
 PIXELS_PER_MM = 2.0
@@ -38,20 +40,26 @@ MIN_RASTER_DISTANCE_MM = 4.49  # 0.5-mm raster overestimates actual clearance.
 # clockwise* in the array; equivalently a clockwise rotation in Cartesian XY.
 # Verified with the 2026-11-04 CAD/STL generation artifacts for PR73.
 OVERNIGHT_LAYOUT = (
-    (0,   1, "SD04-V11", 1),
-    (0,  74, "E01-V3",   1),
-    (138, 0, "SD04-V10", 2),
-    (138,141, "S01-V8",  1),
-    (0, 212, "SC03-V5",  1),
-    (215, 0, "SC02-V12", 3),
-    (130,215, "GC01-V5", 0),
-    (207,113, "SC05-V1", 1),
-    (267,217, "SD03-V12", 2),
+    (0,   1, "SD04-V12", 1),     # two-sided steep-sharp-left pilot
+    (0,  74, "E01-V5",   1),     # two-sided large horizontal R48 tunnel
+    (138, 0, "SD04-V11", 2),    # 1-window control, compare to SD04-V12
+    (138,141, "S01-V9",  1),    # two-sided 2x2 vertical-shaft tunnel
+    (0, 212, "SC03-V5",  1),    # unchanged open course
+    (215, 0, "SC02-V14", 3),    # two-sided sloped R48 tunnel
+    (130,215, "GC01-V5", 0),    # unchanged open course
+    (207,113, "SC05-V1", 1),    # unchanged open course
+    (267,217, "SD03-V13", 2),   # two-sided steep-sharp-right pilot
 )
-ADDED_WINDOWS = {
-    "SD04-V11": "SD04-V10",
-    "SD03-V12": "SD03-V11",
+WINDOWED_ON_PLATE = {
+    "SD04-V12": "SD04-V10",
+    "E01-V5": "E01-V3",
+    "SD04-V11": "SD04-V10",  # original single-side window as control
+    "S01-V9": "S01-V8",
+    "SC02-V14": "SC02-V12",
+    "SD03-V13": "SD03-V11",
 }
+DUAL_ON_PLATE = set(WINDOWED_ON_PLATE) & set(DOUBLE_VERSIONS.values())
+OPEN_UNPRINTED = EXPECTED_MISSING - set(DOUBLE_VERSIONS)
 
 
 def transform_for_plate(mesh, row, col, quarter_turns):
@@ -90,6 +98,7 @@ def transform_for_plate(mesh, row, col, quarter_turns):
 
 
 def raster_projection(mesh):
+    import cv2  # Optional for the ordinary CAD version-selection CI; installed in the plate job.
     """Rasterize all triangles conservatively from above at 0.5mm resolution.
 
     No bounding-box approximation: concave curves keep their empty XY space.
@@ -109,21 +118,30 @@ def write_binary_stl(mesh, path):
 
 
 def build_overnight(output):
+    import cv2  # Plate build dependency only; ordinary source tests do not require OpenCV.
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     local = output / "individual"
     local.mkdir(exist_ok=True)
     source_root = ROOT / "build/course-overnight-sources"
-    paths, _ = prepare_sources("missing", source_root / "missing")
-    for new_id, parent_id in ADDED_WINDOWS.items():
+    open_models = select(load_registry(), ",".join(sorted(OPEN_UNPRINTED)))
+    open_result = build(open_models, source_root / "unroofed")
+    paths = {m["id"]: source_root / "unroofed" / m["stl"]
+             for m in open_result["models"]}
+    for new_id, parent_id in WINDOWED_ON_PLATE.items():
         out = source_root / "windows" / new_id
-        build_window_variant(parent_id, out)
+        if new_id in DUAL_ON_PLATE:
+            build_dual_window_variant(parent_id, out)
+        else:
+            build_window_variant(parent_id, out)
         paths[new_id] = out / "brick.stl"
     requested = [item[2] for item in OVERNIGHT_LAYOUT]
     if (len(requested) != len(set(requested)) or len(requested) != 9
-            or set(requested) != EXPECTED_MISSING | set(ADDED_WINDOWS)
-            or set(paths) != set(requested)):
-        raise ValueError("Nine-mesh one-night plan no longer matches PR56 physical evidence")
+            or set(requested) != OPEN_UNPRINTED | set(WINDOWED_ON_PLATE)
+            or set(paths) != set(requested)
+            or {v for k,v in WINDOWED_ON_PLATE.items() if k in DUAL_ON_PLATE}
+               < (EXPECTED_MISSING - OPEN_UNPRINTED)):
+        raise ValueError("Nine-mesh one-night plan no longer covers every unprinted tunnel")
 
     seen = []
     pieces = []
@@ -167,7 +185,9 @@ def build_overnight(output):
         pieces.append(transformed)
         manifest_items.append({
             "id": ident,
-            "model_type": "windowed_prototype" if ident in ADDED_WINDOWS else "PR56_pending_physical_verification",
+            "model_type": ("double_window" if ident in DUAL_ON_PLATE else
+                           "single_window_comparison" if ident in WINDOWED_ON_PLATE else
+                           "PR56_unprinted_open"),
             "source_sha256": hashlib.sha256(src.read_bytes()).hexdigest(),
             "rotation_quarters": quarter_turns,
             "placement_row_px": row,
@@ -193,8 +213,10 @@ def build_overnight(output):
     picture.save(output / "layout.png")
     report = {
         "model_count": 9,
-        "pr56_unprinted_count": 7,
-        "new_window_count": 2,
+        "pr56_classifications_covered": 7,
+        "unprinted_open_models": len(OPEN_UNPRINTED),
+        "two_sided_window_models": len(DUAL_ON_PLATE),
+        "single_sided_comparison_models": len(set(WINDOWED_ON_PLATE)-DUAL_ON_PLATE),
         "bed_mm": BED_MM,
         "edge_margin_mm": MARGIN_MM,
         "minimum_approximate_projected_gap_mm": overall_min,
@@ -208,7 +230,8 @@ def build_overnight(output):
         "items": manifest_items,
     }
     (output / "manifest.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
-    print("A1 mini overnight plate: 9/9 sources, seven missing + two windows; "
+    print("A1 mini overnight plate: 9/9 sources, seven unprinted classifications "
+          "including all four two-sided tunnels; "
           f"raster closest-gap {overall_min:.2f} mm", flush=True)
     return report
 
