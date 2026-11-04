@@ -53,3 +53,22 @@ GitHub Actions **Issue37 follow-up printable plates** で `set=all` または `m
 印刷時はA1 mini / PLA / サポートOFFでスライスを確認。特に曲線側壁の窓の開口・造形ブリッジ・下側ガード壁・刻印を目視確認する。
 
 印刷後の確認結果はIssue #42へ追記し、窓付き版を採用するか決める。2×4以上の印刷品同士の嵌合が硬い問題はIssue #26で別管理し、本PRでは寸法の一律変更を行わない。
+
+
+## 4. 一晩用の最優先1プレート：実形状ネスティング9点
+
+ユーザー要望「一晩に1プレートしか印刷できない」に合わせ、当初の外接矩形配置から**CAD STLのXY投影シルエットを活用する配置**を追加した。4×4カーブ部品の空洞を使用することで、下記の**9点を同じ180×180mmプレート**に配置する。
+
+- **旧PR56版の未印刷7点を全部**：E01-V3、SC02-V12、GC01-V5、SC03-V5、SC05-V1、SD04-V10、S01-V8
+- **新しい窓付き版2点**：SD03-V12（急右カーブ）、SD04-V11（急左カーブ）
+
+位置・Z軸回転（0/90/180/270度）を固定した再現スクリプト \`scripts/course_overnight_plate.py\` が、各CADを新規生成して位置決めし直す。別バージョンへの勝手な差し替え・メッシュの縮小なし。移動後の**実際の全STL三角形**を0.5mm解像度でXY投影し、3mmのベッド外周と4mm以上の相互クリアランスを保守的にチェックする。検証が失敗した場合は一括STLを公開せずCIを停止。
+
+\`\`\`bash
+python -m pip install "opencv-python-headless>=4.12,<5"
+python scripts/course_overnight_plate.py
+\`\`\`
+
+Actions \`Issue37 follow-up printable plates\` の \`overnight\` job、手動の場合は \`set=overnight\` で生成。成果物 \`issue37-overnight-9parts-<run>\` に合成 \`pr56-overnight-9parts.stl\`、各パーツSTL、実投影配置画像 \`layout.png\`、証跡 \`manifest.json\` を収録。
+
+**9点という数は発見済みの配置であり、計算上の最適数を証明したものではない。** 9点のサポートOFFスライス・実物は未確認。CADで有効なメッシュと造形成功は別なので、初回はBambu Studioのプレビューで窓・下面・スタッドと移動経路を確認する。残りの窓付き版4点は将来の別プレート候補として引き続き残す。
