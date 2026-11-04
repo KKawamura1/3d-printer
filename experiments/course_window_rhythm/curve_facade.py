@@ -94,13 +94,13 @@ def path_target(wall_s,cfg):
     return (x,y,floor+BALL_TRACK.radius), floor
 
 
-def design(cfg=None):
+def design(cfg=None, *, segments=SEGMENTS):
     cfg=cfg or recipe()
     if (cfg.route,cfg.drop_mm,cfg.tunnel,cfg.mirror) != ("sharp",19.2,True,True):
         raise ValueError("Incompatible SD04 base")
     pitch=TOTAL_WALL_MM/DIVISIONS
     ret=[]
-    for l,r in SEGMENTS:
+    for l,r in segments:
         centre=(l+r)/2*pitch
         outward_xy,inward,part=wall_frame(centre,cfg)
         target, floor=path_target(centre,cfg)
@@ -175,12 +175,12 @@ def verify_visibility(original,altered,w):
             "obstructed_after_window":0}
 
 
-def build(out):
+def build(out, *, segments=SEGMENTS, part_id=PART_ID):
     out=Path(out)
     out.mkdir(parents=True,exist_ok=True)
     cfg=recipe()
-    windows=design(cfg)
-    with audited_production_course(PART_ID) as audit:
+    windows=design(cfg,segments=segments)
+    with audited_production_course(part_id) as audit:
         original,fit=build_course(cfg,label=None)
         bounds_before=exact_bounds(original)
         body=original
@@ -208,7 +208,7 @@ def build(out):
             })
             body=next_body
         # Engrave below all apertures on the south straight outer face.
-        body=engrave_course(body,PART_ID,x=-16.,y=-fit.depth/2,z=12.)
+        body=engrave_course(body,part_id,x=-16.,y=-fit.depth/2,z=12.)
     bounds_after=exact_bounds(body)
     if not body.isValid() or len(body.Solids())!=1:
         raise ValueError("Result is not a valid one-part CAD BRep")
@@ -217,7 +217,7 @@ def build(out):
     stl,mesh=export_geometry(body,out,tolerance=.01,angular_tolerance=.1)
     checks={
         "correct_12_section_intervals":tuple(tuple(x["dividers"]) for x in evidence)
-                                       == SEGMENTS,
+                                       == segments,
         "three_nonoverlapping_pentagonal_windows":len(evidence)==3,
         "straight_and_bent_facade":([x["wall_type"] for x in evidence]
                                      == ["straight","curve","curve"]),
@@ -234,7 +234,7 @@ def build(out):
                                   body.Volume()<.001,
     }
     report={
-        "id":PART_ID,"source_id":SOURCE_ID,
+        "id":part_id,"source_id":SOURCE_ID,
         "passed":all(checks.values()),"checks":checks,"mesh":mesh,
         "production_contract":PRODUCTION_CONTRACT,
         "contract_evidence":audit.manifest(),
@@ -244,10 +244,14 @@ def build(out):
             "total_outer_wall_arclength_mm":TOTAL_WALL_MM,
             "one_section_mm":TOTAL_WALL_MM/12,
             "window_arclength_width_mm":WINDOW_WIDTH_MM,
-            "divider_pairs":[list(pair) for pair in SEGMENTS],
+            "divider_pairs":[list(pair) for pair in segments],
             "pitch_mm":TOTAL_WALL_MM/3,
             "intact_three_segment_gap_mm":3*TOTAL_WALL_MM/12,
-            "remaining_end_margin_mm":2*TOTAL_WALL_MM/12,
+            "entrance_margin_mm":segments[0][0]*TOTAL_WALL_MM/12,
+            "exit_margin_mm":(DIVISIONS-segments[-1][1])*TOTAL_WALL_MM/12,
+            "gap_entrance_gap1_gap2_exit_ratio": [
+                segments[0][0], segments[1][0]-segments[0][1],
+                segments[2][0]-segments[1][1], DIVISIONS-segments[-1][1]],
             "external_bounds_mm":bounds_after,
             "goal":"One coherent facade, windows follow its bent arclength",
         },
@@ -259,7 +263,7 @@ def build(out):
     (out/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n")
     if not report["passed"]:
         raise ValueError("12-section facade proof failed: "+repr(checks))
-    print("TWELVE-SECTION OUTER FACADE PASS",PART_ID,flush=True)
+    print("TWELVE-SECTION OUTER FACADE PASS",part_id,flush=True)
     print("Walls:",[(r["dividers"],r["wall_type"],round(r["wall_station_mm"],2))
                    for r in evidence],flush=True)
     return report
