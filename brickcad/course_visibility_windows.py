@@ -280,8 +280,8 @@ def _apply_windows(shape, original, views):
         # Under each aperture, the outer side material at floor+3mm must
         # remain intact to guard against a ball escaping sideways.
         nx,ny=view.inward_xy
-        guard=cq.Vector(view.origin_xyz[0]+nx*2.,
-                        view.origin_xyz[1]+ny*2.,
+        guard=cq.Vector(view.origin_xyz[0]+nx*4.,
+                        view.origin_xyz[1]+ny*4.,
                         view.floor_mm+3.)
         if not result.isInside(guard) or not updated.isInside(guard):
             raise ValueError(f"{view.face}: insufficient side guard below view")
