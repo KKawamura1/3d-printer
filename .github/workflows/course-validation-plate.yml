@@ -1,0 +1,59 @@
+name: PR56 independent CAD - A1 mini single validation plate
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/course_validation_plate/**'
+      - 'tests/test_course_validation_plate.py'
+      - '.github/workflows/course-validation-plate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-plate-plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: python -m pip install numpy==2.3.5
+      - name: Check the exact 17 PR56 candidate IDs and the packer
+        run: |
+          python scripts/course_catalog.py --mode validate
+          python -m unittest tests.test_course_validation_plate tests.test_course_catalog tests.test_course_contract -v
+          python experiments/course_validation_plate/assemble.py --mode targets
+
+  render:
+    needs: validate-plate-plan
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install current PR56 CAD dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Generate 17 CAD meshes via PR56 common production generators only
+        shell: bash
+        run: |
+          set -euo pipefail
+          targets="$(python experiments/course_validation_plate/assemble.py --mode targets)"
+          echo "Building from PR56 production course contract: ${targets}"
+          python scripts/course_catalog.py --mode build --targets "${targets}"
+      - name: Audit generated CAD and pack one A1 mini bed
+        run: python experiments/course_validation_plate/assemble.py --mode build
+      - name: Upload the combined STL, original STLs, visual layout, and provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr56-a1mini-one-plate-${{ github.run_id }}
+          path: build/course-validation-plate/
+          retention-days: 14
+          if-no-files-found: error
