@@ -102,7 +102,7 @@ def _pentagon(side, longitudinal, start, depth, family):
     x exit face: use the YZ plane (horizontal Y axis).
     """
     small = family == "S01"
-    width = WIDTH_SMALL if small else WIDTH
+    width = WIDTH_SMALL if small or family == "SC02" else WIDTH
     z0, z1, z2 = LEVELS[family]
     half = width / 2.
     points = [
@@ -134,6 +134,10 @@ def _choices(family, prefer):
     bases = LONGITUDES[family]
     if len(bases) == 1:
         return ((bases[0],),)
+    if family == "SC02":
+        # The usable curved wall is ~12mm long. Two 5mm pointed
+        # openings + a 2mm support rib are safe; three would merge.
+        return ((-20., -13.), (-16.,))
     mid = bases[1]
     return (bases, (bases[0], bases[-1]), (mid,))
 
@@ -178,7 +182,7 @@ def _make_face(shape, original, source_id, surf, family, *, prefer=3):
         if valid:
             return candidate, {
                 "face": side, "count": len(seq), "centres_mm": list(seq),
-                "width_mm": WIDTH_SMALL if family == "S01" else WIDTH,
+                "width_mm": WIDTH_SMALL if family in ("S01","SC02") else WIDTH,
                 "z_bottom_mm": bottom, "z_shoulder_mm": shoulder,
                 "z_peak_mm": peak, "removed_mm3": amounts,
                 "open_probes_mm": probes,
