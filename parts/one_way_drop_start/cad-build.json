@@ -1,0 +1,16 @@
+{
+  "version": "SB03-V1",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.one_way_drop_start.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "Single-piece DUPLO 2x2x2 one-way top-drop start; 25.74mm round inlet, east outlet, E31-05 shallow receiver"
+}
