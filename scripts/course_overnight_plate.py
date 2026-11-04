@@ -199,7 +199,7 @@ def build_overnight(output):
                            "PR56_unprinted_open"),
             "visible_windows_per_face": (
                 [len(x) for x in
-                 window_reports[ident]["geometry"]["faces"]]
+                 window_reports[ident]["geometry"]["windows"]]
                 if ident in window_reports else []),
             "source_sha256": hashlib.sha256(src.read_bytes()).hexdigest(),
             "rotation_quarters": quarter_turns,
