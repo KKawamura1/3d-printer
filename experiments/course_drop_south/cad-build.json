@@ -1,0 +1,18 @@
+{
+  "version": "X02-V3",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "brickcad.course_drop_generator",
+    "--config",
+    "experiments/course_drop_south/course.json",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "Issue 39 common BRep: west high to south low roofed steep drop with 0.25 run-out, prototype (X02-V1)"
+}

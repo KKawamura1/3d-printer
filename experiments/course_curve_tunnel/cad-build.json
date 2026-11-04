@@ -1,0 +1,18 @@
+{
+  "version": "Y02-V2",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "brickcad.course_curve_generator",
+    "--config",
+    "experiments/course_curve_tunnel/course.json",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "Issue #39 shared R16 sharp curve (tunnel) from pinned PR36; physical Stage 1 result pending"
+}

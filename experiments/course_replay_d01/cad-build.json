@@ -1,0 +1,18 @@
+{
+  "version": "D01-V3-R1",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "brickcad.course_replay_d01",
+    "--config",
+    "experiments/course_replay_d01/course.json",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "Issue #39 config-driven legacy CAD geometry replay (not new physical verification) Replay artifact revision R1: adapter split for isolated source fingerprints; underlying physical part remains D01-V3."
+}

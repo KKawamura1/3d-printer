@@ -1,0 +1,39 @@
+name: Issue37 independent CAD vs original BRep parity
+on:
+  push:
+    # Any production geometry or contract edit must exercise the parity oracle.
+    # The push message may request [course-all] for full verification.
+    paths:
+      - 'tests/test_course_catalog_parity.py'
+      - 'brickcad/course_*.py'
+      - 'experiments/course_catalog/registry.json'
+      - '.github/workflows/course-catalog-parity.yml'
+  workflow_dispatch:
+    inputs:
+      models:
+        description: 'all or comma-separated CAD IDs'
+        required: true
+        default: 'all'
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: course-catalog-parity-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      COURSE_PARITY_MODELS: ${{ github.event_name == 'workflow_dispatch' && inputs.models || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-all]') && 'all') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-T01]') && 'T01-V6') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-R01]') && 'R01-V1') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-SC02]') && 'SC02-V12,SC02L-V6') || 'GC01-V5' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compare every selected original BRep before and after marking
+        run: python -m unittest tests.test_course_catalog_parity -v

@@ -39,6 +39,24 @@ class TunnelTests(unittest.TestCase):
             self.assertFalse(self.shape.isInside(cq.Vector(x+4.71,y,39.5)))
             self.assertFalse(self.shape.isInside(cq.Vector(x,y,39.5)))
 
+    def test_pr58_short_slots_preserve_receiver_roof(self):
+        # PR58: short-slot/no-rib B printed cleanly; the original long slots
+        # broke through the 4.75 mm receiver roof (4.40 + 0.65 = 5.05).
+        from parts.tunnel.e31_fit import SLOT_END_Z, SLOT_END_RADIUS
+        self.assertAlmostEqual(SLOT_END_Z, 3.50)
+        self.assertLess(SLOT_END_Z + SLOT_END_RADIUS, self.t.cavity_height)
+        for x, y in ((6.5, 0), (0, 6.5), (-6.5, 0), (0, -6.5)):
+            self.assertFalse(self.shape.isInside(cq.Vector(x, y, 3.5)))
+            self.assertTrue(self.shape.isInside(cq.Vector(x, y, 4.4)))
+
+    def test_receiver_depth_selects_brick_or_rail_slots(self):
+        from parts.tunnel.e31_fit import slot_end_z_for_receiver_depth
+        self.assertEqual(slot_end_z_for_receiver_depth(4.75), 3.50)
+        self.assertEqual(slot_end_z_for_receiver_depth(17.60), 4.40)
+        self.assertEqual(slot_end_z_for_receiver_depth(5.65), 4.40)
+        with self.assertRaises(ValueError):
+            slot_end_z_for_receiver_depth(4.74)
+
     def test_step_roundtrip_precise_volume(self):
         # PR59: the short-slot model is geometrically unchanged by STEP
         # serialization, but ordinary Volume() exceeds 1e-4 mm^3 difference.
@@ -70,7 +88,7 @@ class TunnelTests(unittest.TestCase):
 
     def test_round_entry_high_ceiling_style(self):
         from parts.tunnel.design_e31 import PART_ID
-        self.assertEqual(PART_ID, 'T01-V5')
+        self.assertEqual(PART_ID, 'T01-V6')
         # Internal roof is higher than the circular entrance at this position.
         z_circle=self.t.floor+2*self.t.radius
         self.assertFalse(self.shape.isInside(cq.Vector(0,0,z_circle+0.2)))

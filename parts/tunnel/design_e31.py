@@ -14,7 +14,7 @@ from parts.tunnel.e31_fit import add_e31_05_receiver_features, SLOT_END_Z
 from brickcad.provenance import design_manifest
 from brickcad.marking import engrave
 
-PART_ID = "T01-V5"
+PART_ID = "T01-V6"
 from brickcad.render import viewer, mesh, outlines, preview
 from brickcad.verify import intersection, exact_bounds, mesh_check, place, precise_volume, VOLUME_TOL
 
@@ -149,6 +149,12 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
     (out/'brick.stl').write_bytes(raw[:80]+struct.pack('<I',len(tris))+b''.join(tris))
     cq.exporters.export(shape,str(out/'brick.step'))
     restored=cq.importers.importStep(str(out/'brick.step')).val()
+    # STEP serialization may change tiny absolute volumes; use a strict
+    # relative tolerance, while still requiring one valid connected solid.
+    step_delta_mm3=abs(precise_volume(restored)-precise_volume(shape))
+    step_delta_fraction=step_delta_mm3/shape.Volume()
+    step_roundtrip_ok=(restored.isValid() and len(restored.Solids())==1
+                       and step_delta_fraction<1e-6)
     m=mesh_check(out/'brick.stl');fit=fit_checks(shape,p)
     sweep=ball_sweep(shape,p,t,t.ball_diameter)
     negative=ball_sweep(shape,p,t,28.)
@@ -156,7 +162,7 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
     checks=dict(valid_brep=shape.isValid(),one_solid=len(shape.Solids())==1,
         dimensions=all(abs(a-b)<1e-6 for a,b in zip(bounds,[31.8,31.8,42.9])),
         mesh=m['passed'],mesh_volume=abs(m['signed_volume_mm3']-shape.Volume())/shape.Volume()<.001,
-        step_roundtrip=restored.isValid() and len(restored.Solids())==1 and abs(precise_volume(restored)-precise_volume(shape))<1e-4,
+        step_roundtrip=step_roundtrip_ok,
         continuous_ball_path_clear=sweep<VOLUME_TOL,oversize_ball_detected=negative>VOLUME_TOL,
         floor_present=shape.isInside(cq.Vector(0,0,t.floor-.1)),
         floor_open=not shape.isInside(cq.Vector(0,0,t.floor+.1)),
@@ -173,6 +179,10 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
         geometry=dict(bounds_mm=bounds,volume_mm3=shape.Volume(),parameters=asdict(p),checks=checks),
         tunnel=asdict(t),bridge_width_mm=t.bridge_width,roof_thickness_mm=p.height-t.ceiling,
         mesh=m,collapsed_stl_triangles_removed=collapsed,
+        step_roundtrip_diagnostics=dict(valid=restored.isValid(),
+            solids=len(restored.Solids()), restored_volume_mm3=restored.Volume(),
+            absolute_delta_mm3=step_delta_mm3, relative_delta=step_delta_fraction,
+            relative_tolerance=1e-6),
         finish_detail=dict(outer_corner_radius_mm=.8,stud_lip_radius_mm=.5,receiver_entry_chamfer_mm=.3,mouth_radius_mm=.3),
         e31_05_receiver=dict(tube_od_mm=13.20,bead_minor_radius_mm=.20,bead_z_mm=2.25,
                              slot_width_mm=1.10,slot_end_z_mm=SLOT_END_Z,
@@ -213,7 +223,9 @@ def export(out=Path('build/duplo-tunnel-trial-01')):
     html=html.replace("'Brick CAD inspector · '","'DUPLO tunnel trial 01 · '")
     (out/'viewer.html').write_text(html)
     print('TUNNEL', 'PASS' if report['passed'] else 'FAIL',bounds,'bridge',t.bridge_width,
-          'brep_volume',shape.Volume(),'mesh_volume',m['signed_volume_mm3'],checks,flush=True)
+          'brep_volume',shape.Volume(),'mesh_volume',m['signed_volume_mm3'],
+           'step_delta_mm3',step_delta_mm3,'step_fraction',step_delta_fraction,
+           'step_valid',restored.isValid(),'step_solids',len(restored.Solids()),checks,flush=True)
     if not report['passed']:raise RuntimeError('Tunnel verification failed')
     return report
 

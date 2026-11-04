@@ -175,6 +175,17 @@ class VersionSelectionTests(unittest.TestCase):
             self.assertEqual(original, cad.source_fingerprint(
                 root, 'experiments/trial', auto_override=False))
 
+    def test_stale_cache_rebuilds_instead_of_reusing_old_geometry(self):
+        current = {'source_sha256': 'current-hash'}
+        old = {'source_sha256': 'old-hash'}
+        self.assertEqual(cad.cache_source_state(current, 'current-hash'), 'current')
+        self.assertEqual(cad.cache_source_state(old, 'current-hash'), 'stale')
+        self.assertEqual(cad.cache_source_state(old, 'current-hash', 'old-hash'),
+                         'auto_migration')
+        # An unrelated legacy hash must never authorize reusing stale geometry.
+        self.assertEqual(cad.cache_source_state(old, 'current-hash', 'other-hash'),
+                         'stale')
+
     def test_source_fingerprint_changes_with_geometry(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -267,6 +278,73 @@ class VersionSelectionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 cad.verify_stl(model)
 
+
+
+
+class DeclarativeCourseVersionTests(unittest.TestCase):
+    def test_course_recipe_changes_are_versioned_and_fingerprinted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            recipe = root / "experiments/course_test"
+            engine = root / "brickcad"
+            recipe.mkdir(parents=True)
+            engine.mkdir(parents=True)
+            name = "experiments/course_test"
+            spec_dict = spec("G01-V1")
+            spec_dict["command"] = ["python", "-m", "brickcad.course_generator"]
+            (recipe / "cad-build.json").write_text(json.dumps(spec_dict))
+            (recipe / "course.json").write_text('{"id":"G01"}\n')
+            (engine / "course_generator.py").write_text("SOURCE = 1\n")
+            original = cad.source_fingerprint(root, name)
+            self.assertIn("brickcad/course_generator.py", cad.model_sources(root, name))
+            (recipe / "course.json").write_text('{"id":"G02"}\n')
+            self.assertNotEqual(original, cad.source_fingerprint(root, name))
+            with self.assertRaisesRegex(ValueError, "experiments/course_test"):
+                cad.select({name: spec_dict}, 'changed', prior={name: 'G01-V1'},
+                           changed=[name + '/course.json'], root=root)
+            (recipe / "course.json").write_text('{"id":"G01"}\n')
+            (engine / "course_generator.py").write_text("SOURCE = 2\n")
+            self.assertNotEqual(original, cad.source_fingerprint(root, name))
+            # A shared engine change changes the source fingerprint, but
+            # unchanged experiments are excluded from automatic CI planning.
+            self.assertEqual(cad.select(
+                {name: spec_dict}, 'changed', prior={name: 'G01-V1'},
+                changed=["brickcad/course_generator.py"], root=root), [])
+            # The same engine edit still requires a bump if this experiment's
+            # own recipe is changed in the PR as well.
+            with self.assertRaisesRegex(ValueError, "experiments/course_test"):
+                cad.select({name: spec_dict}, 'changed', prior={name: 'G01-V1'},
+                           changed=[name + '/course.json',
+                                    "brickcad/course_generator.py"], root=root)
+            spec_dict["version"] = "G02-V1"
+            self.assertEqual(cad.select({name: spec_dict}, 'changed',
+                                        prior={name: 'G01-V1'},
+                                        changed=[name + '/course.json'], root=root), [name])
+
+
+
+class MultipleCourseEngineFingerprintTests(unittest.TestCase):
+    def test_v2_changes_do_not_invalidate_v1_geometry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            engine = root / 'brickcad'
+            engine.mkdir()
+            (engine / 'course_generator.py').write_text('OLD = 1\n')
+            (engine / 'course_generator_v2.py').write_text('NEW = 1\n')
+            for name, engine_name in (
+                    ('experiments/old', 'brickcad.course_generator'),
+                    ('experiments/new', 'brickcad.course_generator_v2')):
+                part = root / name
+                part.mkdir(parents=True)
+                (part / 'course.json').write_text('{"id":"D01"}\n')
+                (part / 'cad-build.json').write_text(json.dumps({
+                    'version':'D01-V1', 'command':['python','-m',engine_name],
+                    'stl':['brick.stl']}))
+            old = cad.source_fingerprint(root,'experiments/old')
+            new = cad.source_fingerprint(root,'experiments/new')
+            (engine/'course_generator_v2.py').write_text('NEW = 2\n')
+            self.assertEqual(old,cad.source_fingerprint(root,'experiments/old'))
+            self.assertNotEqual(new,cad.source_fingerprint(root,'experiments/new'))
 
 
 class SnapshotArtifactTests(unittest.TestCase):

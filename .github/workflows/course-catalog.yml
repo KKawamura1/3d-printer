@@ -1,0 +1,66 @@
+name: Issue 37 course catalogue generator (23 categories)
+on:
+  push:
+    paths:
+      - 'scripts/course_catalog.py'
+      - 'brickcad/course_*.py'
+      - 'brickcad/course_contract.py'
+      - 'brickcad/course_r48_sloped_tunnel.py'
+      - 'experiments/course_catalog/**'
+      - 'tests/test_course_catalog.py'
+      - 'tests/test_course_contract.py'
+      - '.github/workflows/course-catalog.yml'
+  pull_request:
+    paths:
+      - 'scripts/course_catalog.py'
+      - 'experiments/course_catalog/**'
+      - 'tests/test_course_catalog.py'
+      - 'tests/test_course_contract.py'
+      - '.github/workflows/course-catalog.yml'
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: 'all or comma-separated model IDs / Issue #37 numbers'
+        required: true
+        default: 'all'
+        type: string
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate all model recipes and Issue 37 category coverage
+        run: python -m unittest tests.test_course_catalog tests.test_course_contract -v
+      - run: python scripts/course_catalog.py --mode validate
+  render:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: catalogue
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      TARGETS: ${{ github.event_name == 'workflow_dispatch' && inputs.targets || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-all]') && 'all') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-SC02]') && 'SC02-V12') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[course-R01]') && 'R01-V1') || 'GC01-V5' }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Regenerate selected CAD from source
+        run: python scripts/course_catalog.py --mode build --targets "$TARGETS" --strict-head
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue37-course-catalog-${{ github.run_id }}
+          path: build/course-catalog/
+          retention-days: 14
+          if-no-files-found: error

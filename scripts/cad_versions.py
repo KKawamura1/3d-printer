@@ -149,9 +149,44 @@ def imports_for(file, root, seen=None):
     return seen
 
 
+def model_sources(root, name):
+    """Old CAD entrypoints and new declarative course recipes share immutability rules."""
+    sources = imports_for(name + '/design.py', root)
+    if (root / name / 'course.json').is_file():
+        # An engine revision is part of CAD geometry provenance. Keep v1
+        # historical replays immutable when the v2 engine grows new features.
+        cfg = root / name / 'cad-build.json'
+        cmd = json.loads(cfg.read_text()).get('command', []) if cfg.is_file() else []
+        engines = [c for c in cmd if isinstance(c, str) and
+                   c.startswith('brickcad.course_')]
+        if len(engines) != 1:
+            raise ValueError(f'{name}: exactly one supported course engine required')
+        engine = engines[0].replace('.', '/') + '.py'
+        if not (root / engine).is_file():
+            raise ValueError(f'{name}: missing course generator {engine}')
+        sources |= imports_for(engine, root)
+        sources.add(name + '/course.json')
+    return sources
+
+
+def cache_source_state(identity, current_sha, legacy_sha=None):
+    """Never reuse an artifact whose source does not match its build inputs.
+
+    A compatible auto:false -> auto:true metadata migration can retain its
+    existing STL. Other source differences are cache misses, not evidence of
+    an invalid version bump: the Git diff planner enforces version policy.
+    """
+    old_sha = identity.get('source_sha256')
+    if old_sha == current_sha:
+        return 'current'
+    if legacy_sha is not None and old_sha == legacy_sha:
+        return 'auto_migration'
+    return 'stale'
+
+
 def source_fingerprint(root, name, *, auto_override=None):
-    """Fingerprint model source, transitive Python imports and shared CAD inputs."""
-    relevant = imports_for(name + '/design.py', root)
+    """Fingerprint model source, declarative recipe, transitive imports and shared inputs."""
+    relevant = model_sources(root, name)
     # Test-only fixes must not invalidate an immutable geometry cache entry.
     # Verification still runs in the independent CAD tests workflow.
     relevant.update(p.relative_to(root).as_posix() for p in (root / name).glob('*.py')
@@ -228,10 +263,9 @@ def select(specs, target, *, changed=(), prior=None, root=None, prior_specs=None
     changed = set(changed)
     selected, errors = [], []
     for name, spec in sorted(specs.items()):
-        # Experiments are opt-in to incremental CI: a shared CAD refactor alone
-        # must not revalidate or rebuild historical experiment revisions.
-        # Direct edits (including course recipes/configuration) remain subject
-        # to the normal version-bump rule below.
+        # Experiments are opt-in to incremental CI: shared CAD changes must not
+        # force historical experiment revisions to be revalidated or rebuilt.
+        # Direct changes to an experiment remain version-controlled below.
         if name.startswith('experiments/') and not any(
                 path.startswith(name + '/') for path in changed):
             continue
@@ -239,10 +273,10 @@ def select(specs, target, *, changed=(), prior=None, root=None, prior_specs=None
         bumped = old != spec['version']
         # A geometry source edit must be accompanied by a new revision.
         local_code = (name + '/course.json' in changed or any(
-            p.startswith(name + '/') and p.endswith('.py') and
-            not p.endswith('/test.py') and not p.endswith('/__init__.py')
+            p.startswith(name + '/') and p.endswith('.py')
+            and not p.endswith('/test.py') and not p.endswith('/__init__.py')
             for p in changed))
-        imported = changed.intersection(imports_for(name + '/design.py', root) - {name + '/design.py'}) if root else set()
+        imported = changed.intersection(model_sources(root, name) - {name + '/design.py', name + '/course.json'}) if root else set()
         config_changed = name + '/cad-build.json' in changed
         previous_spec = (prior_specs or {}).get(name)
         # auto controls scheduling, not geometry or a CAD revision.
@@ -391,11 +425,17 @@ def build(root, specs, requested, previews=False):
                     legacy = (source_fingerprint(checkout, name, auto_override=False)
                               if name.startswith('experiments/') and spec.get('auto', True)
                               else None)
-                    if identity.get('source_sha256') != legacy:
-                        raise ValueError(f'{name}@{version}: cached source fingerprint changed without version bump')
-                    identity['source_sha256'] = fingerprint
-                    stamp.write_text(json.dumps(identity, indent=2) + chr(10))
-                cached = identity.get('version') == version and all(
+                    if cache_source_state(identity, fingerprint, legacy) == 'auto_migration':
+                        identity['source_sha256'] = fingerprint
+                        stamp.write_text(json.dumps(identity, indent=2) + chr(10))
+                    else:
+                        # Restored caches may be from earlier shared-engine or
+                        # source-fingerprint revisions. Rebuild only this model;
+                        # never accept mismatched geometry or stamp it as valid.
+                        print('CAD CACHE STALE', name, version,
+                              'source fingerprint differs; regenerating', flush=True)
+                        identity = None
+                cached = identity is not None and identity.get('version') == version and all(
                     (out / rel).exists() and
                     json.loads((out / rel).parent.joinpath('report.json').read_text()).get('passed') is True and
                     verify_stl(out / rel)['sha256'] == identity['sha256'][rel]
@@ -430,6 +470,13 @@ def build(root, specs, requested, previews=False):
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, dst)
             shutil.copyfile(source.parent / 'report.json', dst.parent / 'report.json')
+            # The per-recipe provenance manifest must ship with its STL;
+            # it was previously left only in the runner's build directory.
+            course_meta = source.parent / 'course-manifest.json'
+            if course_meta.is_file():
+                shutil.copyfile(course_meta, dst.parent / 'course-manifest.json')
+                manifest['versions'][name]['course_manifest_sha256'] = (
+                    hashlib.sha256(course_meta.read_bytes()).hexdigest())
             key = str(Path(name) / version / rel)
             manifest['files'][key] = verify_stl(dst)
             snapshot_rel = Path(rel).with_suffix('.preview.png')
