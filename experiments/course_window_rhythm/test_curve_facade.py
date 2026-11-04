@@ -48,10 +48,13 @@ class TwelveEqualSections(unittest.TestCase):
         windows=design(cfg)
         for w in windows:
             self.assertEqual(len(w.outline_local_xz),5)
-            floor=w.floor_at_centre
-            lower=[p[1] for p in w.outline_local_xz[:2]]
-            self.assertLess(max(lower), floor+8)
-            self.assertGreater(min(lower), floor+6)
+            from brickcad.course_loft_family import height
+            # Each of the FIVE polygon vertices follows the slope at its
+            # own wall station, not a uniform height at the window centre.
+            expected_offsets=(7.,7.,18.,22.,18.)
+            for (u,z),offset in zip(w.outline_local_xz,expected_offsets):
+                floor_at_vertex=height(rail_s(w.centre_wall_s-u),cfg)
+                self.assertAlmostEqual(z-floor_at_vertex,offset,places=5)
             self.assertLess(w.outline_local_xz[0][0],
                             w.outline_local_xz[1][0])
             self.assertGreater(w.outline_local_xz[3][1],max(
