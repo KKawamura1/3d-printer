@@ -26,7 +26,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from brickcad.course_windows import build_window_variant
-from brickcad.course_lancet_windows import LANCET_DUAL_IDS, build_lancet_variant
+from brickcad.course_visibility_windows import VISIBLE_DUAL_IDS, build_visible_window_variant
 from experiments.course_validation_plate.assemble import DTYPE, load_mesh
 from scripts.course_followup_print import EXPECTED_MISSING
 from scripts.course_catalog import load_registry, select, build
@@ -41,26 +41,26 @@ MIN_RASTER_DISTANCE_MM = 4.49  # 0.5-mm raster overestimates actual clearance.
 # clockwise* in the array; equivalently a clockwise rotation in Cartesian XY.
 # Verified with the 2026-11-04 CAD/STL generation artifacts for PR73.
 OVERNIGHT_LAYOUT = (
-    (0,   1, "SD04-V14", 1),     # two-sided steep-sharp-left pilot
-    (0,  74, "E01-V6",   1),     # two-sided large horizontal R48 tunnel
-    (138, 0, "SD04-V13", 2),    # 1-window control, compare to SD04-V12
-    (138,141, "S01-V10",  1),    # two-sided 2x2 vertical-shaft tunnel
+    (0,   1, "SD04-V15", 1),     # two-sided steep-sharp-left pilot
+    (0,  74, "E01-V7",   1),     # two-sided large horizontal R48 tunnel
+    (138, 0, "SD04-V16", 2),    # 1-window control, compare to SD04-V12
+    (138,141, "S01-V11",  1),    # two-sided 2x2 vertical-shaft tunnel
     (0, 212, "SC03-V5",  1),    # unchanged open course
-    (215, 0, "SC02-V15", 3),    # two-sided sloped R48 tunnel
+    (215, 0, "SC02-V16", 3),    # two-sided sloped R48 tunnel
     (130,215, "GC01-V5", 0),    # unchanged open course
     (207,113, "SC05-V1", 1),    # unchanged open course
-    (267,217, "SD03-V14", 2),   # two-sided steep-sharp-right pilot
+    (267,217, "SD03-V15", 2),   # two-sided steep-sharp-right pilot
 )
 WINDOWED_ON_PLATE = {
-    "SD04-V14": "SD04-V10",
-    "E01-V6": "E01-V3",
-    "SD04-V13": "SD04-V10",  # pointed 3-window one-sided control
-    "S01-V10": "S01-V8",
-    "SC02-V15": "SC02-V12",
-    "SD03-V14": "SD03-V11",
+    "SD04-V15": "SD04-V10",
+    "E01-V7": "E01-V3",
+    "SD04-V16": "SD04-V10",  # pointed 3-window one-sided control
+    "S01-V11": "S01-V8",
+    "SC02-V16": "SC02-V12",
+    "SD03-V15": "SD03-V11",
 }
-DUAL_ON_PLATE = set(WINDOWED_ON_PLATE) & set(LANCET_DUAL_IDS.values())
-OPEN_UNPRINTED = EXPECTED_MISSING - set(LANCET_DUAL_IDS)
+DUAL_ON_PLATE = set(WINDOWED_ON_PLATE) & set(VISIBLE_DUAL_IDS.values())
+OPEN_UNPRINTED = EXPECTED_MISSING - set(VISIBLE_DUAL_IDS)
 
 
 def transform_for_plate(mesh, row, col, quarter_turns):
@@ -132,7 +132,7 @@ def build_overnight(output):
     window_reports = {}
     for new_id, parent_id in WINDOWED_ON_PLATE.items():
         out = source_root / "windows" / new_id
-        candidate = build_lancet_variant(
+        candidate = build_visible_window_variant(
             parent_id, out, sides=2 if new_id in DUAL_ON_PLATE else 1)
         if candidate["id"] != new_id or not candidate["report"]["passed"]:
             raise ValueError("Unexpected pointed-window variant output")
@@ -140,9 +140,9 @@ def build_overnight(output):
         reports_dir = output / "window-reports"
         reports_dir.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(out / "report.json", reports_dir / (new_id + ".json"))
-        print("POINTED WINDOWS", new_id,
-              [face["count"] for face in
-               candidate["report"]["geometry"]["faces"]], flush=True)
+        print("TRACK-ALIGNED WINDOWS", new_id,
+              [len(face) for face in
+               candidate["report"]["geometry"]["windows"]], flush=True)
         paths[new_id] = out / "brick.stl"
     requested = [item[2] for item in OVERNIGHT_LAYOUT]
     if (len(requested) != len(set(requested)) or len(requested) != 9
@@ -197,8 +197,8 @@ def build_overnight(output):
             "model_type": ("double_window" if ident in DUAL_ON_PLATE else
                            "single_window_comparison" if ident in WINDOWED_ON_PLATE else
                            "PR56_unprinted_open"),
-            "pointed_windows_per_face": (
-                [x["count"] for x in
+            "visible_windows_per_face": (
+                [len(x) for x in
                  window_reports[ident]["geometry"]["faces"]]
                 if ident in window_reports else []),
             "source_sha256": hashlib.sha256(src.read_bytes()).hexdigest(),
