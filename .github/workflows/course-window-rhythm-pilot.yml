@@ -1,0 +1,41 @@
+name: SD04 architectural windows - one pilot (not main CI)
+
+on:
+  push:
+    branches:
+      - experiment/issue37-sd04-window-rhythm
+    paths:
+      - "experiments/course_window_rhythm/**"
+      - ".github/workflows/course-window-rhythm-pilot.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  proof-and-preview:
+    # This heavy sample build is NEVER a required or triggered job for
+    # unrelated PRs and never builds all nine shapes.
+    if: github.ref == 'refs/heads/experiment/issue37-sd04-window-rhythm'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install one-SD04 dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Verify architectural facade design without slow CAD
+        run: python -m unittest experiments.course_window_rhythm.test -v
+      - name: Generate exactly ONE printable shape and geometry proof
+        run: python -m experiments.course_window_rhythm.design --out build/course-window-rhythm
+      - name: Render actual STL in four views (not a mock-up)
+        run: python scripts/stl_snapshot.py --stl build/course-window-rhythm/brick.stl --out build/course-window-rhythm/preview-4views.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SD04-V17-aesthetic-pilot-${{ github.run_id }}
+          path: build/course-window-rhythm/
+          retention-days: 14
+          if-no-files-found: error
