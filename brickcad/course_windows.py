@@ -103,6 +103,7 @@ def build_window_variant(source_id, out):
     out.mkdir(parents=True, exist_ok=True)
     with audited_production_course(new_id) as audit:
         original, fit = original_unmarked(model)
+        original_bounds = exact_bounds(original)
         cutter = window_cutter(source_id)
         shape = original.cut(cutter).clean()
         removed = original.Volume() - shape.Volume()
@@ -112,7 +113,7 @@ def build_window_variant(source_id, out):
             raise ValueError(f"{new_id} has broken the tunnel into disconnected pieces")
         shape = mark_variant(shape, model, new_id, fit)
     bounds = exact_bounds(shape)
-    target = (fit.width, fit.depth, fit.height + fit.stud_height)
+    target = original_bounds
     if any(abs(float(got) - float(want)) > .11 for got, want in zip(bounds, target)):
         raise ValueError(f"{new_id} changed external brick dimensions: {bounds} vs {target}")
     # The centerline's round inlet/outlet, E31 underside and any original
