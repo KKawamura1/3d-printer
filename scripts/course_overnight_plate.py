@@ -13,6 +13,7 @@ SD04 is retained as a physical comparison. No new window has a print approval.
 """
 import hashlib
 import json
+import shutil
 from pathlib import Path
 import struct
 import sys
@@ -128,10 +129,20 @@ def build_overnight(output):
     open_result = build(open_models, source_root / "unroofed")
     paths = {m["id"]: source_root / "unroofed" / m["stl"]
              for m in open_result["models"]}
+    window_reports = {}
     for new_id, parent_id in WINDOWED_ON_PLATE.items():
         out = source_root / "windows" / new_id
-        build_lancet_variant(
+        candidate = build_lancet_variant(
             parent_id, out, sides=2 if new_id in DUAL_ON_PLATE else 1)
+        if candidate["id"] != new_id or not candidate["report"]["passed"]:
+            raise ValueError("Unexpected pointed-window variant output")
+        window_reports[new_id] = candidate["report"]
+        reports_dir = output / "window-reports"
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(out / "report.json", reports_dir / (new_id + ".json"))
+        print("POINTED WINDOWS", new_id,
+              [face["count"] for face in
+               candidate["report"]["geometry"]["faces"]], flush=True)
         paths[new_id] = out / "brick.stl"
     requested = [item[2] for item in OVERNIGHT_LAYOUT]
     if (len(requested) != len(set(requested)) or len(requested) != 9
@@ -186,6 +197,10 @@ def build_overnight(output):
             "model_type": ("double_window" if ident in DUAL_ON_PLATE else
                            "single_window_comparison" if ident in WINDOWED_ON_PLATE else
                            "PR56_unprinted_open"),
+            "pointed_windows_per_face": (
+                [x["count"] for x in
+                 window_reports[ident]["geometry"]["faces"]]
+                if ident in window_reports else []),
             "source_sha256": hashlib.sha256(src.read_bytes()).hexdigest(),
             "rotation_quarters": quarter_turns,
             "placement_row_px": row,
