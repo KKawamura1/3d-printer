@@ -10,7 +10,7 @@ from experiments.course_window_rhythm.design import (
 
 class SingleFacadeWindowRhythmTests(unittest.TestCase):
     def test_only_one_new_version_not_silent_edit(self):
-        self.assertEqual(PART_ID,"SD04-V17")
+        self.assertEqual(PART_ID,"SD04-V18")
         self.assertEqual(SOURCE_ID,"SD04-V10")
         self.assertEqual(WINDOW_COUNT,3)
 
@@ -50,6 +50,10 @@ class SingleFacadeWindowRhythmTests(unittest.TestCase):
         self.assertEqual(cfg.route,"sharp")
         self.assertTrue(cfg.tunnel)
         windows=design_windows(cfg)
+        from experiments.course_window_rhythm.design import FRONT_WALL_Y, CUT_START_Y, CUT_DEPTH_MM
+        self.assertLess(FRONT_WALL_Y,0.)  # No circular outlet on viewing side
+        self.assertLess(CUT_START_Y,FRONT_WALL_Y)
+        self.assertLess(CUT_DEPTH_MM,0.)
         for w in windows:
             self.assertGreater(min(pt[0] for pt in w.outline_xz),STRAIGHT_SECTION[0])
             self.assertLess(max(pt[0] for pt in w.outline_xz),STRAIGHT_SECTION[1])
