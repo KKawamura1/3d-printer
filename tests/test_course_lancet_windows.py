@@ -44,11 +44,15 @@ class TallPointedWindowTests(unittest.TestCase):
                     self.assertGreater(z2-z0,slender)
 
     def test_three_first_then_two_then_one_on_large_courses(self):
-        for family in ("E01","SC02","SD"):
+        for family in ("E01","SD"):
             choices = _choices(family,3)
             self.assertEqual(tuple(map(len,choices)),(3,2,1))
             self.assertGreater(min(choices[0][i+1]-choices[0][i]
                                    for i in range(2)), 6.)
+        # The shorter usable SC02 wall supports two narrow windows,
+        # not three separated by adequate strengthening ribs.
+        self.assertEqual(tuple(map(len,_choices("SC02",3))),(2,1))
+        self.assertEqual(_choices("SC02",3)[0],(-20.,-13.))
         self.assertEqual(tuple(map(len,_choices("S01",3))),(1,))
 
     def test_bad_source_is_rejected(self):
