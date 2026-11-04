@@ -36,12 +36,14 @@ DOUBLE_VERSIONS = {
 }
 
 # (x, y, z, x_extent, y_extent, z_extent) mm for the *opposite* wall.
-# E01 inner wall is unusually thick (solid body to ±31.9), so it needs a
-# long passage. SC02 curved footprint has a thin inside wall instead.
+# E01 has a very thick inner wall; cutting through it would create an
+# unprintable ~33mm horizontal bridge. Open its *other exterior face* at the
+# curve exit instead (east face). Thus E01 has two viewing sides with a short
+# through-wall aperture. SC02 has a thin inner wall and uses opposing y faces.
 # Opposite y offsets mirror for left/right models; SD has two flat walls.
 OTHER_CUTS = {
-    "E01-V3": (-16., 17., 25., 10., 37., 9.),
-    "E01L-V1":(-16.,-17., 25., 10., 37., 9.),
+    "E01-V3": (27., 16., 25., 16., 10., 9.),
+    "E01L-V1":(27.,-16., 25., 16., 10., 9.),
     "SC02-V12":(-16., 5., 40., 10., 18., 9.),
     "SC02L-V6":(-16.,-5., 40., 10., 18., 9.),
     "SD03-V11":(-16.,11., 40., 10., 18., 9.),
@@ -55,8 +57,8 @@ FIRST_S01 = (-2., -16., 40., 7., 14., 8.)
 # is (outer wall point, opposite wall point) in the same horizontal Z slice.
 # This checks two real, through-wall openings rather than superficial dents.
 WALL_PROBES = {
-    "E01-V3": ((-16.,-30.,25.), (-16.,20.,25.)),
-    "E01L-V1":((-16., 30.,25.), (-16.,-20.,25.)),
+    "E01-V3": ((-16.,-30.,25.), (29.,16.,25.)),
+    "E01L-V1":((-16., 30.,25.), (29.,-16.,25.)),
     "SC02-V12":((-16.,-28.,40.), (-16.,2.,40.)),
     "SC02L-V6":((-16., 28.,40.), (-16.,-2.,40.)),
     "SD03-V11":((-16.,-14.5,40.), (-16.,14.5,40.)),
