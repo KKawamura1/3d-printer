@@ -43,7 +43,7 @@ jobs:
         run: python -m unittest tests.test_course_followup_print tests.test_course_validation_plate tests.test_course_catalog tests.test_course_contract -v
       - run: python scripts/course_catalog.py --mode validate
   missing:
-    if: github.event_name != 'workflow_dispatch' || inputs.set == 'all' || inputs.set == 'missing'
+    if: (github.event_name == 'workflow_dispatch' && (inputs.set == 'all' || inputs.set == 'missing')) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[missing]'))
     needs: plan-tests
     runs-on: ubuntu-latest
     timeout-minutes: 300
@@ -64,7 +64,6 @@ jobs:
           if-no-files-found: error
   windows:
     if: github.event_name != 'workflow_dispatch' || inputs.set == 'all' || inputs.set == 'windows'
-    needs: plan-tests
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
