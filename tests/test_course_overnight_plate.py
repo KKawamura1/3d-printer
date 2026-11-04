@@ -19,7 +19,7 @@ class OvernightPrintPlanTests(unittest.TestCase):
         self.assertEqual(set(names), OPEN_UNPRINTED | set(WINDOWED_ON_PLATE))
         self.assertEqual(len(OPEN_UNPRINTED), 3)
         self.assertEqual(len(DUAL_ON_PLATE), 5)
-        self.assertEqual(set(WINDOWED_ON_PLATE) - DUAL_ON_PLATE, {"SD04-V11"})
+        self.assertEqual(set(WINDOWED_ON_PLATE) - DUAL_ON_PLATE, {"SD04-V13"})
         self.assertEqual(EXPECTED_MISSING - OPEN_UNPRINTED,
                          {"E01-V3", "SC02-V12", "SD04-V10", "S01-V8"})
         self.assertTrue(
