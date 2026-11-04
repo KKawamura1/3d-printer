@@ -1,0 +1,18 @@
+{
+  "version": "SB01-V1",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "parts.switch_start_box.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "brick.stl",
+    "lid.stl",
+    "lever.stl"
+  ],
+  "timeout": 2400,
+  "description": "4x4x3 manual left/right marble start box, one-course drop, E31-05 underside, rocking lever and captive bearing lid"
+}
