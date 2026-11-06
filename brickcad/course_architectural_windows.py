@@ -168,8 +168,6 @@ def _large_planar_r48(m):
         x,y,z=_track_r48(east_t(s),left,False)
         return (x,y,z+BALL_TRACK.radius)
     return [
-        flat_face("inlet-flat","__never__",0,None,None,None,None)
-    ] if False else [
         flat_face("inlet-flat",32.,SMALL_WIDTH,
                   lambda s:(s-32.,ywall),
                   (0.,yn),
@@ -229,8 +227,8 @@ def _sharp_wall(m):
         else:
             a=math.pi/2-(s-32)/radius
             rx,ry=math.cos(a),math.sin(a)
-            wall=(radius*rx,cy-sign*radius*ry)
-            inward=(-rx,sign*ry)
+            wall=(radius*rx,cy+sign*radius*ry)
+            inward=(-rx,-sign*ry)
         return wall,inward,target,floor
     outer=convex_face("straight-to-convex-outer",length,at,
                       desc="V20 full outer wall, 1:2:2:1 across straight+convex")
@@ -267,7 +265,7 @@ def _small_plan(m):
                     BALL_TRACK.floor+BALL_TRACK.radius)
         return [flat_face(
             "north-flat-small",31.8,6.,
-            lambda s:(s-15.9,15.9),(0.,-1.),centred,
+            lambda s:(-16+16/math.sqrt(2),15.9),(0.,-1.),centred,
             lambda s:BALL_TRACK.floor,
             desc="one centre window on the 2x2 flat wall; no concave cut",
             single=True)]
@@ -363,10 +361,15 @@ def _mark(shape,m,new_id,fit):
     if m["id"].startswith(("E01","SC02","SD03","SD04")):
         return mark_variant(shape,m,new_id,fit)
     if m["id"].startswith("S"):
-        # Maintain the prior calibrated marking at a low, solid location.
-        return engrave_course(shape,new_id,x=0.,y=-fit.depth/2,z=12.)
+        if m["id"]=="S01-V8":
+            return engrave_course(shape,new_id,x=0.,y=-fit.depth/2,z=12.)
+        if m["id"]=="S03-V10":
+            return engrave_course(shape,new_id,x=0.,y=-fit.depth/2,z=18.)
+        from brickcad.course_prod_steep_drop import _north_engrave
+        return _north_engrave(shape,new_id,fit.depth)
     if m["id"]=="C02-V8":
-        return engrave_course(shape,new_id,x=0.,y=fit.depth/2,z=11.5)
+        from brickcad.course_prod_sharp_curve import _mark_north
+        return _mark_north(shape,new_id,fit.depth,"tunnel")
     return engrave_course(shape,new_id,x=0.,y=-fit.depth/2,z=10.)
 
 
