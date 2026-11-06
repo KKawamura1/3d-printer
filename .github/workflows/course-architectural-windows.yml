@@ -1,0 +1,105 @@
+name: Issue37 architectural facade windows (isolated)
+
+on:
+  push:
+    branches:
+      - feature/issue37-architectural-window-facades
+    paths:
+      - "brickcad/course_architectural_windows.py"
+      - "tests/test_course_architectural_windows.py"
+      - "scripts/course_architectural_plates.py"
+      - ".github/workflows/course-architectural-windows.yml"
+      - "docs/course-architectural-windows.md"
+  workflow_dispatch:
+
+concurrency:
+  group: architectural-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  layout-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install production CAD dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Verify flat/convex/concave policy for all Issue37 tunnel shapes
+        run: python -m unittest tests.test_course_architectural_windows -v
+
+  generate-models:
+    # Explicit opt-in, never part of normal PR/main CI.
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[generate-windows]')
+    needs: layout-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        source:
+          - E01-V3
+          - E01L-V1
+          - SC02-V12
+          - SC02L-V6
+          - SD03-V11
+          - SD04-V10
+          - T01-V6
+          - C02-V8
+          - S01-V8
+          - S02-V16
+          - S03-V10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install CAD dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Generate independently validated window model
+        run: |
+          mkdir -p "build/architectural-${{ matrix.source }}"
+          python -m brickcad.course_architectural_windows \
+            --model "${{ matrix.source }}" \
+            --out "build/architectural-${{ matrix.source }}"
+      - name: Save unique STL/STEP and per-window geometry/visibility report
+        uses: actions/upload-artifact@v4
+        with:
+          name: architectural-${{ matrix.source }}
+          path: build/architectural-${{ matrix.source }}/
+          retention-days: 21
+          if-no-files-found: error
+
+  plate-packing:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[generate-windows]')
+    needs: generate-models
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install packing dependencies
+        run: python -m pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: architectural-*
+          path: build/window-models
+      - name: Verify all eleven sources and pack A1 mini plates
+        run: python -m scripts.course_architectural_plates --input build/window-models --out build/window-plates
+      - uses: actions/upload-artifact@v4
+        with:
+          name: architectural-11models-a1mini-plates-${{ github.run_id }}
+          path: build/window-plates/
+          retention-days: 21
+          if-no-files-found: error
