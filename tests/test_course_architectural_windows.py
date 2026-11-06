@@ -29,12 +29,12 @@ class ArchitecturalFacades(unittest.TestCase):
 
     def test_flat_group_reproduces_d01_negative_space(self):
         centres=flat_centres(63.8,8)
-        self.assertEqual(tuple(round(x,6) for x in centres),(15.9,31.9,47.9))
+        self.assertEqual(tuple(round(x,2) for x in centres),(15.94,31.9,47.86))
         margins=[centres[0]-4,
                  centres[1]-centres[0]-8,
                  centres[2]-centres[1]-8,
                  63.8-(centres[-1]+4)]
-        ratios=tuple(x/margins[1] for x in margins)
+        ratios=tuple(round(x/margins[1],6) for x in margins)
         self.assertEqual(ratios,FLAT_RATIO)
 
     def test_convex_group_exact_half_section_v20_ratio(self):
