@@ -12,6 +12,7 @@ from brickcad.course_architectural_windows import (
     _window_geometry, SHARP_OUTER_RADIUS, R48_OUTER_RADIUS,
 )
 from scripts.course_catalog import load_registry
+from brickcad.standards import BALL_TRACK
 
 
 class ArchitecturalFacades(unittest.TestCase):
@@ -97,7 +98,7 @@ class ArchitecturalFacades(unittest.TestCase):
                 dy=ball[1]-wall[1]
                 self.assertAlmostEqual(math.hypot(*normal),1.,places=6)
                 self.assertGreater(dx*normal[0]+dy*normal[1],15.)
-                self.assertAlmostEqual(ball[2]-floor,12.13,delta=.01)
+                self.assertAlmostEqual(ball[2]-floor, BALL_TRACK.radius,delta=.01)
 
 
 if __name__=="__main__":
