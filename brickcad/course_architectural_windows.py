@@ -276,11 +276,14 @@ def _small_plan(m):
         exit_direction=cfg["exit"]
         shaft_x=-2. if exit_direction=="east" else 0.
         shaft_y=0.
+        # The mirrored S03 north face approaches the round outlet, so its
+        # upper sightline already has a large void. Use its solid south face.
+        y_sign=-1. if sid=="S03-V10" else 1.
         return [flat_face(
             "shaft-flat-small",31.8,5.,
-            lambda s:(shaft_x,15.9),(0.,-1.),
+            lambda s:(shaft_x,y_sign*15.9),(0.,-y_sign),
             lambda s:(shaft_x,shaft_y,32.),
-            lambda s:BALL_TRACK.floor+4.,
+            lambda s:BALL_TRACK.floor,
             desc="compact 2x2 vertical shaft: one tall window only",
             single=True)]
     raise ValueError("No compact roofed course strategy")
