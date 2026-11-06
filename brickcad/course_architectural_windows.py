@@ -367,7 +367,11 @@ def _mark(shape,m,new_id,fit):
         if m["id"]=="S01-V8":
             return engrave_course(shape,new_id,x=0.,y=-fit.depth/2,z=12.)
         if m["id"]=="S03-V10":
-            return engrave_course(shape,new_id,x=0.,y=-fit.depth/2,z=18.)
+            # The new viewing facade is SOUTH; keep the 3mm required ID on
+            # the solid EAST side, not under/through the new sightline.
+            turned=shape.rotate((0,0,0),(0,0,1),-90)
+            marked=engrave_course(turned,new_id,x=0.,y=-fit.depth/2,z=12.)
+            return marked.rotate((0,0,0),(0,0,1),90)
         from brickcad.course_prod_steep_drop import _north_engrave
         return _north_engrave(shape,new_id,fit.depth)
     if m["id"]=="C02-V8":
