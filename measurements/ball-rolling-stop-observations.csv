@@ -1,0 +1,2 @@
+observation_id,reported_date,upstream_part,downstream_part,stop_location,symptom,frequency_qualitative,attempts,stops,fixation,ball_condition,run_condition,evidence,root_cause_status,notes
+BS-20261115-001,2026-11-15,S02-V16,E01-V8,downstream_entrance,stops,frequent,,,,,,user_physical_observation,unidentified,"E01-V8の入口でよく停止する。上流出口・下流入口・境界の段差/傾き・進入速度などは未切り分け。"
