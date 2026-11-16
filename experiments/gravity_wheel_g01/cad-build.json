@@ -1,0 +1,8 @@
+{
+  "version": "GW01-V1",
+  "auto": true,
+  "command": ["python", "-m", "experiments.gravity_wheel_g01.design", "--out", "{out}"],
+  "stl": ["rotor.stl", "guard_left.stl", "guard_right.stl", "stand_left.stl", "stand_right.stl", "axle.stl"],
+  "timeout": 1200,
+  "description": "Gravity wheel 2-cup manually armed experimental module, six separate printable CAD parts"
+}
