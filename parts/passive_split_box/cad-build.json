@@ -1,0 +1,8 @@
+{
+  "version": "SB02-V2",
+  "auto": true,
+  "command": ["python", "-m", "parts.passive_split_box.design", "--out", "{out}"],
+  "stl": ["brick.stl"],
+  "timeout": 1800,
+  "description": "DUPLO 4x2x2 passive split start box; 25.74mm round top entry, symmetric exits, E31-05 shallow receiver"
+}
