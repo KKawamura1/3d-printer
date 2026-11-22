@@ -41,18 +41,21 @@ jobs:
           python -m unittest experiments.r48_unified_issue89.test_contract -v
           python -m unittest experiments.r48_unified_issue89.test_open_roofed_path -v
       - name: Build exactly two specimens and check 21 sphere stations each
-        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]')
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]') || contains(github.event.head_commit.message, '[issue89-plate]')
         run: python -m experiments.r48_unified_issue89.export --out build/issue89-shared-r48
       - name: Extra-diameter sphere audit on both actual STEP models
         if: contains(github.event.head_commit.message, '[issue89-oversize]') || github.event_name == 'workflow_dispatch'
         run: python -m experiments.r48_unified_issue89.ball_size_audit --step-root build/issue89-shared-r48 --out build/issue89-shared-r48/oversize-audit.json
+      - name: Assemble single A1 mini print STL with four size-labeled upright mouth coupons
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-plate]')
+        run: python -m experiments.r48_unified_issue89.plate_export --source-root build/issue89-shared-r48 --out build/issue89-shared-r48/plate
       - name: Optional four-view mesh snapshots
         if: github.event_name == 'workflow_dispatch' && inputs.render
         run: |
           python scripts/stl_snapshot.py --stl build/issue89-shared-r48/X89-E01-U1/brick.stl --out build/issue89-shared-r48/X89-E01-U1/preview.png
           python scripts/stl_snapshot.py --stl build/issue89-shared-r48/X89-SC02-U1/brick.stl --out build/issue89-shared-r48/X89-SC02-U1/preview.png
       - name: Upload two model STLs STEP and validation reports only
-        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]')
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]') || contains(github.event.head_commit.message, '[issue89-plate]')
         uses: actions/upload-artifact@v4
         with:
           name: issue89-unified-R48-flat-sloped
