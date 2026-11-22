@@ -45,3 +45,8 @@ support-off slicing, print only selected specimens initially, and record
 wall stiffness, bond strength and rolling behaviour.
 
 Related: PR #75, #85; issue #37. Parent CAD/fit: PR56 and E31-05.
+
+Automated CAD validation for all six can also be launched in parallel via
+Actions > Expanded course windows CAD comparison. On the isolated experiment
+branch, adding [generate-expanded-windows] to a change commit opts in. Unlike
+the normal build, this intentionally skips slow snapshot rendering.
