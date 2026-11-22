@@ -7,7 +7,7 @@ import unittest
 from brickcad.course_contract import course_fit
 from brickcad.course_r48_unified import (
     INTERIOR_RADIAL_RELIEF, HALF, MIN_RADIAL_SIDEWALL_MM, R48PairConfig, _progress,
-    receiver_print_support_ribs,
+    _proven_foundation,
     _window_cutters, centreline, complete_studs, complete_tubes,
     floor_z, grade, port_contract,
 )
@@ -15,30 +15,20 @@ from brickcad.standards import BALL_TRACK, DUPLO
 
 
 class SharedR48ContractTests(unittest.TestCase):
-    def test_receiver_ribs_are_printable_and_clear_all_lower_studs(self):
-        fit = course_fit(nx=4, ny=4, height_units=2)
-        tubes = complete_tubes(fit)
-        ribs = receiver_print_support_ribs(fit, tubes)
-        self.assertTrue(ribs.isValid())
-        self.assertGreater(ribs.Volume(), 1000.)
-        self.assertAlmostEqual(ribs.BoundingBox().zmin, 0., places=4)
-        self.assertAlmostEqual(ribs.BoundingBox().zmax, 4.9, places=4)
-
-        # No filled-in stud wells and no accidental stiffening/closing of the
-        # proven E31-05 slotted receiver tubes. The 4.9mm webs overlap only
-        # the existing solid above the 4.75mm receiver pocket.
+    def test_actual_sc02_foundation_is_the_shared_underbody(self):
+        """Use a proven curved receiver instead of adding invented bed ribs."""
+        from brickcad.course_r48_sloped_tunnel import FULL_TUBES
+        base, fit = _proven_foundation()
+        self.assertTrue(base.isValid())
+        self.assertEqual(len(base.Solids()), 1)
+        self.assertEqual(set(FULL_TUBES), set(complete_tubes(fit)))
+        self.assertEqual(fit.tube_radius, 6.6)
+        self.assertEqual(len(complete_studs(fit)), 7)
+        # The original receiver is open under the track at Z=2 and still
+        # forms structural supports on the perimeter. A broad solid slab
+        # across the stud locations would fail this test.
         for x, y in fit.studs():
-            keepout = cq.Solid.makeCylinder(
-                fit.stud_radius - fit.clearance + .5, 4.5,
-                cq.Vector(x, y, 0))
-            self.assertLess(ribs.intersect(keepout).Volume(), 1e-5)
-        for x, y in tubes:
-            keepout = cq.Solid.makeCylinder(
-                fit.tube_radius + .49, 4.75,
-                cq.Vector(x, y, 0))
-            self.assertLess(ribs.intersect(keepout).Volume(), 1e-5)
-        self.assertTrue(ribs.isInside(cq.Vector(-16, 0, 2), .001))
-        self.assertTrue(ribs.isInside(cq.Vector(16, 0, 2), .001))
+            self.assertFalse(base.isInside(cq.Vector(x, y, 2.), .001))
 
     def test_two_configurations_share_layout(self):
         fit = course_fit(nx=4, ny=4, height_units=2)
