@@ -64,13 +64,12 @@ def expanded_facade(source_id, facade):
         updated = replace(facade, width=width)
         centres = tuple(updated.length * (i + 1) / (EXPANDED_CONVEX_COUNT + 1)
                         for i in range(EXPANDED_CONVEX_COUNT))
-    elif facade.kind == "flat" and (
-        source_id.startswith(("E01", "T01"))
-    ):
+    elif facade.kind == "flat" and source_id.startswith("E01"):
         updated = replace(facade, width=COMPACT_WINDOW_WIDTH)
         centres = evenly_spaced_flat(updated.length)
     else:
-        # Preserve the 3-window opposite flat wall on SD03/SD04.
+        # Keep T01 2x2 to its original 3 windows; also retain the
+        # 3-window opposite flat wall on SD03/SD04.
         updated, centres = facade, tuple(window_centres(facade))
     return updated, centres
 
@@ -97,8 +96,10 @@ def layout(source_id):
         faces.append((updated, centres, min_post))
     baseline = sum(len(window_centres(face)) for face in plan(model(source_id)))
     expanded = sum(len(centres) for _, centres, _ in faces)
-    if expanded <= baseline:
-        raise ValueError(f"No increase in actual window count: {source_id}")
+    if (expanded <= baseline and source_id != "T01-V6") or (
+        source_id == "T01-V6" and expanded != baseline
+    ):
+        raise ValueError(f"Unexpected window count for {source_id}")
     return faces, baseline, expanded
 
 
@@ -212,7 +213,9 @@ def build_trial(source_id, root):
         angular_tolerance=.15 if source_id.startswith("SC02") else .1)
     count = sum(len(f["windows"]) for f in evidence)
     checks = {
-        "more_windows_than_pr75": count > previous_count,
+        "window_count_matches_intent": (
+            count == previous_count if source_id == "T01-V6"
+            else count > previous_count),
         "expected_window_count": count == expected_count,
         "minimum_station_post_mm": all(
             f["minimum_nominal_post_mm"] >= MIN_POST for f in evidence),
