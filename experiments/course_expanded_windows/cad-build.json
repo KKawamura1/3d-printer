@@ -1,0 +1,21 @@
+{
+  "version": "EXPANDED-WINDOWS-20261122-V1",
+  "auto": false,
+  "command": [
+    "python",
+    "-m",
+    "experiments.course_expanded_windows.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "E01-V9/brick.stl",
+    "E01L-V7/brick.stl",
+    "SC02L-V12/brick.stl",
+    "SD03-V17/brick.stl",
+    "SD04-V22/brick.stl",
+    "T01-V8/brick.stl"
+  ],
+  "timeout": 4200,
+  "description": "Opt-in six new rail window-count prototypes; parent PR75; PR85 SC02-right separate"
+}
