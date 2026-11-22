@@ -17,6 +17,7 @@ import cadquery as cq
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_expanded
 from brickcad.r48_path import xy_at_s as r48_xy_at_s, floor_at_s as r48_floor_at_s
+from brickcad.course_section_profiles import passage_section_wire
 from brickcad.connections import make_studs
 from brickcad.model import receiver
 from brickcad.standards import BALL_TRACK
@@ -116,25 +117,12 @@ def wire(s, role, config):
     else:
         blend = min(1.,distance/5.)
     radius = BALL_TRACK.radius+(14.-BALL_TRACK.radius)*blend
-    centre = floor+radius
-    a = radius/math.sqrt(2)
     if not config.tunnel:
-        return (w.moveTo(-radius,centre).threePointArc((0,floor),(radius,centre))
-                .lineTo(radius,95).lineTo(-radius,95).close().val())
-
+        return passage_section_wire(w, floor=floor, radius=radius,
+                                    open_top=95.)
     roof = floor+2*BALL_TRACK.radius+(30.3-2*BALL_TRACK.radius)*blend
-    bridge = centre+math.sqrt(2)*radius-roof
-    def mixed(circle,teardrop):
-        return circle*(1-blend)+teardrop*blend
-    end = (mixed(radius*math.cos(math.radians(75)),bridge),
-           mixed(centre+radius*math.sin(math.radians(75)),roof))
-    mid = (mixed(radius*.5,(a+bridge)/2),
-           mixed(centre+radius*math.sqrt(3)/2,(centre+a+roof)/2))
-    apex = (0,mixed(centre+radius,roof))
-    return (w.moveTo(-a,centre+a).threePointArc((0,floor),(a,centre+a))
-            .threePointArc(mid,end)
-            .threePointArc(apex,(-end[0],end[1]))
-            .threePointArc((-mid[0],mid[1]),(-a,centre+a)).close().val())
+    return passage_section_wire(w, floor=floor, radius=radius,
+                                roof=roof, blend=blend)
 
 
 def stations(config, a=-.3, b=None):
