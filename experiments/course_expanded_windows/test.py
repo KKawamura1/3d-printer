@@ -35,7 +35,7 @@ class ExpandedCourseWindowLayoutTests(unittest.TestCase):
             "E01-V3": (6, 8), "E01L-V1": (6, 8),
             "SC02L-V6": (3, 5),
             "SD03-V11": (6, 8), "SD04-V10": (6, 8),
-            "T01-V6": (3, 4),
+            "T01-V6": (3, 3),
         }
         for source in TRIALS:
             with self.subTest(source=source):
@@ -50,13 +50,21 @@ class ExpandedCourseWindowLayoutTests(unittest.TestCase):
                     self.assertNotEqual(face.kind, "concave")
 
     def test_short_facades_use_smaller_windows_not_weaker_pillars(self):
-        for sid in ("E01-V3", "E01L-V1", "T01-V6"):
+        for sid in ("E01-V3", "E01L-V1"):
             for face in plan(model(sid)):
                 updated, centres = expanded_facade(sid, face)
                 self.assertEqual(len(centres), EXPANDED_FLAT_COUNT)
                 self.assertAlmostEqual(updated.width, COMPACT_WINDOW_WIDTH)
                 self.assertGreaterEqual(minimum_solid_post(updated, centres), MIN_POST)
                 self.assertGreaterEqual(centres[0] - updated.width / 2, 3 - 1e-7)
+
+    def test_compact_t01_keeps_three_wider_windows(self):
+        face = plan(model("T01-V6"))[0]
+        updated, centres = expanded_facade("T01-V6", face)
+        self.assertEqual(face, updated)
+        self.assertEqual(centres, window_centres(face))
+        self.assertEqual(len(centres), 3)
+        self.assertEqual(updated.width, 5.5)
 
     def test_curved_exterior_more_holes_without_changing_flat_or_concave(self):
         for sid in ("SC02L-V6", "SD03-V11", "SD04-V10"):
