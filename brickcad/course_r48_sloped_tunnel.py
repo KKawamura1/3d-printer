@@ -16,6 +16,7 @@ from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
 from brickcad.course_section_profiles import passage_section_wire
 from brickcad.course_r48_building_blocks import (
     outer_section_wire, loft_sections, receiver_underbody, sweep_enclosure,
+    place_r48_wire,
 )
 
 from brickcad.standards import BALL_TRACK,DUPLO
@@ -50,10 +51,6 @@ def height(t):
     return DROP*(smoothstep_fall(t))
 
 
-def _position(w,t):
-    return (w.rotate((0,0,0),(0,0,1),-90+90*t).translate((-32,32,0)))
-
-
 def section(t):
     floor=FLOOR+height(t)
     top=HEIGHT+height(t)
@@ -66,7 +63,7 @@ def section(t):
        .lineTo(RADIUS-half,top).close().val())
     corners=[v for v in w.Vertices() if v.Center().z>top-.01]
     w=w.fillet2D(.5,corners)
-    return _position(w,t)
+    return place_r48_wire(w,t)
 
 
 def curved_footprint():
@@ -129,7 +126,7 @@ def _outer_wire(t):
     wire=outer_section_wire(cq.Workplane("XZ"),
                             inner=RADIUS-WIDTH/2,outer=RADIUS+WIDTH/2,
                             bottom=base,top=TOP_Z)
-    return _position(wire,t)
+    return place_r48_wire(wire,t)
 
 
 def _passage_wire(t,p):
@@ -140,7 +137,7 @@ def _passage_wire(t,p):
     wire=passage_section_wire(
         cq.Workplane("XZ"), floor=floor, radius=radius,
         center_x=RADIUS, roof=roof, blend=progress)
-    return _position(wire,t)
+    return place_r48_wire(wire,t)
 
 
 def stations():
