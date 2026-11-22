@@ -34,17 +34,24 @@ jobs:
       - name: Install pinned CAD dependencies
         run: python -m pip install -r requirements.txt
       - name: Fast shared footprint / mouth / tube checks
-        run: python -m unittest experiments.r48_compact_e01.test_layout -v
+        run: python -m unittest experiments.r48_compact_e01.test_layout experiments.r48_compact_e01.test_windows -v
       - name: Optional one-model E01-V11 CAD/STL
         if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]')
         run: python -m experiments.r48_compact_e01.design --out build/issue89-e01
+      - name: Generate five-window E01-V12 comparison CAD/STL
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]')
+        run: python -m experiments.r48_compact_e01.windowed --out build/issue89-e01-windows
       - name: Optional four-view snapshot (not regular push)
         if: github.event_name == 'workflow_dispatch' && inputs.snapshots
-        run: python scripts/stl_snapshot.py --stl build/issue89-e01/brick.stl --out build/issue89-e01/preview.png
+        run: |
+          python scripts/stl_snapshot.py --stl build/issue89-e01/brick.stl --out build/issue89-e01/preview.png
+          python scripts/stl_snapshot.py --stl build/issue89-e01-windows/brick.stl --out build/issue89-e01-windows/preview.png
       - name: Store targeted specimen only
         if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]')
         uses: actions/upload-artifact@v4
         with:
-          name: issue89-E01-V11-compact-candidate
-          path: build/issue89-e01/
+          name: issue89-E01-V11-and-V12-compact-candidates
+          path: |
+            build/issue89-e01/
+            build/issue89-e01-windows/
           if-no-files-found: error
