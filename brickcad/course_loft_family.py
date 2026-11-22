@@ -16,6 +16,7 @@ import math
 import cadquery as cq
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_expanded
+from brickcad.r48_path import xy_at_s as r48_xy_at_s, floor_at_s as r48_floor_at_s
 from brickcad.connections import make_studs
 from brickcad.model import receiver
 from brickcad.standards import BALL_TRACK
@@ -84,11 +85,12 @@ def xy(s, config):
             return (-32+s, 0., 1., 0.)
         a = math.pi/2-(s-32)/16
         return (16*math.cos(a), -16+16*math.sin(a), math.sin(a), -math.cos(a))
-    a = -math.pi/2+s/48
-    return (-32+48*math.cos(a), 32+48*math.sin(a), -math.sin(a), math.cos(a))
+    return r48_xy_at_s(s)
 
 
 def height(s, config):
+    if config.route == "gentle":
+        return r48_floor_at_s(s, config.drop_mm)
     t = max(0., min(1., s/config.length))
     return BALL_TRACK.floor+config.drop_mm*(smoothstep_fall(t))
 
