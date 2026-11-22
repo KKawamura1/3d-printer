@@ -109,6 +109,13 @@ class R48FamilyConfig:
                           relief_mm=INTERIOR_RADIAL_RELIEF if self.relief_mm is None
                           else self.relief_mm)
 
+    @property
+    def roof_z(self):
+        """Top of the roof for tunnel variants, before DUPLO studs."""
+        if self.enclosure != "roofed":
+            raise ValueError("Open R48 rail does not have a roof")
+        return 2 * DUPLO.height + self.drop_mm
+
 
 def build_r48_family(config, *, marked=True):
     """Build four variants through one interface and shared section/path.
