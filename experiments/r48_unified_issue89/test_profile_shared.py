@@ -10,13 +10,14 @@ from unittest.mock import patch, sentinel
 import cadquery as cq
 
 from brickcad.course_section_profiles import passage_section_wire
+from brickcad.course_r48_building_blocks import place_r48_wire
 from brickcad.course_r48_unified import (
     R48FamilyConfig, R48PairConfig, build_r48_family,
     _passage_wire as new_roofed_wire, _progress, floor_z,
 )
 from brickcad.course_r48_sloped_tunnel import (
     _passage_wire as proven_roofed_wire,
-    _position, _zshift, _blend, CHANNEL_RADIUS, FLOOR, RADIUS,
+    _zshift, _blend, CHANNEL_RADIUS, FLOOR, RADIUS,
 )
 from brickcad.course_loft_family import LoftSettings, wire as old_open_wire
 from brickcad.standards import BALL_TRACK, DUPLO
@@ -95,7 +96,7 @@ class SharedProfileParityTests(unittest.TestCase):
         recipe = {"lip_mm": 1., "transition_mm": 4.}
         for t in (0., .02, .25, .5, .8, 1.):
             floor = FLOOR + _zshift(t)
-            expected = _position(original_roofed(
+            expected = place_r48_wire(original_roofed(
                 cq.Workplane("XZ"), floor, CHANNEL_RADIUS,
                 floor+30.30, _blend(t, recipe), RADIUS), t)
             check_same_wire(self, proven_roofed_wire(t, recipe), expected)
