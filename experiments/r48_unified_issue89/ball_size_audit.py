@@ -20,6 +20,9 @@ STATIONS = (0., .03, .1, .25, .5, .65, .75, .85, .9, .97, 1.)
 CONTACT_LIFT_MM = .03
 INTERSECTION_TOL_MM3 = .01
 MODELS = (("X89-E01-U1", 0.), ("X89-SC02-U1", DUPLO.height))
+ROLLING_PATH_LIFT_MM = .08  # upper bound for tiny curvature-induced contact adjustment
+ROLLING_TEST_DIAMETERS_MM = (BALL_TRACK.ball_diameter, 25.0)
+ROLLING_STATIONS = tuple(i / 20 for i in range(21))
 
 
 def sample_sphere(shape, *, drop_mm, ball_diameter, station,
@@ -63,6 +66,43 @@ def audit_model(shape, *, model_id, drop_mm):
             "diameter_results": diameters}
 
 
+
+def rolling_path_candidate(shape, drop_mm, *, diameter):
+    """Try a continuous, monotonically descending, low-lift path.
+
+    A curved sloped floor is not a plane: a sphere at tangent-plane height
+    can overlap the floor by <0.1mm even when a nearby resting height is
+    collision-free. The +0.08mm candidate is *not* a printer tolerance;
+    it is an upper bound on a geometric centre-height correction and must
+    stay constant so it does not create an artificial downhill energy slope.
+    Tests only selected centreline stations, never guarantees real rolling.
+    """
+    radius = diameter / 2
+    volumes = [
+        sample_sphere(shape, drop_mm=drop_mm, ball_diameter=diameter,
+                      station=t, contact_lift=ROLLING_PATH_LIFT_MM)
+        for t in ROLLING_STATIONS
+    ]
+    elevations = [
+        centreline(t, drop_mm).z +
+        radius * math.sqrt(1 + grade(t, drop_mm) ** 2) +
+        ROLLING_PATH_LIFT_MM
+        for t in ROLLING_STATIONS
+    ]
+    uphill_steps = [
+        max(0., elevations[i + 1] - elevations[i])
+        for i in range(len(elevations) - 1)
+    ]
+    return {
+        "ball_diameter_mm": diameter,
+        "candidate_height_above_local_plane_mm": ROLLING_PATH_LIFT_MM,
+        "stations": len(ROLLING_STATIONS),
+        "max_intersection_mm3": round(max(volumes), 6),
+        "max_uphill_step_mm": round(max(uphill_steps), 8),
+        "geometrically_feasible_at_samples":
+            max(volumes) < INTERSECTION_TOL_MM3 and max(uphill_steps) < 1e-6,
+    }
+
 def audit_from_steps(step_root, out):
     reports = []
     for model_id, drop_mm in MODELS:
@@ -77,6 +117,14 @@ def audit_from_steps(step_root, out):
         reports.append(audit_model(
             shape, model_id=model_id, drop_mm=drop_mm
         ))
+    # Apply the low-lift path only to the sloped part; a flat course is
+    # already clear at the stricter .03mm contact reference.
+    sloped_step = Path(step_root) / "X89-SC02-U1" / "brick.step"
+    sloped_shape = cq.importers.importStep(str(sloped_step)).val()
+    rolling_candidates = [
+        rolling_path_candidate(sloped_shape, DUPLO.height, diameter=diameter)
+        for diameter in ROLLING_TEST_DIAMETERS_MM
+    ]
     standard = next(
         r for r in reports if r["model_id"] == "X89-SC02-U1"
     )
@@ -98,10 +146,17 @@ def audit_from_steps(step_root, out):
         "models": reports,
         "strict_nominal_slope_clearance_passed":
             standard_ball["sampled_centreline_clearance"],
+        "rolling_path_candidates": rolling_candidates,
+        "candidate_rolling_corridor_passed": all(
+            row["geometrically_feasible_at_samples"]
+            for row in rolling_candidates
+        ),
         "print_ready": False,
         "limitations": [
             "Sampled centreline locations only, not a continuous swept volume",
             "No varying XY ball-centre offsets or lateral wobble",
+            "The +0.08mm candidate tests a feasible geometric path, not exact dynamic ball contact",
+            "Passing a candidate path does not establish printability or real-world 0.2mm tolerance",
             "The ball is raised just 0.03mm to avoid exact-tangent boolean noise",
             "No measured manufactured mouth variation, material friction or kinetic simulation",
             "CAD intersection small positive values can be touch/contact defects, not proof of ball stopping",
@@ -114,6 +169,9 @@ def audit_from_steps(step_root, out):
         "print_ready": result["print_ready"],
         "strict_nominal_slope_clearance_passed":
             result["strict_nominal_slope_clearance_passed"],
+        "candidate_rolling_corridor_passed":
+            result["candidate_rolling_corridor_passed"],
+        "rolling_path_candidates": rolling_candidates,
         "diameters": {
             row["model_id"]: [
                 (item["diameter_mm"], item["max_intersection_mm3"])
