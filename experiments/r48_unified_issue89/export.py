@@ -12,7 +12,8 @@ import cadquery as cq
 
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_r48_unified import (
-    R48PairConfig, build_r48, centreline, floor_z, grade, port_contract,
+    R48PairConfig, R48FamilyConfig, build_r48_family,
+    centreline, floor_z, grade, port_contract,
 )
 from brickcad.standards import BALL_TRACK, DUPLO
 from brickcad.verify import exact_bounds
@@ -80,7 +81,9 @@ def export_pair(out):
     for cfg in PAIRS:
         folder = out / cfg.model_id
         folder.mkdir(parents=True, exist_ok=True)
-        shape, detail = build_r48(cfg)
+        shape, detail = build_r48_family(R48FamilyConfig(
+            cfg.model_id, cfg.drop_mm, "roofed",
+            direction=cfg.direction, relief_mm=cfg.relief_mm))
         stl, mesh = export_geometry(
             shape, folder, tolerance=.02, angular_tolerance=.15)
         samples = ball_clearance_samples(shape, cfg.drop_mm)
