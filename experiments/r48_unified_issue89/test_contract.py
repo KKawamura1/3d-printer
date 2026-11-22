@@ -55,6 +55,22 @@ class SharedR48ContractTests(unittest.TestCase):
         self.assertGreaterEqual(HALF - BALL_TRACK.radius - INTERIOR_RADIAL_RELIEF,
                                 MIN_RADIAL_SIDEWALL_MM)
 
+    def test_full_part_relief_ab_has_fixed_ports_and_safe_sidewalls(self):
+        for drop in (0., DUPLO.height):
+            for relief in (.4, 1.0):
+                cfg = R48PairConfig("X89-test-relief", drop,
+                                   relief_mm=relief)
+                self.assertEqual(cfg.relief_mm, relief)
+                self.assertGreaterEqual(
+                    HALF - BALL_TRACK.radius - cfg.relief_mm,
+                    MIN_RADIAL_SIDEWALL_MM)
+                self.assertEqual(port_contract(cfg.drop_mm)
+                                 ["opening_diameter_mm"],
+                                 BALL_TRACK.opening)
+        for invalid in (-.1, float("nan"), float("inf"), 2.0):
+            with self.assertRaises(ValueError):
+                R48PairConfig("bad-relief", 0., relief_mm=invalid)
+
     def test_roofs_allow_full_duplo_placement(self):
         self.assertAlmostEqual(R48PairConfig("X89-E01-U1", 0).roof_z, 38.4)
         self.assertAlmostEqual(
