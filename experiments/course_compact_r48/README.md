@@ -68,3 +68,5 @@ footprint, no extended viewing-window campaign, and a shallow west skirt
 nine fully sightline-audited convex windows and the PR87 5mm lettering.
 The two CAD shapes, their ability to preserve complete E31 tubes, and
 edge finish still need side-by-side examination before any print.
+
+The current shape ID is E01-V12 to avoid PR #90's E01-V11 collision. Generated artifacts are revision-specific.
