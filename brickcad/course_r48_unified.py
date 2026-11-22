@@ -28,9 +28,10 @@ WINDOW_WIDTH = 12.0
 WINDOW_CUT_DEPTH = 7.0
 WINDOW_CORNER_RADIUS = 0.8
 WINDOW_MIN_WEB = 2.5
-INTERIOR_RADIAL_RELIEF = 0.4
+INTERIOR_RADIAL_RELIEF = 1.0  # issue89 tolerance trial; preserve 25.74mm mouth
 SAMPLE_STATIONS = 48
 TUBE_PROBE_RADIUS = 6.8  # E31 bead OD / 2, not just the bare tube
+MIN_RADIAL_SIDEWALL_MM = 1.6
 
 
 @dataclass(frozen=True)
@@ -118,7 +119,7 @@ def _passage_wire(t, config):
     floor = floor_z(t, config.drop_mm)
     progress = _progress(t)
     # Same radial relief at identical stations for both configurations.
-    # 0 at physical ports, up to +0.4mm internally; important for sloped
+    # 0 at physical ports, up to +1.0mm internally; important for sloped
     # rigid-ball clearance, where the grade increases sphere sweep extent.
     radius = BALL_TRACK.radius + INTERIOR_RADIAL_RELIEF * progress
     centre = floor + radius
@@ -235,6 +236,9 @@ def build_r48(config, *, marked=True):
     """Common CAD construction for both E01 and SC02; no old BRep cropping."""
     if not isinstance(config, R48PairConfig):
         raise TypeError("R48PairConfig required")
+    nominal_min_wall = HALF - BALL_TRACK.radius - INTERIOR_RADIAL_RELIEF
+    if nominal_min_wall < MIN_RADIAL_SIDEWALL_MM:
+        raise ValueError(f"Radial sidewall too thin: {nominal_min_wall:.3f}mm")
     fit = course_fit(
         nx=4, ny=4,
         height_units=2 if config.drop_mm == 0 else 3,
