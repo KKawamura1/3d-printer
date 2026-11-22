@@ -107,10 +107,11 @@ def build_compact(*, marked=True):
         shape, full, fit.tube_radius, receiver_depth=RECEIVER_DEPTH_MM
     )
     if marked:
-        # The south face of E01 is removed by the curved cut. The west
-        # connector side is a real flat wall retained by this silhouette.
+        # The south face disappears when cropped. The west tunnel mouth
+        # is hollow at Z12, so mark its *solid lower skirt* below floor Z6.35.
+        # This is an experimental location, not yet sightline/print reviewed.
         shape = engrave_course_west(
-            shape, PART_ID, x=-fit.width / 2, y=-16., z=12.
+            shape, PART_ID, x=-fit.width / 2, y=-16., z=3.8
         )
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError("Compact E01 must be a valid connected BRep")
