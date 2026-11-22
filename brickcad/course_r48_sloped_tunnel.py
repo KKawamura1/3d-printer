@@ -183,8 +183,12 @@ def clipped_receivers(shape,p):
     return shape
 
 
-def roof_studs(shape,p):
-    studs=make_studs(p.studs(),TOP_Z-STUD_OVERLAP,
+def roof_studs(shape,p,*,top_z=TOP_Z):
+    """The existing clipped-stud construction; optional roof height for flat R48.
+
+    Default TOP_Z keeps the proven SC02 geometry unchanged.
+    """
+    studs=make_studs(p.studs(),top_z-STUD_OVERLAP,
                      p.stud_radius-p.clearance,p.stud_inner_radius,
                      p.stud_height+STUD_OVERLAP,lip_radius=.5).val()
     clipped=studs.intersect(curved_footprint().translate((0,0,p.stud_height+1.)))
