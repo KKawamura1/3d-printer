@@ -40,3 +40,5 @@ to avoid adding expensive full BRep exports to every push.
 Related: PR #75, #87, #85, issues #37, #77, #80, #83.
 
 First CAD trial: both bend directions, no slow preview generation yet.
+
+Diagnostic: investigate disconnected solids before any output is printable.
