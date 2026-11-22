@@ -228,7 +228,9 @@ def build_trial(source_id, root):
             and marking["size_mm"] == SIZE_MM
             and marking["depth_mm"] == DEPTH_MM
             and marking["window_mark_overlap_mm3"] <= 0.01
-            and marking["actual_material_coverage"] >= 0.70),
+            and marking["actual_material_coverage"] >= 0.70
+            and marking["removed_outside_text_mm3"] <= 0.08
+            and marking["added_outside_original_mm3"] <= 0.08),
         "watertight_stl": mesh["passed"],
         "mesh_volume_matches_cad": (
             abs(mesh["signed_volume_mm3"] - shape.Volume())
