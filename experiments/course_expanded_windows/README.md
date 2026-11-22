@@ -4,12 +4,12 @@ This experimental branch extends PR #75's architectural windows while preserving
 
 | PR75 reference | New comparison ID | Windows before → after | Change |
 | --- | --- | --- | --- |
-| E01-V8 | E01-V9 | 6 → 8 | two 32mm flat facades, 3 → 4 each |
-| E01L-V6 | E01L-V7 | 6 → 8 | mirrored E01, same layout |
-| SC02L-V11 | SC02L-V12 | 3 → 5 | long outer convex, width 10mm |
-| SD03-V16 | SD03-V17 | 6 → 8 | outer straight+convex 3 → 5; inner flat remains 3 |
-| SD04-V21 | SD04-V22 | 6 → 8 | mirrored long outside wall, same |
-| T01-V7 | T01-V8 | 3 → 4 | 2x2 short flat, width 4.5mm |
+| E01-V8 | E01-V10 | 6 → 8 | two 32mm flat facades, 3 → 4 each |
+| E01L-V6 | E01L-V8 | 6 → 8 | mirrored E01, same layout |
+| SC02L-V11 | SC02L-V13 | 3 → 5 | long outer convex, width 10mm |
+| SD03-V16 | SD03-V18 | 6 → 8 | outer straight+convex 3 → 5; inner flat remains 3 |
+| SD04-V21 | SD04-V23 | 6 → 8 | mirrored long outside wall, same |
+| T01-V7 | T01-V9 | 3 → 4 | 2x2 short flat, width 4.5mm |
 
 Short 32mm walls need four *narrower* 4.5mm windows to keep at least 2.5mm
 nominal material between windows (3mm nominal at both ends).
@@ -50,3 +50,23 @@ Automated CAD validation for all six can also be launched in parallel via
 Actions > Expanded course windows CAD comparison. On the isolated experiment
 branch, adding [generate-expanded-windows] to a change commit opts in. Unlike
 the normal build, this intentionally skips slow snapshot rendering.
+
+## Shared enlarged ID marking (Issue #83)
+
+This revision increases *engraved ID letter height* from 3.0mm to
+**5.0mm (1.67x)**, while keeping engraving **depth 0.40mm**.
+The new shared `brickcad/course_marking_v2.py` helper uses bold DejaVu Sans
+and places each ID on an exterior south/west planar face below the windows.
+It verifies the *actual BRep text cutter* is at least 70% supported by intact
+material, and that windows have removed at most 0.01 mm³ from the lettering
+area. It additionally checks the resulting shape remains one BRep and keeps
+original overall dimensions. These are CAD guards, not proof of legibility
+at 0.20mm layer height; measure the 5mm trial on A1 mini before generalizing.
+
+The former 3mm-only production marking contract remains unchanged for
+historical builds. This experiment uses an opt-in v2 marking policy and
+bumps all six IDs; earlier 3mm-only window variants remain available in the
+original PR #87 workflow artifacts (2026-11-22 initial run).
+
+Related issue: #83. Do not change the historical 3mm CAD source/contract to
+make past artifacts appear to have the new engraving.
