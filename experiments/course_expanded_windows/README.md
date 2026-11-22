@@ -81,3 +81,11 @@ fails closed if all locations are unsuitable. This is intentional rather
 than silently reducing text height for those two variants.
 
 The v3 run also retains the original six-model geometry/fit checks.
+
+The first 5mm trial found scalar subtraction-vs-intersection volume
+inconsistencies for both sharp-turn loft bodies, even though the letters
+were supported and the resulting BRep remained a single valid solid.
+The next revision uses an **exact negative geometry check** when the two
+scalar volumes differ: material lost outside the intended glyph tool, or
+material mysteriously added, is not accepted. An unproven scalar-only
+workaround is not used to waive the window overlap guard.
