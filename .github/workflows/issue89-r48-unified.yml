@@ -143,3 +143,59 @@ jobs:
           path: build/issue89-shared-r48/comparison-4variants/
           if-no-files-found: error
           compression-level: 1
+
+  # Run only for an explicitly marked code-refactor commit. Expensive BRep
+  # construction is parallel per physical specimen, not repeated on every push.
+  compare_complete_refactor_brep:
+    if: contains(github.event.head_commit.message, '[issue89-brep-parity]')
+    needs: focused
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        model_id: [X89-E01-R04, X89-E01-R10, X89-SC02-R04, X89-SC02-R10]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compare full unmarked PR91 BRep with pinned pre-refactor PR91
+        run: |
+          python -m experiments.r48_unified_issue89.test_full_refactor_parity \
+            --model-id "${{ matrix.model_id }}" \
+            --out build/issue89-refactor-brep-parity
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r48-refactor-brep-${{ matrix.model_id }}
+          path: build/issue89-refactor-brep-parity/
+          if-no-files-found: error
+
+  # Import the true independent historical reference model, not a copy of
+  # our current building-block code. Check both engraved and bare BReps.
+  compare_proven_r48_brep:
+    if: contains(github.event.head_commit.message, '[issue89-brep-parity]')
+    needs: focused
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        model_id: [GC01-V5, SC03-V5, SC05-V1, E01-V3, E01L-V1, SC02-V12, SC02L-V6]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compare original production BRep in both directions
+        env:
+          COURSE_PARITY_MODELS: ${{ matrix.model_id }}
+        run: python -m unittest tests.test_course_catalog_parity -v
