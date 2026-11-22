@@ -1,0 +1,56 @@
+name: Expanded course windows CAD comparison (opt-in)
+
+on:
+  push:
+    branches:
+      - experiment/expand-windows-other-rails-20261122
+    paths:
+      - 'experiments/course_expanded_windows/**'
+      - '.github/workflows/course-expanded-windows.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: expanded-course-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[generate-expanded-windows]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        source:
+          - E01-V3
+          - E01L-V1
+          - SC02L-V6
+          - SD03-V11
+          - SD04-V10
+          - T01-V6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install actual CAD dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Validate layout for six candidates
+        run: python -m unittest experiments.course_expanded_windows.test -v
+      - name: Export changed model only and audit BRep/mesh
+        run: |
+          python -m experiments.course_expanded_windows.design \
+            --model "${{ matrix.source }}" \
+            --out "build/expanded-${{ matrix.source }}"
+      - name: Save STL and validated reports (no slow previews)
+        uses: actions/upload-artifact@v4
+        with:
+          name: expanded-${{ matrix.source }}
+          path: build/expanded-${{ matrix.source }}/
+          if-no-files-found: error
+          retention-days: 21
