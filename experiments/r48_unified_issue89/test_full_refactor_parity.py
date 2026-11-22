@@ -86,7 +86,7 @@ def check(model_id, out):
                      str(baseline_root)],
                     cwd=ROOT, check=False, capture_output=True)
 
-    current, details = build_r48_family(
+    current, _ = build_r48_family(
         R48FamilyConfig(model_id, drop, "roofed", relief_mm=relief),
         marked=False)
     if not old.isValid() or len(old.Solids()) != 1:
