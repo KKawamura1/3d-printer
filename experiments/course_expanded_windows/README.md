@@ -72,3 +72,10 @@ Related issue: #83. Do not change the historical 3mm CAD source/contract to
 make past artifacts appear to have the new engraving.
 
 CAD verification is explicit and only for these six new v2 IDs.
+
+On the two sharp sloped curves (SD03/SD04), the 5mm glyph intersects a
+more complicated sloped shell than on horizontal rails. The v3 generator
+tries several recorded Z bands and accepts only a candidate that passes the
+**same exact collision, glyph coverage and single-solid criteria**. It
+fails closed if all locations are unsuitable. This is intentional rather
+than silently reducing text height for those two variants.
