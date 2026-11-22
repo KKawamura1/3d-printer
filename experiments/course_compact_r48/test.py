@@ -14,7 +14,7 @@ from experiments.course_compact_r48.design import (
 class CompactE01LayoutTests(unittest.TestCase):
     def test_versions_source_only_horizontal_e01(self):
         self.assertEqual(TRIALS, {
-            "E01-V3": "E01-V11", "E01L-V1": "E01L-V9"})
+            "E01-V3": "E01-V12", "E01L-V1": "E01L-V9"})
         for source_id in TRIALS:
             m = model(source_id)
             self.assertEqual(m["course"]["slope"], "horizontal")
