@@ -9,7 +9,7 @@ inside the bend. SC02 already uses a compact quarter-annular footprint.
 
 | Legacy / PR87 | New candidate | Aperture arrangement |
 | --- | --- | --- |
-| E01-V10 (4x4 square) | E01-V11 | 9 x 6.5mm on the actual convex bend |
+| E01-V10 (4x4 square) | E01-V12 | 9 x 6.5mm on the actual convex bend |
 | E01L-V8 (mirror) | E01L-V9 | 9 x 6.5mm on the actual convex bend |
 | T01-V9 (PR87 only) | not in this PR | retains three 5.5mm windows |
 
@@ -59,3 +59,12 @@ each viewport still runs its own original-wall and post-cut line-of-sight
 and below-window-guard checks. A batch cut avoids nine expensive repeated
 OpenCascade healing passes. The earlier per-window implementation was
 cancelled before being treated as a validated deliverable.
+
+### Parallel Phase-1 prototype / ID coordination
+
+Issue #89 / PR #90 independently produces **E01-V11** with SC02-style
+footprint, no extended viewing-window campaign, and a shallow west skirt
+3mm label. Do not overwrite that result: this separate **E01-V12** adds
+nine fully sightline-audited convex windows and the PR87 5mm lettering.
+The two CAD shapes, their ability to preserve complete E31 tubes, and
+edge finish still need side-by-side examination before any print.
