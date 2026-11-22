@@ -16,7 +16,9 @@ from brickcad.course_contract import (
 )
 from brickcad.course_geometry import smoothstep_rise_factored
 from brickcad.course_section_profiles import passage_section_wire
-from brickcad.course_r48_building_blocks import outer_section_wire, sweep_enclosure
+from brickcad.course_r48_building_blocks import (
+    outer_section_wire, sweep_enclosure, place_r48_wire,
+)
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.course_r48_sloped_tunnel import (
     FULL_TUBES as PROVEN_FULL_TUBES,
@@ -158,11 +160,6 @@ def port_contract(drop_mm):
     return horizontal_port_contract(drop_mm)
 
 
-def _world(wire, t):
-    return (wire.rotate((0, 0, 0), (0, 0, 1), -90 + 90 * t)
-            .translate((CENTRE_XY[0], CENTRE_XY[1], 0)))
-
-
 def _progress(t):
     length = RADIUS * math.pi / 2
     distance = min(max(0., t), max(0., 1 - t)) * length
@@ -178,7 +175,7 @@ def _outer_wire(t, config):
         cq.Workplane("XZ"), inner=INNER, outer=OUTER,
         bottom=BALL_TRACK.floor - .15, top=config.roof_z,
         top_corner_radius=ROUNDED_EDGES.corner_radius)
-    return _world(w, t)
+    return place_r48_wire(w, t)
 
 
 def _passage_wire(t, config):
@@ -189,7 +186,7 @@ def _passage_wire(t, config):
     wire = passage_section_wire(
         cq.Workplane("XZ"), floor=floor, radius=radius,
         center_x=RADIUS, roof=roof, blend=progress)
-    return _world(wire, t)
+    return place_r48_wire(wire, t)
 
 
 def _entire_disk_inside_outline(x, y, radius, margin=0.):
@@ -299,10 +296,6 @@ def build_r48(config, *, marked=True):
     """
     if not isinstance(config, R48PairConfig):
         raise TypeError("R48PairConfig required")
-    nominal_min_wall = HALF - BALL_TRACK.radius - config.relief_mm
-    if nominal_min_wall < MIN_RADIAL_SIDEWALL_MM:
-        raise ValueError(f"Radial sidewall too thin: {nominal_min_wall:.3f}mm")
-
     fit = course_fit(nx=4, ny=4,
                      height_units=2 if config.drop_mm == 0 else 3)
     proven_base, proven_fit = _proven_foundation()
