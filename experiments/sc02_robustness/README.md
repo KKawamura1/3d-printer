@@ -21,6 +21,8 @@
 
 ## 印刷物
 
+比較の体積単調性（走路を広げれば空洞が増す）・プレート上の最低3mm間隔も検証する。CAD構成版は `SC02-ROBUST-C2`。
+
 `experiments/sc02_robustness/cad-build.json` のモデルを GitHub Actions **CAD preview and print artifacts** で生成する。個別STL 4点と、A1 mini 180mmベッド向け4点配置版 `sc02-compare-4.stl` を用意。全4点をまとめて印刷する前に、Bambu Studioで**サポートOFF・積層0.20mm**のスライス/オーバーハング/バリと所要時間を確認する。
 
 ```bash

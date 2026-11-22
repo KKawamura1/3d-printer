@@ -165,6 +165,22 @@ def export(out):
         shapes.append(shape)
         reports.append(report)
         print(trial.part_id,"PASS",report["checks"],flush=True)
+    # In each controlled pair, increasing channel radius must actually remove
+    # material from the final printable solid. Otherwise a nominal clearance
+    # number could change without creating any usable internal space.
+    volumes={trial.part_id:shape.Volume() for trial,shape in zip(TRIALS,shapes)}
+    for wide,narrow in (("SC02-V19","SC02-V18"),
+                        ("SC02-V21","SC02-V20"),
+                        ("SC02-V21","SC02-V19")):
+        if not volumes[wide]<volumes[narrow]-1.e-3:
+            raise ValueError(
+                f"Expected {wide} to remove material relative to {narrow}: "
+                f"{volumes[wide]:.3f} >= {volumes[narrow]:.3f} mm^3")
+    # Four 63.8 mm-class parts at 68 mm pitch: check at least 3 mm XY
+    # separation; a watertight combined STL alone cannot guarantee this.
+    part_spans=[exact_bounds(shape)[:2] for shape in shapes]
+    if any(68.-span<3. for dims in part_spans for span in dims):
+        raise ValueError("Comparison models are too close on the print plate")
     placed=[]
     for shape,(x,y) in zip(shapes,PLATE_CENTRES_MM):
         placed.append(shape.translate((x,y,0)))
