@@ -1,5 +1,5 @@
 {
-  "version": "EXPANDED-WINDOWS-20261122-V1",
+  "version": "EXPANDED-WINDOWS-20261122-V2",
   "auto": false,
   "command": [
     "python",
@@ -9,13 +9,13 @@
     "{out}"
   ],
   "stl": [
-    "E01-V9/brick.stl",
-    "E01L-V7/brick.stl",
-    "SC02L-V12/brick.stl",
-    "SD03-V17/brick.stl",
-    "SD04-V22/brick.stl",
-    "T01-V8/brick.stl"
+    "E01-V10/brick.stl",
+    "E01L-V8/brick.stl",
+    "SC02L-V13/brick.stl",
+    "SD03-V18/brick.stl",
+    "SD04-V23/brick.stl",
+    "T01-V9/brick.stl"
   ],
   "timeout": 4200,
-  "description": "Opt-in six new rail window-count prototypes; parent PR75; PR85 SC02-right separate"
+  "description": "6 viewing-window variants with common 5mm large recessed IDs; comparison to prior 3mm-only artifacts"
 }
