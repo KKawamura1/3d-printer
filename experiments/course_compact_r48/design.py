@@ -171,26 +171,33 @@ def build(source_id, root):
         parity_samples = channel_parity(original, compact, left)
         connection_evidence = retained_connections(fit, left)
 
-        shape = compact
+        # Nine independent BRep cuts would rebuild/reheal the entire
+        # hollow clipped ring nine times. One compound cut preserves the
+        # same openings, then the checked CAD visibility ray for *each*
+        # window proves the actual opening succeeds. This is significantly
+        # faster without replacing geometry validation with layout guesses.
+        cutters_and_geometry = [
+            _window_geometry(facade, station) for station in stations]
+        all_openings = cq.Compound.makeCompound(
+            [cut for cut, _ in cutters_and_geometry])
+        shape = compact.cut(all_openings).clean()
+        if not shape.isValid() or len(shape.Solids()) != 1:
+            raise ValueError("Batch cut broke the compact R48 shell")
+        removed = compact.Volume() - shape.Volume()
+        if removed <= 8 * WINDOWS:
+            raise ValueError(
+                f"Nine windows removed too little real shell: {removed:.2f}mm³")
         window_evidence = []
-        for station in stations:
-            cutter, geometry = _window_geometry(facade, station)
-            next_shape = shape.cut(cutter).clean()
-            removed = shape.Volume() - next_shape.Volume()
-            if not next_shape.isValid() or len(next_shape.Solids()) != 1:
-                raise ValueError(f"Window broke the curved shell at {station:.2f}")
-            if removed <= 8:
-                raise ValueError(f"Window did not open solid shell at {station:.2f}")
-            wall_samples = _verify_visibility(compact, next_shape,
+        for station, (cutter, geometry) in zip(stations, cutters_and_geometry):
+            wall_samples = _verify_visibility(compact, shape,
                                               geometry, guard=True)
             window_evidence.append({
                 "arc_station_mm": round(station, 4),
                 "window_width_mm": WINDOW_WIDTH_MM,
                 "original_wall_samples": wall_samples,
-                "wall_material_removed_mm3": round(removed, 3),
                 "postcut_blocked_samples": 0,
+                "cut_with_nine_window_compound": True,
             })
-            shape = next_shape
 
         # South-side label on square E01 is now outside the trimmed shell;
         # reuse the fully supported west face orientation of compact SC02.
@@ -245,6 +252,7 @@ def build(source_id, root):
                 1-compact_volume/source_volume,
             "bounds_mm": bounds, "sampled_original_channel_points": parity_samples,
             "window_count": WINDOWS, "minimum_post_mm": min_post_mm(stations),
+            "material_removed_by_windows_mm3": removed,
             "windows": window_evidence,
             "connections": connection_evidence,
         },
