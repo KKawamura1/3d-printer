@@ -9,7 +9,7 @@
     "{out}"
   ],
   "stl": [
-    "E01-V11/brick.stl",
+    "E01-V12/brick.stl",
     "E01L-V9/brick.stl"
   ],
   "timeout": 1800,
