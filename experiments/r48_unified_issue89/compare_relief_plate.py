@@ -55,18 +55,22 @@ def _horizontal_slice_area_mm2(shape, z):
 def _stud_insertion_clearance(shape):
     """Exclude expected E31 tube clutch zones; reject other stud collisions.
 
-    This uses a synthetic 4x4 DUPLO stud envelope (16x, radius 4.7mm).
+    This uses a synthetic 4x4 DUPLO stud envelope (16x, radius 4.66mm).
     13 angular samples at multiple heights are a regression guard, not a
     physical retention-force test.
     """
-    tube_centres = ((-16., -16.), (0., 0.), (16., 16.))
+    # All seven support-tube centres: three complete E31-05 collars plus
+    # four legacy partial curved-footprint supports. The latter are also
+    # deliberate stud-clutch contacts, not flat-wall collisions.
+    from brickcad.course_r48_sloped_tunnel import FULL_TUBES, CLIPPED_TUBES
+    tube_centres = FULL_TUBES + CLIPPED_TUBES
     for x in (-24., -8., 8., 24.):
         for y in (-24., -8., 8., 24.):
             for z in (.5, 1.5, 2.5, 3.5, 4.4):
                 for k in range(16):
                     angle = math.tau * k / 16
-                    px = x + 4.70 * math.cos(angle)
-                    py = y + 4.70 * math.sin(angle)
+                    px = x + 4.66 * math.cos(angle)
+                    py = y + 4.66 * math.sin(angle)
                     if any(math.hypot(px-tx, py-ty) < 6.86
                            for tx, ty in tube_centres):
                         continue  # E31-05's intentional interference
