@@ -7,7 +7,7 @@ A path, floor elevation, enclosure and handedness are the only shape variables.
 This module MUST NOT import or call any historical parts.*.design export/builder.
 The originals are used only in separate *tests* as immutable CAD oracles.
 """
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
 import hashlib
 import json
@@ -19,10 +19,10 @@ from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_expanded
 from brickcad.r48_path import xy_at_s as r48_xy_at_s, floor_at_s as r48_floor_at_s
 from brickcad.course_section_profiles import passage_section_wire
 from brickcad.course_r48_building_blocks import (
-    outer_section_wire, loft_sections, receiver_underbody,
+    outer_section_wire, loft_sections, receiver_underbody, sweep_enclosure,
 )
 from brickcad.connections import make_studs
-from brickcad.standards import BALL_TRACK
+from brickcad.standards import BALL_TRACK, DUPLO
 from brickcad.verify import exact_bounds
 
 RECEIVER_DEPTH = 4.75
@@ -56,8 +56,8 @@ class LoftSettings:
             raise ValueError("Only level or one-course downhill is validated")
         if type(obj.tunnel) is not bool or type(obj.mirror) is not bool:
             raise ValueError("Tunnel and mirror must be boolean")
-        if (obj.tunnel and (obj.route, obj.drop_mm) != ("sharp", 19.2)):
-            raise ValueError("Loft tunnel currently verified for sloped sharp curve only")
+        if obj.tunnel and obj.route != "sharp":
+            raise ValueError("The loft tunnel requires the 4×2 sharp path")
         if obj.route == "straight" and obj.mirror:
             raise ValueError("Straight path does not have a left/right variant")
         if obj.mark_face not in ("south", "west"):
@@ -78,6 +78,10 @@ class LoftSettings:
     def length(self):
         return 64. if self.route == "straight" else (
             math.pi*self.radius/2 + (32. if self.route == "sharp" else 0.))
+
+    @property
+    def height_units(self):
+        return 1 + int(self.drop_mm > 0) + int(self.tunnel)
 
 
 def xy(s, config):
@@ -107,8 +111,11 @@ def wire(s, role, config):
     floor = height(s, config)
     w = cq.Workplane(section_plane(s, config))
     if role in ("outer", "mask"):
-        top = 90 if role == "mask" else (57.6 if config.tunnel else floor+12.85)
-        return outer_section_wire(w, inner=-15.9, outer=15.9,
+        # Keep 57.6 exact for the historical one-course downhill tunnel.
+        top = 90 if role == "mask" else (
+            (57.6 if config.drop_mm else 2 * DUPLO.height)
+            if config.tunnel else floor+12.85)
+        return outer_section_wire(w, inner=-CHANNEL_HALF_WIDTH, outer=CHANNEL_HALF_WIDTH,
                                   bottom=0, top=top)
 
     distance = min(max(0,s),max(0,config.length-s))
@@ -138,25 +145,26 @@ def stations(config, a=-.3, b=None):
     return sorted(set(vals))
 
 
-def loft(config, role, a=-.3, b=None):
-    return loft_sections([wire(s,role,config) for s in stations(config,a,b)],
-                         ruled=True)
-
-
 def build_course(config, *, label=None):
     """Construct independent BRep. Engrave only after all unions/mirroring."""
     config = (LoftSettings.from_dict(config) if isinstance(config, dict) else config)
     ny = 4 if config.route == "gentle" else 2
-    p = course_fit(nx=4,ny=ny,
-                height_units=3 if config.tunnel else (2 if config.drop_mm else 1))
+    p = course_fit(nx=4, ny=ny, height_units=config.height_units)
     clip = cq.Workplane("XY").box(p.width,p.depth,100,
               centered=(True,True,False)).val()
-    mask = loft(config,"mask").intersect(clip)
-    outer = loft(config,"outer").intersect(clip)
+    sections = stations(config)
+    mask = loft_sections([wire(s, "mask", config) for s in sections],
+                         ruled=True).intersect(clip)
+    outer, passage = sweep_enclosure(
+        lambda s: wire(s, "outer", config),
+        lambda s: wire(s, "passage", config),
+        sections,
+    )
+    outer = outer.intersect(clip)
     body = receiver_underbody(cq.Workplane(obj=outer), p,
                               RECEIVER_DEPTH, entry=0).val().clean()
     body = body.intersect(mask).clean()
-    body = body.cut(loft(config,"passage")).clean()
+    body = body.cut(passage).clean()
 
     # Keep clipped supports. Add E31 beads/slots ONLY to complete tubes.
     full = []
@@ -170,7 +178,8 @@ def build_course(config, *, label=None):
             body,full,p.tube_radius,receiver_depth=RECEIVER_DEPTH)
 
     if config.tunnel:
-        raw_studs = make_studs(p.studs(),57.45,p.stud_radius,
+        roof_z = 57.6 if config.drop_mm else 2 * DUPLO.height
+        raw_studs = make_studs(p.studs(),roof_z - .15,p.stud_radius,
                                p.stud_inner_radius,4.65,.5).val().intersect(mask)
         attached = []
         for fragment in raw_studs.Solids():

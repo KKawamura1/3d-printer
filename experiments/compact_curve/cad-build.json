@@ -1,0 +1,17 @@
+{
+  "version": "X4A-V1",
+  "command": ["python", "-m", "experiments.compact_curve.export", "--out", "{out}"],
+  "stl": [
+    "X4A_4x2_sharp_curves_8parts_A1mini.stl",
+    "X4A-01/brick.stl",
+    "X4A-02/brick.stl",
+    "X4A-03/brick.stl",
+    "X4A-04/brick.stl",
+    "X4A-05/brick.stl",
+    "X4A-06/brick.stl",
+    "X4A-07/brick.stl",
+    "X4A-08/brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "All eight 4x2 sharp-curve specimens and their A1 mini plate"
+}

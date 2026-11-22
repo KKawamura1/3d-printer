@@ -15,6 +15,9 @@ from brickcad.course_contract import (
     course_fit,
 )
 from brickcad.course_geometry import smoothstep_rise_factored
+from brickcad.course_finish import (
+    WINDOW_WIDTH_MM, engrave_trial_west_skirt, rounded_side_window,
+)
 from brickcad.course_section_profiles import passage_section_wire
 from brickcad.course_r48_building_blocks import (
     outer_section_wire, sweep_enclosure, place_r48_wire,
@@ -38,9 +41,6 @@ HALF = WIDTH / 2
 INNER = RADIUS - HALF
 OUTER = RADIUS + HALF
 WINDOW_COUNT = 5
-WINDOW_WIDTH = 12.0
-WINDOW_CUT_DEPTH = 7.0
-WINDOW_CORNER_RADIUS = 0.8
 WINDOW_MIN_WEB = 2.5
 INTERIOR_RADIAL_RELIEF = 1.0  # issue89 tolerance trial; preserve 25.74mm mouth
 SAMPLE_STATIONS = 48
@@ -212,12 +212,12 @@ def _entire_disk_inside_outline(x, y, radius, margin=0.):
 def _window_cutters(config):
     """Rounded pentagonal windows on the outside only; no concave apertures."""
     arc = OUTER * math.pi / 2
-    gap = (arc - WINDOW_COUNT * WINDOW_WIDTH) / (WINDOW_COUNT + 1)
+    gap = (arc - WINDOW_COUNT * WINDOW_WIDTH_MM) / (WINDOW_COUNT + 1)
     if gap < WINDOW_MIN_WEB:
         raise ValueError("Insufficient facade posts")
 
     for i in range(WINDOW_COUNT):
-        s = gap + WINDOW_WIDTH / 2 + i * (WINDOW_WIDTH + gap)
+        s = gap + WINDOW_WIDTH_MM / 2 + i * (WINDOW_WIDTH_MM + gap)
         t = s / arc
         angle = -math.pi / 2 + t * math.pi / 2
         rx, ry = math.cos(angle), math.sin(angle)
@@ -227,25 +227,9 @@ def _window_cutters(config):
                     CENTRE_XY[1] + (OUTER + 1.1) * ry, 0),
             xDir=tangent, normal=(rx, ry, 0),
         )
-        # Each opening follows the local sloping floor, not a fixed world Z.
-        z = lambda u: floor_z(t + u / arc, config.drop_mm)
-        half = WINDOW_WIDTH / 2
-        points = (
-            (-half, z(-half) + 7),
-            (half, z(half) + 7),
-            (half, z(half) + 17),
-            (half - 1.5, z(half - 1.5) + 20),
-            (0, z(0) + 22),
-            (-half + 1.5, z(-half + 1.5) + 20),
-            (-half, z(-half) + 17),
-        )
-        wire = cq.Workplane(plane).polyline(points).close().val()
-        wire = wire.fillet2D(
-            WINDOW_CORNER_RADIUS, list(wire.Vertices())
-        )
-        yield cq.Solid.extrudeLinear(
-            wire, [], cq.Vector(-rx * WINDOW_CUT_DEPTH,
-                                -ry * WINDOW_CUT_DEPTH, 0)
+        yield rounded_side_window(
+            plane, lambda u: floor_z(t + u / arc, config.drop_mm),
+            cq.Vector(-rx, -ry, 0),
         )
 
 
@@ -272,24 +256,6 @@ def _proven_foundation():
     Keep its original CAD unchanged; attach roof/track variants above it.
     """
     return build_proven_sc02_open_curve()
-
-
-def _west_skirt_mark(shape, fit, model_id):
-    # At Z=3.5 the west entrance has a continuous 4.75mm receiver sidewall.
-    # Size 5.0mm is deliberately larger than the historical 3mm. Only the
-    # ID on a new experiment is touched, never the locked production contract.
-    plane = cq.Plane(
-        origin=(-fit.width / 2 + .4, -16., 3.5),
-        xDir=(0, -1, 0), normal=(-1, 0, 0),
-    )
-    tool = (cq.Workplane(plane)
-            .text(model_id, 5., .45, font="DejaVu Sans",
-                  kind="bold", combine=False).val())
-    marked = shape.cut(tool).clean()
-    if (not marked.isValid() or len(marked.Solids()) != 1 or
-            shape.Volume() - marked.Volume() < 2):
-        raise ValueError("The entire experimental mark must cut the west skirt")
-    return marked
 
 
 def build_r48(config, *, marked=True):
@@ -346,7 +312,8 @@ def build_r48(config, *, marked=True):
     if marked:
         if config.direction == "left":
             raise ValueError("Left-hand mark placement is not yet validated")
-        shape = _west_skirt_mark(shape, fit, config.model_id)
+        shape = engrave_trial_west_skirt(
+            shape, config.model_id, x=-fit.width / 2, y=-16.)
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError("R48 output must be a valid, single connected solid")
 
