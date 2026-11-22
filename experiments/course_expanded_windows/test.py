@@ -14,7 +14,7 @@ from brickcad.course_architectural_windows import (
 from experiments.course_expanded_windows.design import (
     COMPACT_WINDOW_WIDTH, EXPANDED_CONVEX_COUNT, EXPANDED_FLAT_COUNT,
     TRIALS, expanded_facade, layout, minimum_solid_post,
-    large_mark_site,
+    large_mark_site, marking_sites,
 )
 
 
@@ -93,6 +93,9 @@ class ExpandedCourseWindowLayoutTests(unittest.TestCase):
             self.assertIn(site.face, ("south", "west"))
             self.assertLess(site.z_mm, 13.)
             self.assertGreater(mark_tool(TRIALS[sid], site).Volume(), 0)
+            options = marking_sites(sid, source, fit)
+            self.assertEqual(options[0], site)
+            self.assertEqual(len(options), 6 if sid.startswith(("SD03", "SD04")) else 1)
 
     def test_large_marker_rejects_actual_window_overlap(self):
         # Synthetic 3D plaque: an intact label works; same-sized hole behind
