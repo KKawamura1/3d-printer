@@ -9,9 +9,9 @@ This experimental branch extends PR #75's architectural windows while preserving
 | SC02L-V11 | SC02L-V13 | 3 → 5 | long outer convex, width 10mm |
 | SD03-V16 | SD03-V18 | 6 → 8 | outer straight+convex 3 → 5; inner flat remains 3 |
 | SD04-V21 | SD04-V23 | 6 → 8 | mirrored long outside wall, same |
-| T01-V7 | T01-V9 | 3 → 4 | 2x2 short flat, width 4.5mm |
+| T01-V7 | T01-V9 | **3 → 3** | 2x2 is compact enough; keep three 5.5mm windows, only enlarge ID |
 
-Short 32mm walls need four *narrower* 4.5mm windows to keep at least 2.5mm
+E01's short 32mm side walls need four *narrower* 4.5mm windows to keep at least 2.5mm
 nominal material between windows (3mm nominal at both ends).
 Long outside curves have five windows, with 8mm width (sharp curve) or
 10mm width (SC02L). Each CAD cut must pass connected BRep, original bounds,
@@ -91,3 +91,14 @@ material mysteriously added, is not accepted. An unproven scalar-only
 workaround is not used to waive the window overlap guard.
 
 This run rechecks the exact letter-cut BReps for all six specimens.
+
+### User visual feedback (2026-11-22)
+
+T01 (2x2) has too many narrow windows in the four-hole rendering: restore
+three wider 5.5mm windows (as in PR75) for its 5mm engraving revision.
+For E01 (4x4), the dense solid outside the R48 curve is undesirable. A
+separate stacked *compact arc-body* experiment will compare trimmed curved
+shells plus windows on the actually visible outside bend, rather than simply
+adding ornamental holes to the old four-by-four solid. SC02's curved
+footprint is the reference, but original 4x4 stud/tube connections may no
+longer be available everywhere and require dedicated tests.
