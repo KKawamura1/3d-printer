@@ -131,7 +131,7 @@ def build_trial(trial, out):
     }
     report={
         "part_id":trial.part_id,"source_model_id":SOURCE_ID,
-        "passed":all(checks.values()),"checks":checks,
+        "passed":all(checks.values()),"checks":checks,"mesh":mesh,
         "radial_extra_mm":trial.radial_extra_mm,
         "nominal_diameter_extra_mm":2*trial.radial_extra_mm,
         "clearance_ramp_t":[.05,.20,.80,.95],
@@ -198,7 +198,7 @@ def export(out):
     if not plate_mesh["passed"]:
         raise ValueError("Four-part comparison plate is not a closed mesh")
     result={
-        "passed":True,"cases":reports,
+        "passed":True,"mesh":plate_mesh,"cases":reports,
         "plate_bounds_mm":plate_bounds,
         "plate_model_ids":[t.part_id for t in TRIALS],
         "plate_stl_sha256":hashlib.sha256(plate_stl.read_bytes()).hexdigest(),

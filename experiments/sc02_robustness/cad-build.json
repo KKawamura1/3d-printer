@@ -1,6 +1,6 @@
 {
   "auto": true,
-  "version": "SC02-ROBUST-C2",
+  "version": "SC02-ROBUST-C3",
   "command": [
     "python",
     "-m",
