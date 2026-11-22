@@ -87,3 +87,6 @@ python -m experiments.r48_unified_issue89.ball_size_audit \
 ```
 
 さらに、開放カーブの共通化については [Issue #92](https://github.com/KKawamura1/3d-printer/issues/92)。`GC01`/`SC03`/`SC05`は既に`course_loft_family.py`で水平/坂を共通化しているが、屋根付きの新R48ジェネレータと走路中心線/標高/ポートの実装はまだ共通化されていない。
+
+### 精査用のオンデマンドCI実行
+この実験は直径別のSTEPブーリアン演算が重いため、通常pushでは実行しない。次の`[issue89-oversize]`コミットで専用CIを明示実行し、診断reportをArtifact保存後、標準球近接干渉が残る場合**プリント承認ゲートで意図的にFAIL**にする（CAD/STL生成そのものの成功とは区別）。
