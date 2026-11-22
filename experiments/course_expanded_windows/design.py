@@ -13,8 +13,11 @@ import json
 from pathlib import Path
 
 from brickcad.course_architectural_windows import (
-    MIN_POST, _mark, _verify_visibility, _window_geometry,
+    MIN_POST, _verify_visibility, _window_geometry,
     model, plan, source_unmarked, window_centres,
+)
+from brickcad.course_marking_v2 import (
+    MarkSite, SIZE_MM, DEPTH_MM, POLICY_ID, engrave_large,
 )
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_contract import PRODUCTION_CONTRACT, audited_production_course
@@ -23,12 +26,12 @@ from brickcad.verify import exact_bounds
 
 # Every new mesh gets its own version; never rewrite PR75's eleven versions.
 TRIALS = {
-    "E01-V3": "E01-V9",
-    "E01L-V1": "E01L-V7",
-    "SC02L-V6": "SC02L-V12",
-    "SD03-V11": "SD03-V17",
-    "SD04-V10": "SD04-V22",
-    "T01-V6": "T01-V8",
+    "E01-V3": "E01-V10",
+    "E01L-V1": "E01L-V8",
+    "SC02L-V6": "SC02L-V13",
+    "SD03-V11": "SD03-V18",
+    "SD04-V10": "SD04-V23",
+    "T01-V6": "T01-V9",
 }
 # These compact walls are only ~32mm long. Four slightly narrower windows
 # allow >=2.5mm solid pillars; simply adding a fourth 5.5mm hole would not.
@@ -99,6 +102,26 @@ def layout(source_id):
     return faces, baseline, expanded
 
 
+def large_mark_site(source_id, source, fit):
+    """Keep the entire label on an actual planar exterior face.
+
+    The low Z band sits below the pentagonal viewports; the west face is
+    retained for the R48 sloped curve. Actual 3D coverage and collision are
+    additionally checked during engraving (not assumed from these numbers).
+    """
+    if source_id.startswith("E01"):
+        # Preserve the old printed-side orientation for right/left variants.
+        x = 0. if source["source"]["recipe"]["direction"] == "right" else -17.
+        return MarkSite("south", x, -fit.depth / 2, 10.)
+    if source_id.startswith("SC02"):
+        return MarkSite("west", -fit.width / 2, 16., 12.)
+    if source_id.startswith(("SD03", "SD04")):
+        return MarkSite("south", -16., -fit.depth / 2, 10.5)
+    if source_id == "T01-V6":
+        return MarkSite("south", 0., -fit.depth / 2, 10.5)
+    raise ValueError("No checked exterior marking site for " + source_id)
+
+
 def build_trial(source_id, root):
     new_id = TRIALS[source_id]
     folder = Path(root) / new_id
@@ -139,8 +162,11 @@ def build_trial(source_id, root):
                 "concave_wall_cut": False,
                 "windows": apertures,
             })
-        # Keep the original family-specific engraving on a non-running face.
-        shape = _mark(shape, source, new_id, fit)
+        # New opt-in shared 5mm label. It must not consume any viewing hole;
+        # a BRep material-coverage test also guards against clipped letters.
+        shape, marking = engrave_large(
+            shape, original, new_id,
+            large_mark_site(source_id, source, fit), audit=audit)
 
     contract = audit.manifest()
     if contract.get("final_marking_labels") != [new_id]:
@@ -168,6 +194,12 @@ def build_trial(source_id, root):
         "source_external_dimensions": all(
             abs(a - b) <= .11 for a, b in zip(bounds, original_bounds)),
         "engraved_once": contract.get("final_marking_labels") == [new_id],
+        "large_marking_policy": (
+            marking["policy"] == POLICY_ID
+            and marking["size_mm"] == SIZE_MM
+            and marking["depth_mm"] == DEPTH_MM
+            and marking["window_mark_overlap_mm3"] <= 0.01
+            and marking["actual_material_coverage"] >= 0.70),
         "watertight_stl": mesh["passed"],
         "mesh_volume_matches_cad": (
             abs(mesh["signed_volume_mm3"] - shape.Volume())
@@ -186,7 +218,10 @@ def build_trial(source_id, root):
             "facades": evidence,
         },
         "production_contract": PRODUCTION_CONTRACT,
-        "contract_evidence": contract,
+        "marking_policy": marking,
+        "contract_evidence": {
+            **contract, "additional_marking_policy": POLICY_ID,
+        },
         "mesh": mesh,
         "physical_fit_validated": False,
         "physical_rolling_validated": False,
