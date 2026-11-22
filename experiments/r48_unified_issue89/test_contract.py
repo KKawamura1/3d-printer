@@ -4,7 +4,7 @@ import unittest
 
 from brickcad.course_contract import course_fit
 from brickcad.course_r48_unified import (
-    INTERIOR_RADIAL_RELIEF, R48PairConfig, _progress,
+    INTERIOR_RADIAL_RELIEF, HALF, MIN_RADIAL_SIDEWALL_MM, R48PairConfig, _progress,
     _window_cutters, centreline, complete_studs, complete_tubes,
     floor_z, grade, port_contract,
 )
@@ -50,8 +50,10 @@ class SharedR48ContractTests(unittest.TestCase):
                                DUPLO.height, places=9)
         self.assertEqual(_progress(0), 0)
         self.assertEqual(_progress(1), 0)
-        self.assertAlmostEqual(INTERIOR_RADIAL_RELIEF, .4)
+        self.assertAlmostEqual(INTERIOR_RADIAL_RELIEF, 1.0)
         self.assertGreater(_progress(.5), .9)
+        self.assertGreaterEqual(HALF - BALL_TRACK.radius - INTERIOR_RADIAL_RELIEF,
+                                MIN_RADIAL_SIDEWALL_MM)
 
     def test_roofs_allow_full_duplo_placement(self):
         self.assertAlmostEqual(R48PairConfig("X89-E01-U1", 0).roof_z, 38.4)
