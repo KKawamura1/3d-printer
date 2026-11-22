@@ -1,0 +1,50 @@
+name: Compact E01 R48 CAD comparison (opt-in)
+
+on:
+  push:
+    branches:
+      - experiment/e01-compact-r48-20261122
+    paths:
+      - 'experiments/course_compact_r48/**'
+      - '.github/workflows/compact-r48-e01.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: compact-r48-e01-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[generate-compact-e01]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        source: [E01-V3, E01L-V1]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install CAD dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Fast design tests
+        run: python -m unittest experiments.course_compact_r48.test -v
+      - name: Build only the one changed model
+        run: |
+          python -m experiments.course_compact_r48.design \
+            --model "${{ matrix.source }}" \
+            --out "build/compact-${{ matrix.source }}"
+      - name: Save individual STL and audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: compact-${{ matrix.source }}
+          path: build/compact-${{ matrix.source }}/
+          retention-days: 21
+          if-no-files-found: error
