@@ -9,6 +9,18 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# Exact BRep comparisons have their own long-running workflow jobs.
+# Running them again in the 30-minute ordinary CAD unit-test job causes
+# duplicate work and guaranteed timeout before the ordinary tests finish.
+# Keep all tests in the default CLI mode. Only the workflow's --fast mode
+# excludes these tests; the independent parity workflows remain required.
+DEDICATED_PARITY_TESTS = frozenset({
+    "tests/test_course_catalog_parity.py",  # course-catalog-parity.yml
+    "tests/test_course_loft_family_parity.py",  # course-loft-parity.yml
+    "tests/test_course_current_parity.py",  # course-parity.yml
+    "tests/test_course_t01_parity.py",  # course-parity.yml
+})
+
 
 def dependencies(path, seen=None):
     seen = set() if seen is None else seen
@@ -35,12 +47,12 @@ def dependencies(path, seen=None):
     return seen
 
 
-def select(changed):
+def select(changed, *, fast=False):
     tests = sorted(p.relative_to(ROOT).as_posix()
                    for folder in ('tests', 'parts', 'experiments')
                    for p in (ROOT / folder).rglob('test*.py'))
     if changed is None:
-        return tests
+        return [t for t in tests if not fast or t not in DEDICATED_PARITY_TESTS]
     graph = {test: dependencies(test) for test in tests}
     known = set().union(*graph.values())
     # Config changes affect the owning design and its transitive dependents.
@@ -62,24 +74,50 @@ def select(changed):
     # model. The workflow separately runs lightweight version/report tests.
     if {'scripts/ci-tests.py', '.github/workflows/cad.yml'} & changed:
         changed.add('tests/test_ci_selection.py')
-    # Unknown/new CAD code and shared geometry inputs still fail open.
-    if any(p.startswith('profiles/') or p in ('requirements.txt', 'brickcad/__init__.py') or
-           (p.startswith(('brickcad/', 'parts/', 'experiments/')) and p.endswith('.py') and p not in known and not p.endswith('/__init__.py')) or
-           (p.startswith('tests/') and p not in tests) for p in changed):
-        return tests
-    return [test for test in tests if test in adjacent_tests or graph[test].intersection(changed)]
+    # Unknown new reusable CAD primitives still fail open. A standalone
+    # experiment script under a tested owner (experiments/<owner>/test*.py)
+    # is different: its adjacent tests already cover the exact experiment.
+    # This prevents one new opt-in print-plate generator from rerunning the
+    # entire historical catalogue for every PR revision.
+    def new_or_uncovered_source(p):
+        if not (p.startswith(('brickcad/', 'parts/', 'experiments/'))
+                and p.endswith('.py') and p not in known
+                and not p.endswith('/__init__.py')):
+            return False
+        if p.startswith('experiments/'):
+            owner = '/'.join(p.split('/')[:2])
+            if any(t.startswith(owner + '/test') for t in tests):
+                return False
+        return True
+
+    if any(p.startswith('profiles/') or
+           p in ('requirements.txt', 'brickcad/__init__.py') or
+           new_or_uncovered_source(p) or
+           (p.startswith('tests/') and p not in tests)
+           for p in changed):
+        selected = tests
+    else:
+        selected = [test for test in tests if test in adjacent_tests
+                    or graph[test].intersection(changed)]
+    # Dedicated, independent parity runs are longer and more exhaustive than
+    # the ordinary CAD gate. Avoid running them a second time in its 30m job.
+    if fast:
+        selected = [t for t in selected if t not in DEDICATED_PARITY_TESTS]
+    return selected
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--base', help='PR base SHA; omit to run all tests')
     parser.add_argument('--plan', action='store_true', help='Select without importing CAD or running tests')
+    parser.add_argument('--fast', action='store_true',
+                        help='Omit expensive parity tests verified by dedicated CI')
     args = parser.parse_args()
     os.chdir(ROOT)
     changed = None if not args.base else set(subprocess.check_output(
         ['git', 'diff', '--name-only', '-z', '--no-renames', args.base + '...HEAD'],
         text=True).split('\0')) - {''}
-    selected = select(changed)
+    selected = select(changed, fast=args.fast)
     print('Selected: ' + (', '.join(selected) or '(none)'), flush=True)
     if args.plan:
         if os.environ.get('GITHUB_OUTPUT'):
