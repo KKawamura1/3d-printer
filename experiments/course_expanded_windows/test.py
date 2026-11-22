@@ -109,6 +109,8 @@ class ExpandedCourseWindowLayoutTests(unittest.TestCase):
         self.assertEqual(audit.marked_labels, [label])
         self.assertGreater(details["actual_material_coverage"], 0.7)
         self.assertLessEqual(details["window_mark_overlap_mm3"], .01)
+        self.assertEqual(details["removed_outside_text_mm3"], 0)
+        self.assertEqual(details["added_outside_original_mm3"], 0)
         removed_wall = cq.Workplane("XY").box(35, 2, 9).val().translate((0, -1, 10))
         holed = block.cut(removed_wall).clean()
         with self.assertRaisesRegex(ValueError, "overlaps a window"):
