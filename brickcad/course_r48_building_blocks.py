@@ -7,6 +7,13 @@ outer-wire, loft, and E31 receiver construction, not merely metadata.
 import cadquery as cq
 
 from brickcad.connections import make_receiver
+from brickcad.r48_path import TURN_CENTRE_XY
+
+
+def place_r48_wire(wire, t):
+    """Common quarter-turn placement for every SC02-derived roofed profile."""
+    return (wire.rotate((0,0,0),(0,0,1),-90+90*t)
+            .translate((TURN_CENTRE_XY[0],TURN_CENTRE_XY[1],0)))
 
 
 def outer_section_wire(workplane, *, inner, outer, bottom, top,
