@@ -1,2 +1,4 @@
 observation_id,reported_date,upstream_part,downstream_part,stop_location,symptom,frequency_qualitative,attempts,stops,fixation,ball_condition,run_condition,evidence,root_cause_status,notes
 BS-20261115-001,2026-11-15,S02-V16,E01-V8,downstream_entrance,stops,frequent,,,,,,user_physical_observation,unidentified,"E01-V8の入口でよく停止する。上流出口・下流入口・境界の段差/傾き・進入速度などは未切り分け。"
+BS-20261122-001,2026-11-22,SC02-V17,,internal_curve,ball_jams,frequent,,,,mounted_on_support_block,standalone_rolls,"user_physical_observation_and_photos_in_chat",unidentified,"単体で転がるが他のブロック上に載せるとカーブ中（中央窓付近）で容易に停止。一度止まると進行方向へ大きく傾けても動かない。写真で球が窓から見えるが接触部は未特定。試行回数・原因未確定。"
+BS-20261122-002,2026-11-22,SB02-V1,,entrance_left_from_marked_front,ball_catches,frequent,,,,,engraving_facing_front,"user_physical_observation",unidentified,"刻印を正面に向けたとき左側の入口でボールがよく引っかかる。入口の具体的な位置・回数・原因は未特定。Issue #82参照。"
