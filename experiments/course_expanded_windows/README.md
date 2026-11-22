@@ -70,3 +70,5 @@ original PR #87 workflow artifacts (2026-11-22 initial run).
 
 Related issue: #83. Do not change the historical 3mm CAD source/contract to
 make past artifacts appear to have the new engraving.
+
+CAD verification is explicit and only for these six new v2 IDs.
