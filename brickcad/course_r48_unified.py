@@ -16,9 +16,14 @@ from brickcad.course_contract import (
 )
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
+from brickcad.r48_path import (
+    RADIUS_MM as SHARED_R48_RADIUS, TURN_CENTRE_XY as SHARED_R48_CENTRE,
+    ARC_LENGTH_MM, xy_at_s, floor_at_s, grade_at_t,
+    horizontal_port_contract,
+)
 
-RADIUS = 48.0
-CENTRE_XY = (-32.0, 32.0)
+RADIUS = SHARED_R48_RADIUS
+CENTRE_XY = SHARED_R48_CENTRE
 WIDTH = BALL_TRACK.width
 HALF = WIDTH / 2
 INNER = RADIUS - HALF
@@ -58,35 +63,23 @@ class R48PairConfig:
 
 
 def floor_z(t, drop_mm):
-    """Slope is the only geometric variation; E01 is constant-z SC02."""
-    t = min(1., max(0., t))
-    return BALL_TRACK.floor + drop_mm * smoothstep_fall(t)
+    """Shared with the open R48 rails: E01 is constant-z SC02."""
+    return floor_at_s(min(1., max(0., t)) * ARC_LENGTH_MM, drop_mm)
 
 
 def grade(t, drop_mm):
-    """Magnitude of dz/ds for the 48mm radius arc."""
-    t = min(1., max(0., t))
-    return drop_mm * 6 * t * (1 - t) / (RADIUS * math.pi / 2)
+    """Shared positive magnitude of dz/ds for the 48mm radius arc."""
+    return grade_at_t(t, drop_mm)
 
 
 def centreline(t, drop_mm):
-    a = math.radians(-90 + 90 * t)
-    return cq.Vector(
-        CENTRE_XY[0] + RADIUS * math.cos(a),
-        CENTRE_XY[1] + RADIUS * math.sin(a),
-        floor_z(t, drop_mm),
-    )
+    x, y, _, _ = xy_at_s(t * ARC_LENGTH_MM)
+    return cq.Vector(x, y, floor_z(t, drop_mm))
 
 
 def port_contract(drop_mm):
-    """The physical OEM port radius/position is *never* expanded."""
-    return {
-        "west": ((-32., -16., BALL_TRACK.floor + drop_mm),
-                 (-1., 0., 0.), BALL_TRACK.radius),
-        "north": ((16., 32., BALL_TRACK.floor),
-                  (0., 1., 0.), BALL_TRACK.radius),
-        "opening_diameter_mm": BALL_TRACK.opening,
-    }
+    """Same exact connector coordinates used by open and roofed R48."""
+    return horizontal_port_contract(drop_mm)
 
 
 def _world(wire, t):
