@@ -59,6 +59,8 @@ def assemble_four(out):
             "complete_studs": len(details["top_studs"]) == 7,
             "complete_receiver_tubes":
                 len(details["complete_e31_tubes"]) == 3,
+            "receiver_bed_support_ribs":
+                details["receiver_print_support_rib_volume_mm3"] > 1000.,
             "five_windows": len(details["window_cut_volumes_mm3"]) == 5
                             and min(details["window_cut_volumes_mm3"]) > 50,
             "mouth_contract":
@@ -82,6 +84,10 @@ def assemble_four(out):
                 round(BALL_TRACK.opening + 2 * relief_mm * .995, 3),
             "not_a_constant_diameter_circular_tube": True,
             "windows": 5,
+            "receiver_print_support_rib_volume_mm3":
+                round(details["receiver_print_support_rib_volume_mm3"], 2),
+            "receiver_print_support_note":
+                "Built-in inter-stud underside webs; actual Bambu Studio slicing still unverified",
             "engraved_label": model_id,
             "mesh_triangles": count,
             "mesh_sha256": src_hash,
@@ -141,6 +147,8 @@ def assemble_four(out):
         "only_controlled_variable": "interior radial relief mm (0.4/1.0)",
         "physical_rolling_verified": False,
         "printer_slicing_verified": False,
+        "underside_fdm_ribs_added": True,
+        "underside_slice_bridge_review_required": True,
         "stl_sha256": hashlib.sha256(plate_stl.read_bytes()).hexdigest()
     }
     (out / "comparison-report.json").write_text(
