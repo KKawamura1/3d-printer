@@ -130,9 +130,20 @@ def _outer_wire(t):
     return _position(wire,t)
 
 
-def _passage_wire(t,p):
+def _clearance_factor(t):
+    """C1 ramp: keep both connection mouths unchanged, widen only the interior.
+
+    This is an *experimental* allowance for manufacturing variation, not
+    an update to BALL_TRACK or an assertion that any physical print rolls.
+    """
+    edge=min(max(float(t),0.),max(0.,1.-float(t)))
+    u=max(0.,min(1.,(edge-.05)/.15))
+    return u*u*(3.-2.*u)
+
+
+def _passage_wire(t,p,radial_extra_mm=0.):
     floor=FLOOR+_zshift(t)
-    radius=CHANNEL_RADIUS
+    radius=CHANNEL_RADIUS+radial_extra_mm*_clearance_factor(t)
     cy=floor+radius
     a=radius/math.sqrt(2)
     roof=floor+30.30
@@ -162,10 +173,13 @@ def stations():
     return sorted(set(round(x,7) for x in items))
 
 
-def make_cover(p):
+def make_cover(p,*,radial_extra_mm=0.):
+    if radial_extra_mm not in (0., .2, .4):
+        raise ValueError("Only 0/0.2/0.4 mm radial SC02 clearance trials are supported")
     ts=stations()
     outer=cq.Solid.makeLoft([_outer_wire(t) for t in ts],ruled=True)
-    passage=cq.Solid.makeLoft([_passage_wire(t,p) for t in ts],ruled=True)
+    passage=cq.Solid.makeLoft(
+        [_passage_wire(t,p,radial_extra_mm) for t in ts],ruled=True)
     clip=cq.Workplane("XY").box(63.8,63.8,90,centered=(True,True,False)).val()
     return outer.intersect(clip).intersect(curved_footprint()).clean(),passage
 
@@ -193,10 +207,10 @@ def roof_studs(shape,p):
     return shape.fuse(clipped).clean()
 
 
-def build_course(model_id,recipe,*,marked=True):
+def build_course(model_id,recipe,*,marked=True,radial_extra_mm=0.):
     pset=spec(recipe)
     base,p=open_curve()
-    cover,passage=make_cover(pset)
+    cover,passage=make_cover(pset,radial_extra_mm=radial_extra_mm)
     shape=base.fuse(cover).cut(passage).clean()
     shape=clipped_receivers(shape,p)
     shape=add_e31_05_receiver_features(shape,FULL_TUBES,p.tube_radius,
