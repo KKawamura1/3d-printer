@@ -15,7 +15,10 @@ import math
 import struct
 from pathlib import Path
 
+import cadquery as cq
+
 from brickcad.course_artifacts import export_geometry
+from brickcad.course_contract import RECEIVER_DEPTH_MM
 from brickcad.course_r48_unified import R48PairConfig, build_r48
 from brickcad.standards import BALL_TRACK, DUPLO
 from brickcad.verify import exact_bounds
@@ -34,6 +37,21 @@ SPECIMENS = (
 BED = 180.0
 
 
+def _horizontal_slice_area_mm2(shape, z):
+    """Actual BRep cross-section; catch unsupported receiver ceilings.
+
+    The previous water-tight STL had only ~462 mm2 of support just below
+    z=4.75, yet ~2373 mm2 of solid at z=4.8. This small slab makes that
+    printability regression fail even when the STL is a valid solid.
+    It is not a substitute for a Bambu Studio bridge-path preview.
+    """
+    thickness = .02
+    slab = (cq.Workplane("XY")
+            .box(70., 70., thickness, centered=(True, True, False))
+            .translate((0, 0, z)).val())
+    return shape.intersect(slab).Volume() / thickness
+
+
 def assemble_four(out):
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
@@ -46,6 +64,9 @@ def assemble_four(out):
         stl, mesh = export_geometry(shape, path, tolerance=.02,
                                     angular_tolerance=.15)
         bounds = exact_bounds(shape)
+        bed_contact_area = _horizontal_slice_area_mm2(shape, .10)
+        ceiling_support_area = _horizontal_slice_area_mm2(
+            shape, RECEIVER_DEPTH_MM - .10)
         checks = {
             "valid_single_solid": shape.isValid() and
                                   len(shape.Solids()) == 1,
@@ -61,6 +82,10 @@ def assemble_four(out):
                 len(details["complete_e31_tubes"]) == 3,
             "receiver_bed_support_ribs":
                 details["receiver_print_support_rib_volume_mm3"] > 1000.,
+            # Original four STLs were ~409/462 mm2 respectively and failed
+            # physically despite all CAD/mesh checks passing.
+            "bed_contact_cross_section_mm2": bed_contact_area > 570.,
+            "ceiling_support_cross_section_mm2": ceiling_support_area > 650.,
             "five_windows": len(details["window_cut_volumes_mm3"]) == 5
                             and min(details["window_cut_volumes_mm3"]) > 50,
             "mouth_contract":
@@ -86,6 +111,9 @@ def assemble_four(out):
             "windows": 5,
             "receiver_print_support_rib_volume_mm3":
                 round(details["receiver_print_support_rib_volume_mm3"], 2),
+            "bed_contact_area_z0p1_mm2": round(bed_contact_area, 2),
+            "receiver_ceiling_support_area_z4p65_mm2":
+                round(ceiling_support_area, 2),
             "receiver_print_support_note":
                 "Built-in inter-stud underside webs; actual Bambu Studio slicing still unverified",
             "engraved_label": model_id,
@@ -148,6 +176,7 @@ def assemble_four(out):
         "physical_rolling_verified": False,
         "printer_slicing_verified": False,
         "underside_fdm_ribs_added": True,
+        "cross_section_support_gate": "z0.10 > 570mm2; z4.65 > 650mm2",
         "underside_slice_bridge_review_required": True,
         "stl_sha256": hashlib.sha256(plate_stl.read_bytes()).hexdigest()
     }
