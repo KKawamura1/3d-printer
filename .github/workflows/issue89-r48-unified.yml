@@ -46,16 +46,19 @@ jobs:
       - name: Extra-diameter sphere audit on both actual STEP models
         if: contains(github.event.head_commit.message, '[issue89-oversize]') || github.event_name == 'workflow_dispatch'
         run: python -m experiments.r48_unified_issue89.ball_size_audit --step-root build/issue89-shared-r48 --out build/issue89-shared-r48/oversize-audit.json
-      - name: Assemble single A1 mini print STL with four size-labeled upright mouth coupons
+      - name: Assemble legacy 2-part A1 mini print STL (no gauges)
         if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-plate]')
         run: python -m experiments.r48_unified_issue89.plate_export --source-root build/issue89-shared-r48 --out build/issue89-shared-r48/plate
+      - name: Build 4 complete E01/SC02 R04/R10 variants on one A1 mini plate
+        if: contains(github.event.head_commit.message, '[issue89-compare]')
+        run: python -m experiments.r48_unified_issue89.compare_relief_plate --out build/issue89-shared-r48/comparison-4variants
       - name: Optional four-view mesh snapshots
         if: github.event_name == 'workflow_dispatch' && inputs.render
         run: |
           python scripts/stl_snapshot.py --stl build/issue89-shared-r48/X89-E01-U1/brick.stl --out build/issue89-shared-r48/X89-E01-U1/preview.png
           python scripts/stl_snapshot.py --stl build/issue89-shared-r48/X89-SC02-U1/brick.stl --out build/issue89-shared-r48/X89-SC02-U1/preview.png
-      - name: Upload two model STLs STEP and validation reports only
-        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]') || contains(github.event.head_commit.message, '[issue89-plate]')
+      - name: Upload requested R48 CAD/STL reports and optional 4-part comparison
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]') || contains(github.event.head_commit.message, '[issue89-plate]') || contains(github.event.head_commit.message, '[issue89-compare]')
         uses: actions/upload-artifact@v4
         with:
           name: issue89-unified-R48-flat-sloped
