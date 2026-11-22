@@ -1,0 +1,19 @@
+{
+  "auto": true,
+  "version": "SC02-ROBUST-C1",
+  "command": [
+    "python",
+    "-m",
+    "experiments.sc02_robustness.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "SC02-V18/brick.stl",
+    "SC02-V19/brick.stl",
+    "SC02-V20/brick.stl",
+    "SC02-V21/brick.stl",
+    "sc02-compare-4.stl"
+  ],
+  "timeout": 4200
+}
