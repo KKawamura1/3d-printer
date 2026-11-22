@@ -19,7 +19,7 @@ import cadquery as cq
 
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_contract import RECEIVER_DEPTH_MM
-from brickcad.course_r48_unified import R48PairConfig, R48FamilyConfig, build_r48_family
+from brickcad.course_r48_unified import R48FamilyConfig, build_r48_family
 from brickcad.standards import BALL_TRACK, DUPLO
 from brickcad.verify import exact_bounds
 from experiments.r48_unified_issue89.export import actual_port_rim_probe
@@ -87,11 +87,8 @@ def build_specimen(model_id, out):
     if spec is None:
         raise ValueError(f"Unknown comparison model: {model_id}")
     model_id, drop_mm, relief_mm, x, y = spec
-    records = []
-    binary_parts = []
-    cfg = R48PairConfig(model_id, drop_mm, relief_mm=relief_mm)
-    shape, details = build_r48_family(R48FamilyConfig(
-        model_id, drop_mm, "roofed", relief_mm=relief_mm), marked=True)
+    cfg = R48FamilyConfig(model_id, drop_mm, "roofed", relief_mm=relief_mm)
+    shape, details = build_r48_family(cfg, marked=True)
     path = out / model_id
     stl, mesh = export_geometry(shape, path, tolerance=.02,
                                 angular_tolerance=.15)
@@ -132,7 +129,7 @@ def build_specimen(model_id, out):
     if not all(checks.values()):
         raise ValueError(f"{model_id}: {checks}")
     count, facet_bytes, shifted_bounds, src_hash = placed_mesh(stl, x, y)
-    records.append({
+    record = {
         "id": model_id,
         "track": "E01" if drop_mm == 0 else "SC02",
         "drop_mm": drop_mm,
@@ -160,14 +157,13 @@ def build_specimen(model_id, out):
         "checks": checks,
         "actual_rolling_tested": False,
         "slice_tested": False,
-    })
-    binary_parts.append((count, facet_bytes))
+    }
     (path / "trial-report.json").write_text(
-        json.dumps(records[-1], indent=2, ensure_ascii=False) + "\n"
+        json.dumps(record, indent=2, ensure_ascii=False) + "\n"
     )
     print(f"{model_id}: diameter +{relief_mm:.2f}mm radial, "
           f"all CAD/port/mesh checks passed", flush=True)
-    return records[0]
+    return record
 
 
 def pack_four(out):
