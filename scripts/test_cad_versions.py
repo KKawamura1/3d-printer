@@ -348,6 +348,58 @@ class MultipleCourseEngineFingerprintTests(unittest.TestCase):
 
 
 class SnapshotArtifactTests(unittest.TestCase):
+    def test_four_view_png_is_opt_in_and_never_leaks_into_next_delivery(self):
+        """No CAD kernel needed: verify artifact contract using a cached STL."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            name, version = 'parts/alpha', 'A01-V1'
+            source_dir = root / 'build/cad-artifacts' / name / version
+            source_dir.mkdir(parents=True)
+            stl = source_dir / 'brick.stl'
+            stl.write_bytes(b' ' * 80 + struct.pack('<I', 1) + b'\\0' * 50)
+            (source_dir / 'report.json').write_text(json.dumps({
+                'passed': True, 'mesh': {'passed': True}}))
+            (source_dir / '.cad-version.json').write_text(json.dumps({
+                'version': version,
+                'source_sha256': 'fingerprint',
+                'sha256': {'brick.stl': cad.verify_stl(stl)['sha256']},
+            }))
+            models = {name: spec(version)}
+            nodes = [(name, version, models[name], root, None)]
+            preview = root / 'build/cad-delivery' / name / version / 'brick.preview.png'
+            delivery_stl = preview.with_name('brick.stl')
+            manifest = root / 'build/cad-delivery/manifest.json'
+
+            def fake_snapshot(_source, destination, **_kwargs):
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(b'preview')
+                return {'bytes': 7, 'sha256': 'test', 'width': 4, 'height': 4}
+
+            with (mock.patch.object(cad, 'resolve', return_value=nodes),
+                  mock.patch.object(cad, 'source_fingerprint', return_value='fingerprint'),
+                  mock.patch.object(cad, 'verified_report'),
+                  mock.patch.object(cad, 'git', return_value=b'commit\\n'),
+                  mock.patch.object(cad.subprocess, 'run') as subprocess_run,
+                  mock.patch.object(cad, 'snapshot_artifact', side_effect=fake_snapshot) as render):
+                # Explicit review request creates PNG but never rebuilds the cached STL.
+                cad.build(root, models, [name], snapshots=True)
+                self.assertTrue(preview.exists())
+                self.assertTrue(delivery_stl.exists())
+                self.assertIn('preview', json.loads(manifest.read_text())['files'][
+                    f'{name}/{version}/brick.stl'])
+                self.assertEqual(render.call_count, 1)
+
+                # Default build must contain STL, report, manifest but no PNG,
+                # even when a previous delivery left a PNG on disk.
+                cad.build(root, models, [name])
+                self.assertFalse(preview.exists())
+                self.assertTrue(delivery_stl.exists())
+                self.assertTrue((delivery_stl.parent / 'report.json').exists())
+                self.assertNotIn('preview', json.loads(manifest.read_text())['files'][
+                    f'{name}/{version}/brick.stl'])
+                self.assertEqual(render.call_count, 1)
+                subprocess_run.assert_not_called()
+
     def test_preview_created_once_and_reused_for_cached_stl(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
