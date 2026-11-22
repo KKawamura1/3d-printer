@@ -89,3 +89,5 @@ The next revision uses an **exact negative geometry check** when the two
 scalar volumes differ: material lost outside the intended glyph tool, or
 material mysteriously added, is not accepted. An unproven scalar-only
 workaround is not used to waive the window overlap guard.
+
+This run rechecks the exact letter-cut BReps for all six specimens.
