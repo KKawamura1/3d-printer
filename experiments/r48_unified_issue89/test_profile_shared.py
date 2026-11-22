@@ -145,6 +145,7 @@ class FamilyDispatchTests(unittest.TestCase):
             self.assertEqual(inner.drop_mm, drop)
             self.assertEqual(inner.relief_mm, .4)
             self.assertFalse(build.call_args.kwargs["marked"])
+            self.assertEqual(roof_cfg.roof_z, 2*DUPLO.height + drop)
 
     def test_reject_unverified_family_variants(self):
         for enclosure in ("unknown", ""):
@@ -158,6 +159,8 @@ class FamilyDispatchTests(unittest.TestCase):
             R48FamilyConfig("X92-bad", 0., "roofed", relief_mm=3.)
         with self.assertRaises(ValueError):
             R48FamilyConfig("X92-bad", 0., "roofed", direction="up")
+        with self.assertRaises(ValueError):
+            _ = R48FamilyConfig("X92-open", 0., "open").roof_z
 
 
 if __name__ == "__main__":
