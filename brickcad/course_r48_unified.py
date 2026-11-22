@@ -6,6 +6,7 @@ are generated from the exact same sweep, shell, windows, E31-05 supports,
 full studs and finishing logic. A proof-of-concept, NOT a print-certified part.
 """
 from dataclasses import dataclass
+from functools import lru_cache
 import math
 
 import cadquery as cq
@@ -16,6 +17,12 @@ from brickcad.course_contract import (
 )
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
+from brickcad.course_r48_sloped_tunnel import (
+    FULL_TUBES as PROVEN_FULL_TUBES,
+    open_curve as build_proven_sc02_open_curve,
+    clipped_receivers as add_proven_sc02_partial_receivers,
+    roof_studs as add_proven_sc02_roof_studs,
+)
 from brickcad.r48_path import (
     RADIUS_MM as SHARED_R48_RADIUS, TURN_CENTRE_XY as SHARED_R48_CENTRE,
     ARC_LENGTH_MM, xy_at_s, floor_at_s, grade_at_t,
@@ -108,7 +115,7 @@ def _outer_wire(t, config):
     # Do not create a rectangular LEGO box and crop its remnants.
     # Sweep the intended R48 annular envelope directly.
     w = cq.Workplane("XZ").polyline((
-        (INNER, 0), (OUTER, 0),
+        (INNER, BALL_TRACK.floor - .15), (OUTER, BALL_TRACK.floor - .15),
         (OUTER, config.roof_z), (INNER, config.roof_z)
     )).close().val()
     top = [v for v in w.Vertices()
@@ -217,70 +224,16 @@ def complete_tubes(fit):
 
 
 
-# Bed-facing structural ribs: these use only 16mm-grid inter-stud corridors.
-# Without them the 4.75mm receiver pocket creates a ~2,000mm2 sudden,
-# unsupported underside at Z=4.8. Keep all OEM engagement geometry intact:
-# - the existing three E31-05 tubes are *not* stiffened by the ribs;
-# - all 4x4 lower stud insertion circles remain clear;
-# - the ribs stop below the 6.35mm lowest track floor.
-RIB_WIDTH_MM = 1.6  # four-ish 0.42mm bead widths on a 0.4mm nozzle
-RIB_GRID_MM = (-16., 0., 16.)
-RIB_RADIAL_INSET_MM = .8
-RIB_FRAME_INSET_MM = 1.9
-RIB_TUBE_CLEARANCE_MM = .5
-RIB_CEILING_LAP_MM = .15
+@lru_cache(maxsize=1)
+def _proven_foundation():
+    """Retain the actual SC02 underbody rather than reconstruct its receiver.
 
-
-def receiver_print_support_ribs(fit, tube_centres):
-    """Add short built-in bed supports, not long horizontal receiver bridges.
-
-    These 4.9mm-tall webs are situated on the open inter-stud grid. Each is
-    trimmed to the annular body and at least 0.5mm from E31-05 tube outer
-    faces, so stud and slotted-tube mating surfaces stay unmodified.
-    No slicer supports or removable material are required for these webs.
+    This comes directly from the historical SC02 curve's build path. It
+    includes its *print-tested floor*, the 4.75mm receiver, three tube walls,
+    and the curved end-skirt. The same foundation is used for E01 and SC02.
+    Keep its original CAD unchanged; attach roof/track variants above it.
     """
-    depth = RECEIVER_DEPTH_MM + RIB_CEILING_LAP_MM
-    webs = []
-    for x in RIB_GRID_MM:
-        webs.append((cq.Workplane("XY")
-                     .box(RIB_WIDTH_MM, fit.depth - 2*RIB_FRAME_INSET_MM,
-                          depth, centered=(True, True, False))
-                     .translate((x, 0., 0.)).val()))
-    for y in RIB_GRID_MM:
-        webs.append((cq.Workplane("XY")
-                     .box(fit.width - 2*RIB_FRAME_INSET_MM, RIB_WIDTH_MM,
-                          depth, centered=(True, True, False))
-                     .translate((0., y, 0.)).val()))
-    support = cq.Workplane("XY").newObject(webs).combine().val()
-    annulus = (cq.Workplane("XY",
-                           origin=(CENTRE_XY[0], CENTRE_XY[1], 0))
-               .circle(OUTER - RIB_RADIAL_INSET_MM)
-               .circle(INNER + RIB_RADIAL_INSET_MM)
-               .extrude(depth).val())
-    frame = (cq.Workplane("XY")
-             .box(fit.width - 2*RIB_FRAME_INSET_MM,
-                  fit.depth - 2*RIB_FRAME_INSET_MM, depth,
-                  centered=(True, True, False)).val())
-    support = support.intersect(annulus).intersect(frame)
-    for x, y in tube_centres:
-        keep_tube_free = (cq.Workplane("XY", origin=(x, y, 0))
-                          .circle(fit.tube_radius + RIB_TUBE_CLEARANCE_MM)
-                          .extrude(depth).val())
-        support = support.cut(keep_tube_free)
-    support = support.clean()
-
-    # A full stud is >7.2mm from any rib centreline (RIB_WIDTH=1.6).
-    # Be conservative even against lower printed stud-size variation.
-    stud_keepout = fit.stud_radius - fit.clearance + .7
-    for sx, sy in fit.studs():
-        if (min(abs(sx - x) for x in RIB_GRID_MM) - RIB_WIDTH_MM/2
-                < stud_keepout
-                or min(abs(sy - y) for y in RIB_GRID_MM) - RIB_WIDTH_MM/2
-                < stud_keepout):
-            raise ValueError("Underside support intrudes into lower-stud clearance")
-    if not support.isValid() or support.Volume() < 1000.:
-        raise ValueError("Insufficient valid PR91 bed-facing support webs")
-    return support
+    return build_proven_sc02_open_curve()
 
 
 def _west_skirt_mark(shape, fit, model_id):
@@ -302,71 +255,51 @@ def _west_skirt_mark(shape, fit, model_id):
 
 
 def build_r48(config, *, marked=True):
-    """Common CAD construction for both E01 and SC02; no old BRep cropping."""
+    """Re-use SC02's curved, printable foundation for both roofed R48 tracks.
+
+    The underbody, receiver posts, tube cuts, and roof stud construction are
+    all the original `course_r48_sloped_tunnel` operations. We change only
+    the profile (flat/sloped), bore relief, windows and the test engraving.
+    In particular, DO NOT cut a new rectangular receiver pocket into a
+    swept annulus: that introduced PR91's catastrophic Z=4.75mm bridge.
+    """
     if not isinstance(config, R48PairConfig):
         raise TypeError("R48PairConfig required")
     nominal_min_wall = HALF - BALL_TRACK.radius - config.relief_mm
     if nominal_min_wall < MIN_RADIAL_SIDEWALL_MM:
         raise ValueError(f"Radial sidewall too thin: {nominal_min_wall:.3f}mm")
-    fit = course_fit(
-        nx=4, ny=4,
-        height_units=2 if config.drop_mm == 0 else 3,
-    )
+
+    fit = course_fit(nx=4, ny=4,
+                     height_units=2 if config.drop_mm == 0 else 3)
+    proven_base, proven_fit = _proven_foundation()
+    if (proven_fit.cavity_xy != fit.cavity_xy
+            or proven_fit.tube_radius != fit.tube_radius
+            or set(PROVEN_FULL_TUBES) != set(complete_tubes(fit))):
+        raise ValueError("The production SC02 foundation no longer matches E31-05")
+
     ts = [-.02] + [i / SAMPLE_STATIONS for i in range(SAMPLE_STATIONS + 1)] + [1.02]
-    exterior = cq.Solid.makeLoft(
-        [_outer_wire(t, config) for t in ts], ruled=True)
+    cover = cq.Solid.makeLoft([_outer_wire(t, config) for t in ts], ruled=True)
     passage = cq.Solid.makeLoft(
         [_passage_wire(t, config) for t in ts], ruled=True)
-    bounding_box = (cq.Workplane("XY")
-                    .box(fit.width, fit.depth, 100,
-                         centered=(True, True, False)).val())
-    shape = exterior.intersect(bounding_box).clean()
+    bed_envelope = cq.Workplane("XY").box(
+        fit.width, fit.depth, 100,
+        centered=(True, True, False)).val()
 
-    # Round the physical exterior's *bottom* perimeter before creating ports,
-    # window openings or socket features (otherwise fillet will cross slots).
-    bottom = [e for e in shape.Edges()
-              if abs(e.BoundingBox().zmin) < 1e-5 and
-              abs(e.BoundingBox().zmax) < 1e-5]
-    if not bottom:
-        raise ValueError("No bottom outline available to round")
-    shape = shape.fillet(.55, bottom).clean()
-
+    # The roof is above Z=6.20, and overlaps the real printed SC02 base.
+    # Nothing below the original lower socket is replaced with a new bridge.
+    # Importantly the proven base remains continuous under both flat/sloped
+    # track profiles, while passage cuts only start at the Z>=6.35 track floor.
+    shape = proven_base.fuse(cover.intersect(bed_envelope)).clean()
     shape = shape.cut(passage).clean()
-    cavity = (cq.Workplane("XY")
-              .box(*fit.cavity_xy, RECEIVER_DEPTH_MM,
-                   centered=(True, True, False)).val())
-    shape = shape.cut(cavity).clean()
 
-    # Three deliberately complete supports instead of old clipped tube fins.
-    tubes = complete_tubes(fit)
-    if set(tubes) != {(-16., -16.), (0., 0.), (16., 16.)}:
-        raise ValueError(f"Unexpected complete E31-05 support layout: {tubes}")
-    for x, y in tubes:
-        ring = (cq.Workplane("XY", origin=(x, y, 0))
-                .circle(fit.tube_radius).circle(fit.tube_inner_radius)
-                .extrude(RECEIVER_DEPTH_MM).val())
-        shape = shape.fuse(ring).clean()
+    # Keep SC02's clipped partial tube supports, its 3 complete E31-05
+    # tubes, bead and slit geometry, and its actual clipped roof studs.
+    shape = add_proven_sc02_partial_receivers(shape, proven_fit)
     shape = add_course_receiver_features(
-        shape, tubes, fit.tube_radius, receiver_depth=RECEIVER_DEPTH_MM
-    )
-
-    # PR91 physical-print fix: support the broad receiver ceiling with
-    # bed-printed webs, keeping E31-05 collars and all lower studs unobstructed.
-    support_ribs = receiver_print_support_ribs(fit, tubes)
-    shape = shape.fuse(support_ribs).clean()
-
-    # Seven *whole* studs; do not crop a 16-stud rectangular array.
-    studs = complete_studs(fit)
-    if len(studs) != 7:
-        raise ValueError(f"Unexpected whole-stud count: {len(studs)}")
-    for x, y in studs:
-        stud = make_studs(
-            [(x, y)], config.roof_z - .15,
-            fit.stud_radius - fit.clearance,
-            fit.stud_inner_radius, fit.stud_height + .15,
-            ROUNDED_EDGES.stud_lip_radius
-        ).val()
-        shape = shape.fuse(stud).clean()
+        shape, PROVEN_FULL_TUBES, proven_fit.tube_radius,
+        receiver_depth=RECEIVER_DEPTH_MM)
+    shape = add_proven_sc02_roof_studs(
+        shape, proven_fit, top_z=config.roof_z)
 
     window_volumes = []
     if config.windows:
@@ -381,22 +314,26 @@ def build_r48(config, *, marked=True):
     if config.direction == "left":
         shape = shape.mirror("XZ")
     if marked:
-        # On left-hand specimens the mirrored west-skirt location changes
-        # from Y=-16 to +16. Mirror finished geometry before adding legible ID.
         if config.direction == "left":
-            # Mirror the engraving placement, not the actual letters.
             raise ValueError("Left-hand mark placement is not yet validated")
         shape = _west_skirt_mark(shape, fit, config.model_id)
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError("R48 output must be a valid, single connected solid")
+
+    # The seven entire studs from the footprint are among the original
+    # clipped-stud array; this is not a claim that *only* seven studs exist.
+    entire_studs = complete_studs(fit)
     return shape, {
         "model_id": config.model_id,
         "drop_mm": config.drop_mm,
         "direction": config.direction,
         "roof_z_mm": config.roof_z,
-        "top_studs": list(studs),
-        "complete_e31_tubes": list(tubes),
-        "receiver_print_support_rib_volume_mm3": support_ribs.Volume(),
+        "top_studs": list(entire_studs),
+        "roof_stud_method": "course_r48_sloped_tunnel.roof_studs (full + clipped)",
+        "complete_e31_tubes": list(PROVEN_FULL_TUBES),
+        "partial_e31_tubes": 4,
+        "underbody_source": "course_r48_sloped_tunnel.open_curve",
+        "receiver_method": "course_r48_sloped_tunnel.clipped_receivers",
         "window_cut_volumes_mm3": window_volumes,
         "port_contract": port_contract(config.drop_mm),
         "ball_diameter_mm": BALL_TRACK.ball_diameter,
