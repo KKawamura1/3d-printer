@@ -51,3 +51,11 @@ SC02 quarter-ring clipping. Two detached slivers of **0.026mm³ each**
 removes only separated slivers below 0.1mm³ each (0.2mm³ total max)
 and rejects any significant disconnected geometry. Printed debris is not
 acceptable in a child-play component.
+
+## Faster CAD build
+
+All nine independent window tools are applied in one compound BRep cut;
+each viewport still runs its own original-wall and post-cut line-of-sight
+and below-window-guard checks. A batch cut avoids nine expensive repeated
+OpenCascade healing passes. The earlier per-window implementation was
+cancelled before being treated as a validated deliverable.
