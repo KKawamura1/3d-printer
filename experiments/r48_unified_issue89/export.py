@@ -113,9 +113,11 @@ def export_pair(out):
     assert one["detail"]["top_studs"] == two["detail"]["top_studs"]
     assert (one["detail"]["complete_e31_tubes"] ==
             two["detail"]["complete_e31_tubes"])
-    assert (two["detail"]["port_contract"]["west"][0][2] -
-            one["detail"]["port_contract"]["west"][0][2] ==
-            DUPLO.height)
+    assert abs(
+        two["detail"]["port_contract"]["west"][0][2] -
+        one["detail"]["port_contract"]["west"][0][2] -
+        DUPLO.height
+    ) < 1e-9
     (out / "pair-report.json").write_text(
         json.dumps({"issue": 89, "passed": True, "models": [
             {"id": r["id"], "volume_mm3": r["geometry"]["volume_mm3"],
