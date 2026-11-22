@@ -79,12 +79,16 @@ def _stud_insertion_clearance(shape):
     return True
 
 
-def assemble_four(out):
+def build_specimen(model_id, out):
+    """Generate and validate exactly one CAD/STL. CI runs four independent jobs."""
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
+    spec = next((row for row in SPECIMENS if row[0] == model_id), None)
+    if spec is None:
+        raise ValueError(f"Unknown comparison model: {model_id}")
+    model_id, drop_mm, relief_mm, x, y = spec
     records = []
     binary_parts = []
-    for model_id, drop_mm, relief_mm, x, y in SPECIMENS:
         cfg = R48PairConfig(model_id, drop_mm, relief_mm=relief_mm)
         shape, details = build_r48(cfg, marked=True)
         path = out / model_id
@@ -162,6 +166,31 @@ def assemble_four(out):
         )
         print(f"{model_id}: diameter +{relief_mm:.2f}mm radial, "
               f"all CAD/port/mesh checks passed", flush=True)
+    return records[0]
+
+
+def pack_four(out):
+    """Assemble existing validated STLs only; never regenerate a CAD model."""
+    out = Path(out)
+    out.mkdir(parents=True, exist_ok=True)
+    records, binary_parts = [], []
+    for model_id, drop_mm, relief_mm, x, y in SPECIMENS:
+        path = out / model_id
+        row = json.loads((path / "trial-report.json").read_text())
+        if (row["id"] != model_id
+                or row["drop_mm"] != drop_mm
+                or row["interior_radial_relief_mm"] != relief_mm
+                or row["world_translation_xy_mm"] != [x, y]
+                or not row["checks"] or not all(row["checks"].values())):
+            raise ValueError(f"Specimen report failed identity/checks: {model_id}")
+        count, facets, bounds, src_hash = placed_mesh(path / "brick.stl", x, y)
+        if count != row["mesh_triangles"] or src_hash != row["mesh_sha256"]:
+            raise ValueError(f"Specimen STL hash/facet mismatch: {model_id}")
+        if any(abs(bounds[side][axis] - row["world_bounds_mm"][side][axis]) > .001
+               for side in (0, 1) for axis in range(3)):
+            raise ValueError(f"Specimen STL coordinate mismatch: {model_id}")
+        records.append(row)
+        binary_parts.append((count, facets))
 
     bounds = [
         [min(row["world_bounds_mm"][0][i] for row in records)
@@ -218,9 +247,25 @@ def assemble_four(out):
     return plate_stl, report
 
 
+
+def assemble_four(out):
+    """Local convenience. CI uses parallel --specimen and --assemble-only."""
+    for model_id, *_ in SPECIMENS:
+        build_specimen(model_id, out)
+    return pack_four(out)
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--out", type=Path,
                    default=Path("build/issue89-r48-relief-comparison"))
+    p.add_argument("--specimen", choices=[spec[0] for spec in SPECIMENS])
+    p.add_argument("--assemble-only", action="store_true")
     args = p.parse_args()
-    assemble_four(args.out)
+    if args.specimen and args.assemble_only:
+        p.error("--specimen and --assemble-only cannot be combined")
+    if args.specimen:
+        build_specimen(args.specimen, args.out)
+    elif args.assemble_only:
+        pack_four(args.out)
+    else:
+        assemble_four(args.out)
