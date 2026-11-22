@@ -46,8 +46,8 @@ class SharedR48ContractTests(unittest.TestCase):
         self.assertEqual(flat["west"][1], (-1., 0., 0.))
         self.assertEqual(flat["north"][1], (0., 1., 0.))
         self.assertEqual(flat["north"], sloped["north"])
-        self.assertEqual(sloped["west"][0][2] - flat["west"][0][2],
-                         DUPLO.height)
+        self.assertAlmostEqual(sloped["west"][0][2] - flat["west"][0][2],
+                               DUPLO.height, places=9)
         self.assertEqual(_progress(0), 0)
         self.assertEqual(_progress(1), 0)
         self.assertAlmostEqual(INTERIOR_RADIAL_RELIEF, .4)
