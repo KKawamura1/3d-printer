@@ -1,5 +1,6 @@
 """Export verified individual and A1 mini plate STLs for the 4×2 trial."""
 import argparse
+from dataclasses import asdict
 import hashlib
 import json
 import math
@@ -74,7 +75,11 @@ def export_specimen(root, specimen, unmarked, fit, windows, render_viewer):
         "tunnel": specimen.tunnel,
         "direction": "left" if specimen.left else "right",
         "mouth_diameter_mm": BALL_TRACK.opening,
-        "geometry": {"bounds_mm": bounds, "volume_mm3": body.Volume()},
+        "geometry": {
+            "bounds_mm": bounds,
+            "volume_mm3": body.Volume(),
+            "parameters": asdict(fit),
+        },
         "window_removal_mm3": windows,
         "stl_sha256": hashlib.sha256(stl.read_bytes()).hexdigest(),
         "mesh": mesh,

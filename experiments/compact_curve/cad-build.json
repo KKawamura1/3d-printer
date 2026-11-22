@@ -1,5 +1,5 @@
 {
-  "version": "X4A-V1",
+  "version": "X4A-V2",
   "command": ["python", "-m", "experiments.compact_curve.export", "--out", "{out}"],
   "stl": [
     "X4A_4x2_sharp_curves_8parts_A1mini.stl",
