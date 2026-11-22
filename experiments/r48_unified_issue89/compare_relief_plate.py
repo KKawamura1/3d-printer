@@ -89,83 +89,83 @@ def build_specimen(model_id, out):
     model_id, drop_mm, relief_mm, x, y = spec
     records = []
     binary_parts = []
-        cfg = R48PairConfig(model_id, drop_mm, relief_mm=relief_mm)
-        shape, details = build_r48(cfg, marked=True)
-        path = out / model_id
-        stl, mesh = export_geometry(shape, path, tolerance=.02,
-                                    angular_tolerance=.15)
-        bounds = exact_bounds(shape)
-        bed_contact_area = _horizontal_slice_area_mm2(shape, .10)
-        ceiling_support_area = _horizontal_slice_area_mm2(
-            shape, RECEIVER_DEPTH_MM - .10)
-        checks = {
-            "valid_single_solid": shape.isValid() and
-                                  len(shape.Solids()) == 1,
-            "water_tight_stl": bool(mesh["passed"]),
-            "stl_volume_matches_brep": abs(
-                mesh["signed_volume_mm3"] - shape.Volume()
-            ) / shape.Volume() < .001,
-            "duplo_envelope": bounds[0] <= 63.9 and bounds[1] <= 63.9,
-            "stud_height": abs(
-                bounds[2] - (cfg.roof_z + DUPLO.stud_height)) < .01,
-            "complete_studs": len(details["top_studs"]) == 7,
-            "complete_receiver_tubes":
-                len(details["complete_e31_tubes"]) == 3,
-            "historical_sc02_underside_reused":
-                details["underbody_source"] ==
-                "course_r48_sloped_tunnel.open_curve",
-            "historical_sc02_partial_receivers":
-                details["partial_e31_tubes"] == 4,
-            "full_4x4_stud_insertion_clearance":
-                _stud_insertion_clearance(shape),
-            "five_windows": len(details["window_cut_volumes_mm3"]) == 5
-                            and min(details["window_cut_volumes_mm3"]) > 50,
-            "mouth_contract":
-                details["port_contract"]["opening_diameter_mm"]
-                == BALL_TRACK.opening,
-            "mouth_actual_brep":
-                actual_port_rim_probe(shape, cfg.drop_mm),
-            "requested_relief":
-                details["interior_radial_relief_mm"] == relief_mm,
-        }
-        if not all(checks.values()):
-            raise ValueError(f"{model_id}: {checks}")
-        count, facet_bytes, shifted_bounds, src_hash = placed_mesh(stl, x, y)
-        records.append({
-            "id": model_id,
-            "track": "E01" if drop_mm == 0 else "SC02",
-            "drop_mm": drop_mm,
-            "interior_radial_relief_mm": relief_mm,
-            "mouth_diameter_mm": BALL_TRACK.opening,
-            "internal_bottom_arc_equivalent_max_diameter_mm":
-                round(BALL_TRACK.opening + 2 * relief_mm * .995, 3),
-            "not_a_constant_diameter_circular_tube": True,
-            "windows": 5,
-            "underbody_source": details["underbody_source"],
-            "receiver_method": details["receiver_method"],
-            "roof_stud_method": details["roof_stud_method"],
-            "partial_e31_tubes": details["partial_e31_tubes"],
-            "bed_contact_area_z0p1_mm2": round(bed_contact_area, 2),
-            "receiver_ceiling_support_area_z4p65_mm2":
-                round(ceiling_support_area, 2),
-            "receiver_print_support_note":
-                "Directly reused proven SC02 curved base, clipped supports and E31; Bambu slicing remains unverified",
-            "engraved_label": model_id,
-            "mesh_triangles": count,
-            "mesh_sha256": src_hash,
-            "volume_mm3": shape.Volume(),
-            "world_translation_xy_mm": [x, y],
-            "world_bounds_mm": shifted_bounds,
-            "checks": checks,
-            "actual_rolling_tested": False,
-            "slice_tested": False,
-        })
-        binary_parts.append((count, facet_bytes))
-        (path / "trial-report.json").write_text(
-            json.dumps(records[-1], indent=2, ensure_ascii=False) + "\n"
-        )
-        print(f"{model_id}: diameter +{relief_mm:.2f}mm radial, "
-              f"all CAD/port/mesh checks passed", flush=True)
+    cfg = R48PairConfig(model_id, drop_mm, relief_mm=relief_mm)
+    shape, details = build_r48(cfg, marked=True)
+    path = out / model_id
+    stl, mesh = export_geometry(shape, path, tolerance=.02,
+                                angular_tolerance=.15)
+    bounds = exact_bounds(shape)
+    bed_contact_area = _horizontal_slice_area_mm2(shape, .10)
+    ceiling_support_area = _horizontal_slice_area_mm2(
+        shape, RECEIVER_DEPTH_MM - .10)
+    checks = {
+        "valid_single_solid": shape.isValid() and
+                              len(shape.Solids()) == 1,
+        "water_tight_stl": bool(mesh["passed"]),
+        "stl_volume_matches_brep": abs(
+            mesh["signed_volume_mm3"] - shape.Volume()
+        ) / shape.Volume() < .001,
+        "duplo_envelope": bounds[0] <= 63.9 and bounds[1] <= 63.9,
+        "stud_height": abs(
+            bounds[2] - (cfg.roof_z + DUPLO.stud_height)) < .01,
+        "complete_studs": len(details["top_studs"]) == 7,
+        "complete_receiver_tubes":
+            len(details["complete_e31_tubes"]) == 3,
+        "historical_sc02_underside_reused":
+            details["underbody_source"] ==
+            "course_r48_sloped_tunnel.open_curve",
+        "historical_sc02_partial_receivers":
+            details["partial_e31_tubes"] == 4,
+        "full_4x4_stud_insertion_clearance":
+            _stud_insertion_clearance(shape),
+        "five_windows": len(details["window_cut_volumes_mm3"]) == 5
+                        and min(details["window_cut_volumes_mm3"]) > 50,
+        "mouth_contract":
+            details["port_contract"]["opening_diameter_mm"]
+            == BALL_TRACK.opening,
+        "mouth_actual_brep":
+            actual_port_rim_probe(shape, cfg.drop_mm),
+        "requested_relief":
+            details["interior_radial_relief_mm"] == relief_mm,
+    }
+    if not all(checks.values()):
+        raise ValueError(f"{model_id}: {checks}")
+    count, facet_bytes, shifted_bounds, src_hash = placed_mesh(stl, x, y)
+    records.append({
+        "id": model_id,
+        "track": "E01" if drop_mm == 0 else "SC02",
+        "drop_mm": drop_mm,
+        "interior_radial_relief_mm": relief_mm,
+        "mouth_diameter_mm": BALL_TRACK.opening,
+        "internal_bottom_arc_equivalent_max_diameter_mm":
+            round(BALL_TRACK.opening + 2 * relief_mm * .995, 3),
+        "not_a_constant_diameter_circular_tube": True,
+        "windows": 5,
+        "underbody_source": details["underbody_source"],
+        "receiver_method": details["receiver_method"],
+        "roof_stud_method": details["roof_stud_method"],
+        "partial_e31_tubes": details["partial_e31_tubes"],
+        "bed_contact_area_z0p1_mm2": round(bed_contact_area, 2),
+        "receiver_ceiling_support_area_z4p65_mm2":
+            round(ceiling_support_area, 2),
+        "receiver_print_support_note":
+            "Directly reused proven SC02 curved base, clipped supports and E31; Bambu slicing remains unverified",
+        "engraved_label": model_id,
+        "mesh_triangles": count,
+        "mesh_sha256": src_hash,
+        "volume_mm3": shape.Volume(),
+        "world_translation_xy_mm": [x, y],
+        "world_bounds_mm": shifted_bounds,
+        "checks": checks,
+        "actual_rolling_tested": False,
+        "slice_tested": False,
+    })
+    binary_parts.append((count, facet_bytes))
+    (path / "trial-report.json").write_text(
+        json.dumps(records[-1], indent=2, ensure_ascii=False) + "\n"
+    )
+    print(f"{model_id}: diameter +{relief_mm:.2f}mm radial, "
+          f"all CAD/port/mesh checks passed", flush=True)
     return records[0]
 
 
