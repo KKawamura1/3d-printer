@@ -16,6 +16,7 @@ from brickcad.course_contract import (
     RECEIVER_DEPTH_MM, add_course_receiver_features, course_fit,
 )
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
+from brickcad.course_section_profiles import passage_section_wire
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.course_r48_sloped_tunnel import (
     FULL_TUBES as PROVEN_FULL_TUBES,
@@ -78,6 +79,66 @@ class R48PairConfig:
         return 2 * DUPLO.height + self.drop_mm
 
 
+@dataclass(frozen=True)
+class R48FamilyConfig:
+    """One public recipe for R48 open/roofed and level/sloped variants.
+
+    Open curves keep their proven course_loft_family shell; roofed curves
+    retain the SC02-derived curved underbody. No successful CAD is rewritten.
+    """
+    model_id: str
+    drop_mm: float
+    enclosure: str  # 'open' or 'roofed'
+    direction: str = "right"
+    relief_mm: float | None = None
+
+    def __post_init__(self):
+        if self.enclosure not in ("open", "roofed"):
+            raise ValueError("R48 enclosure must be open or roofed")
+        if self.direction not in ("right", "left"):
+            raise ValueError("R48 direction must be right or left")
+        if self.drop_mm not in (0., DUPLO.height):
+            raise ValueError("Only level or one-DUPLO-height R48 is supported")
+        if not self.model_id or len(self.model_id) > 32:
+            raise ValueError("Versioned R48 model ID is required")
+        if self.enclosure == "open" and self.relief_mm is not None:
+            raise ValueError("Open curves must keep their proven track profile")
+        if self.enclosure == "roofed":
+            R48PairConfig(self.model_id, self.drop_mm, self.direction,
+                          relief_mm=INTERIOR_RADIAL_RELIEF if self.relief_mm is None
+                          else self.relief_mm)
+
+
+def build_r48_family(config, *, marked=True):
+    """Build four variants through one interface and shared section/path.
+
+    Enclosure-specific outer shells and support booleans remain different
+    to preserve historical BRep parity of the proven open and SC02 parts.
+    """
+    if not isinstance(config, R48FamilyConfig):
+        raise TypeError("R48FamilyConfig required")
+    if config.enclosure == "roofed":
+        return build_r48(R48PairConfig(
+            config.model_id, config.drop_mm, config.direction,
+            relief_mm=INTERIOR_RADIAL_RELIEF if config.relief_mm is None
+            else config.relief_mm), marked=marked)
+
+    from brickcad.course_loft_family import LoftSettings, build_course
+    settings = LoftSettings("gentle", config.drop_mm, False,
+                            config.direction == "left", "west", 12.)
+    shape, fit = build_course(settings,
+                              label=config.model_id if marked else None)
+    return shape, {
+        "model_id": config.model_id,
+        "drop_mm": config.drop_mm,
+        "enclosure": "open",
+        "direction": config.direction,
+        "underbody_source": "course_loft_family.build_course",
+        "port_contract": port_contract(config.drop_mm),
+        "physical_fit_validated": False,
+    }
+
+
 def floor_z(t, drop_mm):
     """Shared with the open R48 rails: E01 is constant-z SC02."""
     return floor_at_s(min(1., max(0., t)) * ARC_LENGTH_MM, drop_mm)
@@ -127,35 +188,12 @@ def _outer_wire(t, config):
 def _passage_wire(t, config):
     floor = floor_z(t, config.drop_mm)
     progress = _progress(t)
-    # Same radial relief at identical stations for both configurations.
-    # Identical fixed OEM openings, while the interior expands by the
-    # specimen-specific amount (0.4mm or 1.0mm for the controlled trial).
     radius = BALL_TRACK.radius + config.relief_mm * progress
-    centre = floor + radius
-    a = radius / math.sqrt(2)
     roof = floor + 30.3
-    bridge = centre + math.sqrt(2) * radius - roof
-
-    def mix(circle, high):
-        return circle * (1 - progress) + high * progress
-
-    end = (mix(radius * math.cos(math.radians(75)), bridge),
-           mix(centre + radius * math.sin(math.radians(75)), roof))
-    mid = (mix(radius * .5, (a + bridge) / 2),
-           mix(centre + radius * math.sqrt(3) / 2,
-               (centre + a + roof) / 2))
-    apex = (0, mix(centre + radius, roof))
-    w = (cq.Workplane("XZ")
-         .moveTo(RADIUS - a, centre + a)
-         .threePointArc((RADIUS, floor), (RADIUS + a, centre + a))
-         .threePointArc((RADIUS + mid[0], mid[1]),
-                        (RADIUS + end[0], end[1]))
-         .threePointArc((RADIUS + apex[0], apex[1]),
-                        (RADIUS - end[0], end[1]))
-         .threePointArc((RADIUS - mid[0], mid[1]),
-                        (RADIUS - a, centre + a))
-         .close().val())
-    return _world(w, t)
+    wire = passage_section_wire(
+        cq.Workplane("XZ"), floor=floor, radius=radius,
+        center_x=RADIUS, roof=roof, blend=progress)
+    return _world(wire, t)
 
 
 def _entire_disk_inside_outline(x, y, radius, margin=0.):
