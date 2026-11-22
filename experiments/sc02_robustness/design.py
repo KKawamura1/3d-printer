@@ -68,7 +68,11 @@ def check_plan():
         old=_passage_wire(at,p)
         for extra in (.2,.4):
             widened=_passage_wire(at,p,extra)
-            if not old.isSame(widened):
+            av=[tuple(v.Center().toTuple()) for v in old.Vertices()]
+            bv=[tuple(v.Center().toTuple()) for v in widened.Vertices()]
+            if (len(av)!=len(bv) or
+                    any(any(abs(x-y)>1.e-7 for x,y in zip(a,b))
+                        for a,b in zip(av,bv))):
                 raise ValueError("Connection mouth was modified")
 
 
