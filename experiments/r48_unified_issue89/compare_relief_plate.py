@@ -19,7 +19,7 @@ import cadquery as cq
 
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_contract import RECEIVER_DEPTH_MM
-from brickcad.course_r48_unified import R48PairConfig, build_r48
+from brickcad.course_r48_unified import R48PairConfig, R48FamilyConfig, build_r48_family
 from brickcad.standards import BALL_TRACK, DUPLO
 from brickcad.verify import exact_bounds
 from experiments.r48_unified_issue89.export import actual_port_rim_probe
@@ -90,7 +90,8 @@ def build_specimen(model_id, out):
     records = []
     binary_parts = []
     cfg = R48PairConfig(model_id, drop_mm, relief_mm=relief_mm)
-    shape, details = build_r48(cfg, marked=True)
+    shape, details = build_r48_family(R48FamilyConfig(
+        model_id, drop_mm, "roofed", relief_mm=relief_mm), marked=True)
     path = out / model_id
     stl, mesh = export_geometry(shape, path, tolerance=.02,
                                 angular_tolerance=.15)
