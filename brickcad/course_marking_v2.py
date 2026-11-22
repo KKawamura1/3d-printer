@@ -78,7 +78,12 @@ def engrave_large(shape, original, label, site, *, audit):
     removed = shape.Volume() - engraved.Volume()
     if (not engraved.isValid() or len(engraved.Solids()) != 1
             or removed < .3 or abs(removed-available_material) > .06):
-        raise ValueError(f"{label}: invalid, truncated or disconnected lettering")
+        raise ValueError(
+            f"{label}: rejected engraved BRep: "
+            f"valid={engraved.isValid()} solids={len(engraved.Solids())} "
+            f"removed={removed:.5f} available={available_material:.5f} "
+            f"delta={removed-available_material:.5f} "
+            f"coverage={coverage:.3f} at {site}")
     # The shared CAD production fit audit remains required and final marking
     # labels are enforced. Explicitly identify the new marking-policy version
     # in the experiment report, rather than relabeling legacy 3mm CAD.
