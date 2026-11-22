@@ -356,7 +356,7 @@ class SnapshotArtifactTests(unittest.TestCase):
             source_dir = root / 'build/cad-artifacts' / name / version
             source_dir.mkdir(parents=True)
             stl = source_dir / 'brick.stl'
-            stl.write_bytes(b' ' * 80 + struct.pack('<I', 1) + b'\\0' * 50)
+            stl.write_bytes(b' ' * 80 + struct.pack('<I', 1) + b'\0' * 50)
             (source_dir / 'report.json').write_text(json.dumps({
                 'passed': True, 'mesh': {'passed': True}}))
             (source_dir / '.cad-version.json').write_text(json.dumps({
@@ -378,7 +378,7 @@ class SnapshotArtifactTests(unittest.TestCase):
             with (mock.patch.object(cad, 'resolve', return_value=nodes),
                   mock.patch.object(cad, 'source_fingerprint', return_value='fingerprint'),
                   mock.patch.object(cad, 'verified_report'),
-                  mock.patch.object(cad, 'git', return_value=b'commit\\n'),
+                  mock.patch.object(cad, 'git', return_value=b'commit\n'),
                   mock.patch.object(cad.subprocess, 'run') as subprocess_run,
                   mock.patch.object(cad, 'snapshot_artifact', side_effect=fake_snapshot) as render):
                 # Explicit review request creates PNG but never rebuilds the cached STL.
