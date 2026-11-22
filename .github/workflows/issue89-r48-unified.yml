@@ -1,10 +1,12 @@
-name: Issue89 R48 shared E01 SC02
+name: Issue89 R48 common E01 SC02 GC01 SC03 SC05
 
 on:
   push:
     branches: [experiment/issue89-r48-shared-engine]
     paths:
       - "brickcad/course_r48_unified.py"
+      - "brickcad/r48_path.py"
+      - "brickcad/course_loft_family.py"
       - "experiments/r48_unified_issue89/**"
       - ".github/workflows/issue89-r48-unified.yml"
   workflow_dispatch:
@@ -34,8 +36,10 @@ jobs:
           cache: pip
       - name: Install pinned CAD environment
         run: python -m pip install -r requirements.txt
-      - name: Fast common CAD contract checks
-        run: python -m unittest experiments.r48_unified_issue89.test_contract -v
+      - name: Fast open and roofed R48 shared path contract checks
+        run: |
+          python -m unittest experiments.r48_unified_issue89.test_contract -v
+          python -m unittest experiments.r48_unified_issue89.test_open_roofed_path -v
       - name: Build exactly two specimens and check 21 sphere stations each
         if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]')
         run: python -m experiments.r48_unified_issue89.export --out build/issue89-shared-r48
