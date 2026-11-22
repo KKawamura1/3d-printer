@@ -367,7 +367,7 @@ def png_dimensions(path):
 
 
 def snapshot_artifact(stl, destination, *, cached=False, root=ROOT):
-    """Attach a cheap four-view PNG for every selected STL, even on cache hits.
+    """Attach an opt-in four-view PNG for visual review.
 
     Reuse a validated preview from the versioned CAD cache whenever possible.
     This does not regenerate STL or imply a manual visual/slicer inspection.
@@ -395,7 +395,7 @@ def snapshot_artifact(stl, destination, *, cached=False, root=ROOT):
             'width': width, 'height': height}
 
 
-def build(root, specs, requested, previews=False):
+def build(root, specs, requested, previews=False, snapshots=False):
     root = root.resolve()
     nodes = resolve(root, specs, requested)
     output = root / 'build/cad-delivery'
@@ -479,12 +479,15 @@ def build(root, specs, requested, previews=False):
                     hashlib.sha256(course_meta.read_bytes()).hexdigest())
             key = str(Path(name) / version / rel)
             manifest['files'][key] = verify_stl(dst)
-            snapshot_rel = Path(rel).with_suffix('.preview.png')
-            snapshot_dst = output / name / version / snapshot_rel
-            snapshot_info = snapshot_artifact(source, snapshot_dst, cached=cached, root=root)
-            manifest['files'][key]['preview'] = {
-                'path': str(Path(name) / version / snapshot_rel), **snapshot_info
-            }
+            # PNG rendering can dominate build time on large meshes.
+            # Only generate it when a human/agent explicitly requests visual review.
+            if snapshots:
+                snapshot_rel = Path(rel).with_suffix('.preview.png')
+                snapshot_dst = output / name / version / snapshot_rel
+                snapshot_info = snapshot_artifact(source, snapshot_dst, cached=cached, root=root)
+                manifest['files'][key]['preview'] = {
+                    'path': str(Path(name) / version / snapshot_rel), **snapshot_info
+                }
             if previews and (source.parent / 'viewer.html').exists():
                 captured = root / 'build/cad-artifacts/previews' / name / version / Path(rel).parent
                 subprocess.run([sys.executable, str(root / 'scripts/run-stage.py'),
@@ -509,6 +512,8 @@ def main():
                         help='Recheck branch versions since this base if previous CAD runs failed')
     parser.add_argument('--targets', default='changed')
     parser.add_argument('--previews', action='store_true')
+    parser.add_argument('--snapshots', action='store_true',
+                        help='Generate four-view PNGs only when explicitly requested')
     args = parser.parse_args()
     root = ROOT
     specs = discover(root)
@@ -548,7 +553,7 @@ def main():
         return
     if not selected:
         raise ValueError('No models selected')
-    build(root, specs, selected, args.previews)
+    build(root, specs, selected, previews=args.previews, snapshots=args.snapshots)
 
 
 if __name__ == '__main__':
