@@ -122,6 +122,23 @@ def large_mark_site(source_id, source, fit):
     raise ValueError("No checked exterior marking site for " + source_id)
 
 
+def marking_sites(source_id, source, fit):
+    """Try verified alternative vertical bands when the primary face breaks.
+
+    The short sharp-turn faces have complicated sloped floors and may not
+    support five-millimetre text at every Z. Try nearby Z values while
+    always requiring the same BRep window clearance, exterior coverage,
+    and valid single-solid result. No candidate bypasses those checks.
+    """
+    first = large_mark_site(source_id, source, fit)
+    if source_id.startswith(("SD03", "SD04")):
+        return (first,) + tuple(
+            MarkSite(first.face, first.x_mm, first.y_mm, z)
+            for z in (11., 11.5, 12., 12.5, 9.7)
+        )
+    return (first,)
+
+
 def build_trial(source_id, root):
     new_id = TRIALS[source_id]
     folder = Path(root) / new_id
@@ -164,9 +181,21 @@ def build_trial(source_id, root):
             })
         # New opt-in shared 5mm label. It must not consume any viewing hole;
         # a BRep material-coverage test also guards against clipped letters.
-        shape, marking = engrave_large(
-            shape, original, new_id,
-            large_mark_site(source_id, source, fit), audit=audit)
+        failures = []
+        for site in marking_sites(source_id, source, fit):
+            try:
+                marked, marking = engrave_large(
+                    shape, original, new_id, site, audit=audit)
+            except ValueError as exc:
+                failures.append(str(exc))
+                print("REJECT MARK SITE", new_id, str(exc), flush=True)
+                continue
+            shape = marked
+            break
+        else:
+            raise ValueError(
+                f"{new_id}: all exterior engraving sites rejected: {failures}")
+        marking["attempts"] = len(failures) + 1
 
     contract = audit.manifest()
     if contract.get("final_marking_labels") != [new_id]:
