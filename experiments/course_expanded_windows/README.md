@@ -79,3 +79,5 @@ tries several recorded Z bands and accepts only a candidate that passes the
 **same exact collision, glyph coverage and single-solid criteria**. It
 fails closed if all locations are unsuitable. This is intentional rather
 than silently reducing text height for those two variants.
+
+The v3 run also retains the original six-model geometry/fit checks.
