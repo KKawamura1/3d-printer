@@ -24,6 +24,33 @@ PAIRS = (
 SPHERE_STATIONS = 21
 CLEARANCE_LIFT_MM = .55  # HIGH LIFT ONLY: do not use as rolling/print-safety proof
 
+def actual_port_rim_probe(shape, drop_mm):
+    """Inspect the actual BRep at both mouths, not only port_config metadata.
+
+    For 24 polar directions, points 0.15mm *inside* the 25.74mm
+    circular rim must be in the open passage, and points 0.15mm outside
+    must be solid. Sample 0.02mm inward from the real ±31.9mm end
+    planes to avoid ambiguous exact-face topology. This is a geometric
+    discriminator, not proof of OEM mating or a complete section scan.
+    """
+    radius = BALL_TRACK.radius
+    for port in ("west", "north"):
+        floor = BALL_TRACK.floor + (drop_mm if port == "west" else 0.)
+        for degrees in range(0, 360, 15):
+            theta = math.radians(degrees)
+            for shift, should_be_solid in ((-.15, False), (.15, True)):
+                distance = radius + shift
+                side = distance * math.cos(theta)
+                z = floor + radius + distance * math.sin(theta)
+                p = (cq.Vector(-31.88, -16. + side, z)
+                     if port == "west" else
+                     cq.Vector(16. + side, 31.88, z))
+                if shape.isInside(p, .001) != should_be_solid:
+                    return False
+    return True
+
+
+
 
 def ball_clearance_samples(shape, drop_mm):
     """Rigid sphere vs entire finished solid, including windows and supports.
@@ -71,6 +98,7 @@ def export_pair(out):
             "all_five_windows_open": len(detail["window_cut_volumes_mm3"]) == 5
                                      and min(detail["window_cut_volumes_mm3"]) > 50,
             "lifted_sphere_clearance_only": max(samples) < .01,
+            "actual_brep_port_rim": actual_port_rim_probe(shape, cfg.drop_mm),
             "unchanged_port_diameter": (
                 detail["port_contract"]["opening_diameter_mm"]
                 == BALL_TRACK.opening
