@@ -18,8 +18,10 @@ from brickcad.course_artifacts import export_geometry
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_expanded
 from brickcad.r48_path import xy_at_s as r48_xy_at_s, floor_at_s as r48_floor_at_s
 from brickcad.course_section_profiles import passage_section_wire
+from brickcad.course_r48_building_blocks import (
+    outer_section_wire, loft_sections, receiver_underbody,
+)
 from brickcad.connections import make_studs
-from brickcad.model import receiver
 from brickcad.standards import BALL_TRACK
 from brickcad.verify import exact_bounds
 
@@ -106,7 +108,8 @@ def wire(s, role, config):
     w = cq.Workplane(section_plane(s, config))
     if role in ("outer", "mask"):
         top = 90 if role == "mask" else (57.6 if config.tunnel else floor+12.85)
-        return w.polyline([(-15.9,0),(15.9,0),(15.9,top),(-15.9,top)]).close().val()
+        return outer_section_wire(w, inner=-15.9, outer=15.9,
+                                  bottom=0, top=top)
 
     distance = min(max(0,s),max(0,config.length-s))
     # 1mm circular entry/exit lip for slope+sharp tunnel; old open rails
@@ -136,8 +139,8 @@ def stations(config, a=-.3, b=None):
 
 
 def loft(config, role, a=-.3, b=None):
-    return cq.Solid.makeLoft([wire(s,role,config) for s in stations(config,a,b)],
-                             ruled=True)
+    return loft_sections([wire(s,role,config) for s in stations(config,a,b)],
+                         ruled=True)
 
 
 def build_course(config, *, label=None):
@@ -150,7 +153,8 @@ def build_course(config, *, label=None):
               centered=(True,True,False)).val()
     mask = loft(config,"mask").intersect(clip)
     outer = loft(config,"outer").intersect(clip)
-    body = receiver(p,cq.Workplane(obj=outer),RECEIVER_DEPTH,0).val().clean()
+    body = receiver_underbody(cq.Workplane(obj=outer), p,
+                              RECEIVER_DEPTH, entry=0).val().clean()
     body = body.intersect(mask).clean()
     body = body.cut(loft(config,"passage")).clean()
 
