@@ -5,6 +5,7 @@ on:
     branches: [experiment/issue89-r48-shared-engine]
     paths:
       - "brickcad/course_section_profiles.py"
+      - "brickcad/course_r48_building_blocks.py"
       - "brickcad/course_r48_sloped_tunnel.py"
       - "brickcad/course_r48_unified.py"
       - "brickcad/r48_path.py"
@@ -43,6 +44,7 @@ jobs:
           python -m unittest experiments.r48_unified_issue89.test_contract -v
           python -m unittest experiments.r48_unified_issue89.test_open_roofed_path -v
           python -m unittest experiments.r48_unified_issue89.test_profile_shared -v
+          python -m unittest experiments.r48_unified_issue89.test_shared_building_blocks -v
       - name: Build exactly two specimens and check 21 sphere stations each
         if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]') || contains(github.event.head_commit.message, '[issue89-plate]')
         run: python -m experiments.r48_unified_issue89.export --out build/issue89-shared-r48
