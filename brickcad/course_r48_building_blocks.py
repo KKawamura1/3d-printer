@@ -55,3 +55,18 @@ def receiver_underbody(outer, fit, depth, *, tubes=None, tube_radius=None,
               if tube_radius is None else tube_radius)
     return make_receiver(outer, points, fit.cavity_xy, depth,
                          radius, fit.tube_inner_radius, entry)
+
+
+def sweep_enclosure(outer_wire_at, passage_wire_at, stations, *, ruled=True):
+    """Build the outer shell and the passage with the same station set.
+
+    These are separate solids so each established builder can preserve its
+    own clipping and boolean order. This removes duplicate sweep pipelines
+    without silently changing any geometry or print-support boundary.
+    """
+    stations = tuple(stations)
+    if len(stations) < 2:
+        raise ValueError("Swept R48 enclosure requires at least two stations")
+    shell = loft_sections([outer_wire_at(t) for t in stations], ruled=ruled)
+    passage = loft_sections([passage_wire_at(t) for t in stations], ruled=ruled)
+    return shell, passage
