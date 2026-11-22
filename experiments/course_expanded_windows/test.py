@@ -1,6 +1,12 @@
 """Fast geometry-layout checks; expensive full BRep/STL runs are opt-in."""
 import math
 import unittest
+from types import SimpleNamespace
+
+import cadquery as cq
+from brickcad.course_marking_v2 import (
+    POLICY_ID, SIZE_MM, DEPTH_MM, MarkSite, mark_tool, engrave_large,
+)
 
 from brickcad.course_architectural_windows import (
     MIN_POST, VERSIONS, model, plan, window_centres,
@@ -8,6 +14,7 @@ from brickcad.course_architectural_windows import (
 from experiments.course_expanded_windows.design import (
     COMPACT_WINDOW_WIDTH, EXPANDED_CONVEX_COUNT, EXPANDED_FLAT_COUNT,
     TRIALS, expanded_facade, layout, minimum_solid_post,
+    large_mark_site,
 )
 
 
@@ -66,6 +73,46 @@ class ExpandedCourseWindowLayoutTests(unittest.TestCase):
                 else:
                     self.assertEqual(centres, window_centres(face))
                     self.assertEqual(updated, face)
+
+
+    def test_shared_5mm_mark_policy_sites_for_all_six(self):
+        self.assertEqual(SIZE_MM, 5.)
+        self.assertEqual(DEPTH_MM, .4)
+        self.assertEqual(POLICY_ID, "course-id-5mm-bold-recessed-v2")
+        versions = {
+            "E01-V3": "E01-V10", "E01L-V1": "E01L-V8",
+            "SC02L-V6": "SC02L-V13", "SD03-V11": "SD03-V18",
+            "SD04-V10": "SD04-V23", "T01-V6": "T01-V9",
+        }
+        self.assertEqual(TRIALS, versions)
+        for sid in TRIALS:
+            source = model(sid)
+            fit = SimpleNamespace(width=63.8, depth=(31.8 if sid.startswith(("T01", "SD")) else 63.8))
+            site = large_mark_site(sid, source, fit)
+            self.assertIsInstance(site, MarkSite)
+            self.assertIn(site.face, ("south", "west"))
+            self.assertLess(site.z_mm, 13.)
+            self.assertGreater(mark_tool(TRIALS[sid], site).Volume(), 0)
+
+    def test_large_marker_rejects_actual_window_overlap(self):
+        # Synthetic 3D plaque: an intact label works; same-sized hole behind
+        # its glyph must fail instead of silently truncating the engraving.
+        block = cq.Workplane("XY").box(50, 2, 30).val().translate((0, -1, 15))
+        site = MarkSite("south", 0, -2, 10)
+        label = "T01-V9"
+        audit = SimpleNamespace(model_id=label, marked_labels=[])
+        marked, details = engrave_large(block, block, label, site, audit=audit)
+        self.assertTrue(marked.isValid())
+        self.assertEqual(audit.marked_labels, [label])
+        self.assertGreater(details["actual_material_coverage"], 0.7)
+        self.assertLessEqual(details["window_mark_overlap_mm3"], .01)
+        removed_wall = cq.Workplane("XY").box(35, 2, 9).val().translate((0, -1, 10))
+        holed = block.cut(removed_wall).clean()
+        with self.assertRaisesRegex(ValueError, "overlaps a window"):
+            engrave_large(holed, block, label, site,
+                          audit=SimpleNamespace(model_id=label, marked_labels=[]))
+        with self.assertRaisesRegex(ValueError, "one correct"):
+            engrave_large(block, block, label, site, audit=audit)
 
 
 if __name__ == "__main__":
