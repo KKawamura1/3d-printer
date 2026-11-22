@@ -12,6 +12,7 @@ import cadquery as cq
 from brickcad.connections import make_receiver
 from brickcad.course_r48_building_blocks import (
     loft_sections, outer_section_wire, receiver_underbody, sweep_enclosure,
+    place_r48_wire,
 )
 
 
@@ -95,6 +96,20 @@ class SharedUnderbodyParityTests(unittest.TestCase):
             new = loft_sections(sections, ruled=ruled)
             assert_geometry_matches(self, new, legacy)
 
+
+    def test_shared_r48_placement_preserves_proven_curve_positions(self):
+        wire = (cq.Workplane("XZ")
+                .polyline([(35., 6.2), (60., 6.2),
+                           (60., 38.4), (35., 38.4)]).close().val())
+        for t in (-.02, 0., .25, .5, .75, 1., 1.02):
+            original = (wire.rotate((0, 0, 0), (0, 0, 1), -90 + 90*t)
+                        .translate((-32., 32., 0)))
+            shared = place_r48_wire(wire, t)
+            self.assertEqual(len(original.Edges()), len(shared.Edges()))
+            for a, b in zip(original.Vertices(), shared.Vertices()):
+                for coordinate in ("x", "y", "z"):
+                    self.assertAlmostEqual(getattr(a.Center(), coordinate),
+                                           getattr(b.Center(), coordinate), places=9)
 
     def test_shared_enclosure_sweep_preserves_both_original_lofts(self):
         sections = (0., .25, .5, .75, 1.)
