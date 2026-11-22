@@ -145,19 +145,26 @@ def build(source_id, root):
         original, fit = source_unmarked(m)
         old_bounds = exact_bounds(original)
         compact = original.intersect(compact_footprint(left)).clean()
-        if not compact.isValid() or len(compact.Solids()) != 1:
-            pieces=sorted(compact.Solids(),key=lambda part:part.Volume(),reverse=True)
-            for i,piece in enumerate(pieces):
-                box=piece.BoundingBox()
-                print("COMPACT COMPONENT",new_id,i,
-                      "mm3",round(piece.Volume(),3),
-                      "xyz",tuple(round(v,2) for v in
-                                  (box.xmin,box.xmax,box.ymin,box.ymax,
-                                   box.zmin,box.zmax)),flush=True)
+        # SC02's quarter-annulus slices the edges of two E01 receiver
+        # beads, leaving two isolated 0.026mm³ crumbs at Z0.36–3.45.
+        # They must not ship as floating printable debris. Reject any
+        # disconnected *useful* material instead of blindly picking the
+        # largest component. This is true for both mirrored parts.
+        all_pieces = sorted(
+            compact.Solids(), key=lambda part:part.Volume(), reverse=True)
+        detached = all_pieces[1:]
+        detached_volumes = [piece.Volume() for piece in detached]
+        if detached and (any(v >= .1 for v in detached_volumes)
+                         or sum(detached_volumes) >= .2):
             raise ValueError(
-                f"SC02 arc footprint divides {new_id} into "
-                f"{len(pieces)} pieces, volume fractions: "+
-                repr([round(p.Volume()/compact.Volume(),5) for p in pieces]))
+                f"{new_id}: unsafe detached solids after trim: "
+                f"{detached_volumes!r}mm³")
+        if detached:
+            print("REMOVE ISOLATED RECEIVER CRUMBS", new_id,
+                  [round(v,4) for v in detached_volumes], flush=True)
+            compact = all_pieces[0].clean()
+        if not compact.isValid() or len(compact.Solids()) != 1:
+            raise ValueError(f"{new_id}: invalid single solid after tiny debris cleanup")
         source_volume, compact_volume = original.Volume(), compact.Volume()
         if compact_volume >= source_volume * .95:
             raise ValueError("Unproductive compact trim (less than 5% volume reduction)")
@@ -204,6 +211,9 @@ def build(source_id, root):
     mesh_ok = abs(mesh["signed_volume_mm3"]-shape.Volume())/shape.Volume() < .001
     checks = {
         "arc_geometry_valid": compact.isValid() and len(compact.Solids()) == 1,
+        "no_unattached_print_fragments": (
+            all(v < .1 for v in detached_volumes)
+            and sum(detached_volumes) < .2),
         "original_channel_and_mouth_samples": parity_samples == 875,
         "trim_achieves_5pct_reduction": compact_volume < source_volume*.95,
         "nine_windows_in_bend": len(window_evidence) == WINDOWS,
@@ -228,6 +238,7 @@ def build(source_id, root):
         "passed": all(checks.values()), "checks": checks,
         "geometry": {
             "original_square_cad_volume_mm3": source_volume,
+            "removed_isolated_crumbs_mm3": [round(v, 5) for v in detached_volumes],
             "compact_unwindowed_cad_volume_mm3": compact_volume,
             "final_cad_volume_mm3": shape.Volume(),
             "body_volume_reduction_before_windows_ratio":
