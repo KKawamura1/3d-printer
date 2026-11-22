@@ -17,6 +17,7 @@ from brickcad.course_contract import (
 )
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
 from brickcad.course_section_profiles import passage_section_wire
+from brickcad.course_r48_building_blocks import outer_section_wire, loft_sections
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.course_r48_sloped_tunnel import (
     FULL_TUBES as PROVEN_FULL_TUBES,
@@ -175,13 +176,10 @@ def _progress(t):
 def _outer_wire(t, config):
     # Do not create a rectangular LEGO box and crop its remnants.
     # Sweep the intended R48 annular envelope directly.
-    w = cq.Workplane("XZ").polyline((
-        (INNER, BALL_TRACK.floor - .15), (OUTER, BALL_TRACK.floor - .15),
-        (OUTER, config.roof_z), (INNER, config.roof_z)
-    )).close().val()
-    top = [v for v in w.Vertices()
-           if v.Center().z > config.roof_z - .01]
-    w = w.fillet2D(ROUNDED_EDGES.corner_radius, top)
+    w = outer_section_wire(
+        cq.Workplane("XZ"), inner=INNER, outer=OUTER,
+        bottom=BALL_TRACK.floor - .15, top=config.roof_z,
+        top_corner_radius=ROUNDED_EDGES.corner_radius)
     return _world(w, t)
 
 
@@ -316,8 +314,8 @@ def build_r48(config, *, marked=True):
         raise ValueError("The production SC02 foundation no longer matches E31-05")
 
     ts = [-.02] + [i / SAMPLE_STATIONS for i in range(SAMPLE_STATIONS + 1)] + [1.02]
-    cover = cq.Solid.makeLoft([_outer_wire(t, config) for t in ts], ruled=True)
-    passage = cq.Solid.makeLoft(
+    cover = loft_sections([_outer_wire(t, config) for t in ts], ruled=True)
+    passage = loft_sections(
         [_passage_wire(t, config) for t in ts], ruled=True)
     bed_envelope = cq.Workplane("XY").box(
         fit.width, fit.depth, 100,
