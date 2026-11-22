@@ -216,6 +216,73 @@ def complete_tubes(fit):
                      x, y, TUBE_PROBE_RADIUS))
 
 
+
+# Bed-facing structural ribs: these use only 16mm-grid inter-stud corridors.
+# Without them the 4.75mm receiver pocket creates a ~2,000mm2 sudden,
+# unsupported underside at Z=4.8. Keep all OEM engagement geometry intact:
+# - the existing three E31-05 tubes are *not* stiffened by the ribs;
+# - all 4x4 lower stud insertion circles remain clear;
+# - the ribs stop below the 6.35mm lowest track floor.
+RIB_WIDTH_MM = 1.6  # four-ish 0.42mm bead widths on a 0.4mm nozzle
+RIB_GRID_MM = (-16., 0., 16.)
+RIB_RADIAL_INSET_MM = .8
+RIB_FRAME_INSET_MM = 1.9
+RIB_TUBE_CLEARANCE_MM = .5
+RIB_CEILING_LAP_MM = .15
+
+
+def receiver_print_support_ribs(fit, tube_centres):
+    """Add short built-in bed supports, not long horizontal receiver bridges.
+
+    These 4.9mm-tall webs are situated on the open inter-stud grid. Each is
+    trimmed to the annular body and at least 0.5mm from E31-05 tube outer
+    faces, so stud and slotted-tube mating surfaces stay unmodified.
+    No slicer supports or removable material are required for these webs.
+    """
+    depth = RECEIVER_DEPTH_MM + RIB_CEILING_LAP_MM
+    webs = []
+    for x in RIB_GRID_MM:
+        webs.append((cq.Workplane("XY")
+                     .box(RIB_WIDTH_MM, fit.depth - 2*RIB_FRAME_INSET_MM,
+                          depth, centered=(True, True, False))
+                     .translate((x, 0., 0.)).val()))
+    for y in RIB_GRID_MM:
+        webs.append((cq.Workplane("XY")
+                     .box(fit.width - 2*RIB_FRAME_INSET_MM, RIB_WIDTH_MM,
+                          depth, centered=(True, True, False))
+                     .translate((0., y, 0.)).val()))
+    support = cq.Workplane("XY").newObject(webs).combine().val()
+    annulus = (cq.Workplane("XY",
+                           origin=(CENTRE_XY[0], CENTRE_XY[1], 0))
+               .circle(OUTER - RIB_RADIAL_INSET_MM)
+               .circle(INNER + RIB_RADIAL_INSET_MM)
+               .extrude(depth).val())
+    frame = (cq.Workplane("XY")
+             .box(fit.width - 2*RIB_FRAME_INSET_MM,
+                  fit.depth - 2*RIB_FRAME_INSET_MM, depth,
+                  centered=(True, True, False)).val())
+    support = support.intersect(annulus).intersect(frame)
+    for x, y in tube_centres:
+        keep_tube_free = (cq.Workplane("XY", origin=(x, y, 0))
+                          .circle(fit.tube_radius + RIB_TUBE_CLEARANCE_MM)
+                          .extrude(depth).val())
+        support = support.cut(keep_tube_free)
+    support = support.clean()
+
+    # A full stud is >7.2mm from any rib centreline (RIB_WIDTH=1.6).
+    # Be conservative even against lower printed stud-size variation.
+    stud_keepout = fit.stud_radius - fit.clearance + .7
+    for sx, sy in fit.studs():
+        if (min(abs(sx - x) for x in RIB_GRID_MM) - RIB_WIDTH_MM/2
+                < stud_keepout
+                or min(abs(sy - y) for y in RIB_GRID_MM) - RIB_WIDTH_MM/2
+                < stud_keepout):
+            raise ValueError("Underside support intrudes into lower-stud clearance")
+    if not support.isValid() or support.Volume() < 1000.:
+        raise ValueError("Insufficient valid PR91 bed-facing support webs")
+    return support
+
+
 def _west_skirt_mark(shape, fit, model_id):
     # At Z=3.5 the west entrance has a continuous 4.75mm receiver sidewall.
     # Size 5.0mm is deliberately larger than the historical 3mm. Only the
@@ -283,6 +350,11 @@ def build_r48(config, *, marked=True):
         shape, tubes, fit.tube_radius, receiver_depth=RECEIVER_DEPTH_MM
     )
 
+    # PR91 physical-print fix: support the broad receiver ceiling with
+    # bed-printed webs, keeping E31-05 collars and all lower studs unobstructed.
+    support_ribs = receiver_print_support_ribs(fit, tubes)
+    shape = shape.fuse(support_ribs).clean()
+
     # Seven *whole* studs; do not crop a 16-stud rectangular array.
     studs = complete_studs(fit)
     if len(studs) != 7:
@@ -324,6 +396,7 @@ def build_r48(config, *, marked=True):
         "roof_z_mm": config.roof_z,
         "top_studs": list(studs),
         "complete_e31_tubes": list(tubes),
+        "receiver_print_support_rib_volume_mm3": support_ribs.Volume(),
         "window_cut_volumes_mm3": window_volumes,
         "port_contract": port_contract(config.drop_mm),
         "ball_diameter_mm": BALL_TRACK.ball_diameter,
