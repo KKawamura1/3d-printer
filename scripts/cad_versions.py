@@ -399,6 +399,10 @@ def build(root, specs, requested, previews=False, snapshots=False):
     root = root.resolve()
     nodes = resolve(root, specs, requested)
     output = root / 'build/cad-delivery'
+    # A new delivery must never include PNGs from an earlier opt-in run.
+    # Keep the versioned CAD cache intact; only clear delivery files.
+    if output.exists():
+        shutil.rmtree(output)
     deps = root / 'build/cad-artifacts/resolved'
     if deps.exists():
         shutil.rmtree(deps)
