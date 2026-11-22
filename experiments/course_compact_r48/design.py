@@ -27,7 +27,7 @@ from brickcad.course_r48_sloped_tunnel import curved_footprint
 from brickcad.standards import BALL_TRACK
 from brickcad.verify import exact_bounds
 
-TRIALS = {"E01-V3": "E01-V11", "E01L-V1": "E01L-V9"}
+TRIALS = {"E01-V3": "E01-V12", "E01L-V1": "E01L-V9"}
 WINDOWS = 9
 WINDOW_WIDTH_MM = 6.5
 OUTER_RADIUS = 48 + BALL_TRACK.width / 2
