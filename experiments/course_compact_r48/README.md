@@ -42,3 +42,12 @@ Related: PR #75, #87, #85, issues #37, #77, #80, #83.
 First CAD trial: both bend directions, no slow preview generation yet.
 
 Diagnostic: investigate disconnected solids before any output is printable.
+
+### First BRep trial diagnostics
+
+Both E01 handedness variants retained a **43,879.735mm³ main solid** after
+SC02 quarter-ring clipping. Two detached slivers of **0.026mm³ each**
+(Z0.36–3.45 around clipped underside tube beads) remain. The prototype
+removes only separated slivers below 0.1mm³ each (0.2mm³ total max)
+and rejects any significant disconnected geometry. Printed debris is not
+acceptable in a child-play component.
