@@ -20,7 +20,7 @@ build/         中間生成物（Git管理外）
 
 ## バージョン固定のCAD生成（GitHub Actions）
 
-設計コードと小さな設定ファイルだけをpushする。重いSTL・STEP・プレビューは [CAD preview and print artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) で生成し、14日間保持される `cad-verified-stl` Artifactから取得する。**生成対象のSTLには4方向の簡易画像（`*.preview.png`）が自動添付される。** `previews=true` を指定した手動実行では従来のChromiumによる詳細画像も追加できる。画像は形状の概観用であり、スライス・印刷・嵌合の検証ではない。
+設計コードと小さな設定ファイルだけをpushする。重いSTL・STEP・プレビューは [CAD preview and print artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) で生成し、14日間保持される `cad-verified-stl` Artifactから取得する。**通常のpush生成ではプレビュー画像を作らず、STLと幾何・メッシュ検証結果だけを配布する。** 画像レビューが必要なときに限り、手動実行で `snapshots=true` を指定すると対象STLの4方向画像（`*.preview.png`）を追加する。`previews=true` はChromiumによる詳細画像を別途追加するオプション（4方向画像とは独立）。撮影完了はAI・人間による目視確認を意味せず、画像を実際に開いて確認する必要がある。画像だけでスライス・印刷・嵌合は検証できない。
 
 **パーツ**は `parts/<name>/cad-build.json` の `version` を形状変更時に必ず上げる。push時の自動生成は、そのpushでバージョンが新規追加・変更された `auto:true` のパーツだけ。パーツ単位の `test.py` とCAD/メッシュ検証を実行する。README、テスト、旧STLやワークフローを修正しただけならSTLは再生成しない。`auto` フラグだけの変更も形状変更とみなさず、バージョンを上げずに切り替えられる。バージョンを変えずにCADソース／設定を変更した場合はエラーとし、古いバージョンの形状を書き換えない。共通CADコードの変更でも影響を受ける各パーツのバージョン更新が必要。
 
@@ -52,7 +52,7 @@ build/         中間生成物（Git管理外）
 
 `{out}` は対象バージョン専用の生成先、`{deps}` は指定版の依存パーツが配置されるディレクトリ。新しいパーツ／実験を追加するとき、YAMLの固定ターゲット一覧を増やす必要はない。1つの実行内で同じパーツの異なる2版を要求する構成は現在非対応で、明示的にエラーになる。
 
-手動生成ではGitHub Actionsの **Run workflow** で対象ブランチを選び、`targets=parts/play_set` や `targets=experiments/pr20_comparison` を指定する。`targets=all` は `auto:true` のパーツと実験を列挙する。`auto:false` を明示した8個セットなどは指定したときだけ生成する。`previews=true` でChromium画像もArtifactに追加できるが、撮影成功を人間の目視確認済みとは扱わない。
+手動生成ではGitHub Actionsの **Run workflow** で対象ブランチを選び、`targets=parts/play_set` や `targets=experiments/pr20_comparison` を指定する。`targets=all` は `auto:true` のパーツと実験を列挙する。`auto:false` を明示した8個セットなどは指定したときだけ生成する。`snapshots=true` で4方向PNG、`previews=true` でChromium画像を必要なときだけArtifactに追加できる（どちらも既定false、別々に指定可能）。STL生成成功と画像をAI・人間が実際に確認したことは別である。
 
 **STLの欠落は必要なときだけ復旧：** PRの更新ごとにSTLを生成し直すことはしない。通常のpushでは従来通り、`auto:true`のモデルに新規追加・版更新がある場合だけ自動生成する（失敗・キャンセルされたCAD生成を次の関連pushで回復する既存の仕組みは維持）。**CAD tests成功はSTL生成成功を意味しない**ため、必要なときは次の手動実行を使う。キャッシュに有効な同一版出力が残っていれば再利用し、欠けていれば再生成する。Artifactは`cad-verified-stl`として14日間公開する。\n\n**既存PRを手動復旧：** [CAD preview and print artifacts](https://github.com/KKawamura1/3d-printer/actions/workflows/cad-preview.yml) → **Run workflow**（ワークフローのブランチは`main`でよい）で`repair_pr=40`のように開いているPR番号を入力し、`targets=changed`のまま実行する。対象PRの最新headとbaseから、PRで新規追加・版更新された生成対象を求め、版番号を変えずに再生成・STL検証・Artifact公開する。**この処理はRun workflowを押したときだけ実行され、通常のPR更新では走らない。**複数あるうち一部だけ必要なら`targets=parts/name`のように対象を絞り、重い一括ビルドを避ける。PR番号を省略する場合は`targets=parts/...`等の明示指定が必須。`auto:false`のモデル、PRのベースとの差分に版更新が存在しないモデル、過去のSTLを再公開したいモデルは**`targets=parts/name`や`experiments/name`を明示する**（カンマ区切り対応）。手動で対象が0件の場合は失敗として扱い、空の成功を報告しない。別リポジトリからのfork PR番号による手動復旧は非対応。これはSTLの生成・幾何検証であり、実機印刷検証ではない。
 
