@@ -9,7 +9,6 @@ from unittest.mock import patch, sentinel
 
 import cadquery as cq
 
-from brickcad.course_section_profiles import passage_section_wire
 from brickcad.course_r48_building_blocks import place_r48_wire
 from brickcad.course_r48_unified import (
     R48FamilyConfig, R48PairConfig, build_r48_family,
