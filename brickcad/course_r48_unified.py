@@ -46,12 +46,21 @@ class R48PairConfig:
     drop_mm: float
     direction: str = "right"
     windows: bool = True
+    # Different finished-course widths for paired real rolling experiments.
+    # Opening/ports remain unchanged; R10 is the established PR91 default.
+    relief_mm: float = INTERIOR_RADIAL_RELIEF
 
     def __post_init__(self):
         if self.drop_mm not in (0.0, DUPLO.height):
             raise ValueError("Only the flat/one-DUPLO-height R48 comparison is defined")
         if self.direction not in ("right", "left"):
             raise ValueError("Unrecognized handedness")
+        if (not isinstance(self.relief_mm, (int, float))
+                or not math.isfinite(self.relief_mm)
+                or self.relief_mm < 0.
+                or HALF - BALL_TRACK.radius - self.relief_mm <
+                MIN_RADIAL_SIDEWALL_MM):
+            raise ValueError("Relief must be nonnegative and preserve 1.6mm side wall")
         if not self.model_id or len(self.model_id) > 32:
             raise ValueError("Explicit versioned experiment model ID required")
 
@@ -112,9 +121,9 @@ def _passage_wire(t, config):
     floor = floor_z(t, config.drop_mm)
     progress = _progress(t)
     # Same radial relief at identical stations for both configurations.
-    # 0 at physical ports, up to +1.0mm internally; important for sloped
-    # rigid-ball clearance, where the grade increases sphere sweep extent.
-    radius = BALL_TRACK.radius + INTERIOR_RADIAL_RELIEF * progress
+    # Identical fixed OEM openings, while the interior expands by the
+    # specimen-specific amount (0.4mm or 1.0mm for the controlled trial).
+    radius = BALL_TRACK.radius + config.relief_mm * progress
     centre = floor + radius
     a = radius / math.sqrt(2)
     roof = floor + 30.3
@@ -229,7 +238,7 @@ def build_r48(config, *, marked=True):
     """Common CAD construction for both E01 and SC02; no old BRep cropping."""
     if not isinstance(config, R48PairConfig):
         raise TypeError("R48PairConfig required")
-    nominal_min_wall = HALF - BALL_TRACK.radius - INTERIOR_RADIAL_RELIEF
+    nominal_min_wall = HALF - BALL_TRACK.radius - config.relief_mm
     if nominal_min_wall < MIN_RADIAL_SIDEWALL_MM:
         raise ValueError(f"Radial sidewall too thin: {nominal_min_wall:.3f}mm")
     fit = course_fit(
@@ -318,6 +327,6 @@ def build_r48(config, *, marked=True):
         "window_cut_volumes_mm3": window_volumes,
         "port_contract": port_contract(config.drop_mm),
         "ball_diameter_mm": BALL_TRACK.ball_diameter,
-        "interior_radial_relief_mm": INTERIOR_RADIAL_RELIEF,
+        "interior_radial_relief_mm": config.relief_mm,
         "radial_relief_at_ports_mm": 0.,
     }
