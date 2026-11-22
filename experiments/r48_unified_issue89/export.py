@@ -22,7 +22,7 @@ PAIRS = (
     R48PairConfig("X89-SC02-U1", DUPLO.height),
 )
 SPHERE_STATIONS = 21
-CLEARANCE_LIFT_MM = .55
+CLEARANCE_LIFT_MM = .55  # HIGH LIFT ONLY: do not use as rolling/print-safety proof
 
 
 def ball_clearance_samples(shape, drop_mm):
@@ -31,6 +31,8 @@ def ball_clearance_samples(shape, drop_mm):
     A sphere on a slope sits above the geometric floor by r*sqrt(1+grade^2).
     At both ports elevation is unchanged. This is a finite CAD collision
     test, NOT a dynamic rolling or surface-roughness simulation.
+    This +0.55mm height test is deliberately NOT the strict contact test;
+    see ball_size_audit.py for diameter margin and near-contact collisions.
     """
     radius = BALL_TRACK.ball_diameter / 2
     samples = []
@@ -68,7 +70,7 @@ def export_pair(out):
             "no_clipped_e31_tubes": len(detail["complete_e31_tubes"]) == 3,
             "all_five_windows_open": len(detail["window_cut_volumes_mm3"]) == 5
                                      and min(detail["window_cut_volumes_mm3"]) > 50,
-            "sampled_ball_clearance": max(samples) < .01,
+            "lifted_sphere_clearance_only": max(samples) < .01,
             "unchanged_port_diameter": (
                 detail["port_contract"]["opening_diameter_mm"]
                 == BALL_TRACK.opening
@@ -92,6 +94,8 @@ def export_pair(out):
             "detail": detail,
             "ball_clearance_mm3": samples,
             "ball_clearance_max_mm3": max(samples),
+            "diagnostic_ball_lift_mm": CLEARANCE_LIFT_MM,
+            "near_contact_ball_audit_required": True,
             "checks": checks,
             "passed": all(checks.values()),
             "stl_sha256": hashlib.sha256(stl.read_bytes()).hexdigest(),
