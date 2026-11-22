@@ -15,9 +15,12 @@ import cadquery as cq
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
 from brickcad.course_section_profiles import passage_section_wire
+from brickcad.course_r48_building_blocks import (
+    outer_section_wire, loft_sections, receiver_underbody,
+)
 
 from brickcad.standards import BALL_TRACK,DUPLO
-from brickcad.connections import make_receiver,make_studs
+from brickcad.connections import make_studs
 from brickcad.verify import exact_bounds
 
 RADIUS=48.
@@ -93,9 +96,9 @@ def open_curve():
     p=course_fit(nx=4,ny=4,height=HEIGHT+DROP)
     base=cq.Workplane("XY").box(p.width,p.depth,FLOOR,centered=(True,True,False))
     base=base.edges("|Z").fillet(.8).edges(">Z").fillet(.5)
-    base=make_receiver(base,FULL_TUBES,p.cavity_xy,CAVITY_DEPTH,
-                       p.tube_radius,p.tube_inner_radius,0)
-    swept=cq.Solid.makeLoft([section(i/24) for i in range(25)],ruled=False)
+    base=receiver_underbody(base,p,CAVITY_DEPTH,
+                            tubes=FULL_TUBES,tube_radius=p.tube_radius,entry=0)
+    swept=loft_sections([section(i/24) for i in range(25)],ruled=False)
     footprint=cq.Workplane("XY").box(
         p.width,p.depth,60,centered=(True,True,False)).val()
     shape=base.union(swept.intersect(footprint)).val().intersect(curved_footprint()).clean()
@@ -124,10 +127,9 @@ def _blend(t,p):
 
 def _outer_wire(t):
     base=FLOOR-.75
-    wire=cq.Workplane("XZ").polyline([
-        (RADIUS-WIDTH/2,base),(RADIUS+WIDTH/2,base),
-        (RADIUS+WIDTH/2,TOP_Z),(RADIUS-WIDTH/2,TOP_Z)
-    ]).close().val()
+    wire=outer_section_wire(cq.Workplane("XZ"),
+                            inner=RADIUS-WIDTH/2,outer=RADIUS+WIDTH/2,
+                            bottom=base,top=TOP_Z)
     return _position(wire,t)
 
 
@@ -152,8 +154,8 @@ def stations():
 
 def make_cover(p):
     ts=stations()
-    outer=cq.Solid.makeLoft([_outer_wire(t) for t in ts],ruled=True)
-    passage=cq.Solid.makeLoft([_passage_wire(t,p) for t in ts],ruled=True)
+    outer=loft_sections([_outer_wire(t) for t in ts],ruled=True)
+    passage=loft_sections([_passage_wire(t,p) for t in ts],ruled=True)
     clip=cq.Workplane("XY").box(63.8,63.8,90,centered=(True,True,False)).val()
     return outer.intersect(clip).intersect(curved_footprint()).clean(),passage
 
