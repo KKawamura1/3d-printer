@@ -128,7 +128,7 @@ def build_specimen(model_id, out):
     }
     if not all(checks.values()):
         raise ValueError(f"{model_id}: {checks}")
-    count, facet_bytes, shifted_bounds, src_hash = placed_mesh(stl, x, y)
+    count, _, shifted_bounds, src_hash = placed_mesh(stl, x, y)
     record = {
         "id": model_id,
         "track": "E01" if drop_mm == 0 else "SC02",
