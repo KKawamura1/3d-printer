@@ -5,12 +5,13 @@ including the bottom cavity that previously printed as a failed bridge.
 """
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch, sentinel
 
 import cadquery as cq
 
 from brickcad.connections import make_receiver
 from brickcad.course_r48_building_blocks import (
-    loft_sections, outer_section_wire, receiver_underbody,
+    loft_sections, outer_section_wire, receiver_underbody, sweep_enclosure,
 )
 
 
@@ -94,6 +95,41 @@ class SharedUnderbodyParityTests(unittest.TestCase):
             new = loft_sections(sections, ruled=ruled)
             assert_geometry_matches(self, new, legacy)
 
+
+    def test_shared_enclosure_sweep_preserves_both_original_lofts(self):
+        sections = (0., .25, .5, .75, 1.)
+        def outer(t):
+            return (cq.Workplane("XY", origin=(0, 0, 10*t))
+                    .rect(30., 30.).val())
+        def inside(t):
+            return (cq.Workplane("XY", origin=(0, 0, 10*t))
+                    .circle(10.).val())
+        legacy_shell = cq.Solid.makeLoft([outer(t) for t in sections],
+                                          ruled=True)
+        legacy_hole = cq.Solid.makeLoft([inside(t) for t in sections],
+                                         ruled=True)
+        shell, hole = sweep_enclosure(outer, inside, sections, ruled=True)
+        assert_geometry_matches(self, shell, legacy_shell)
+        assert_geometry_matches(self, hole, legacy_hole)
+
+    def test_sc02_connection_finishing_has_no_repeated_implementation(self):
+        from brickcad.course_r48_sloped_tunnel import add_curve_connections
+        fit = SimpleNamespace(tube_radius=6.6)
+        steps = []
+        with (
+            patch("brickcad.course_r48_sloped_tunnel.clipped_receivers",
+                  side_effect=lambda shape, p: (
+                      steps.append("partial") or sentinel.partial)),
+            patch("brickcad.course_r48_sloped_tunnel.add_e31_05_receiver_features",
+                  side_effect=lambda shape, tubes, r, **kw: (
+                      steps.append("e31") or sentinel.e31)),
+            patch("brickcad.course_r48_sloped_tunnel.roof_studs",
+                  side_effect=lambda shape, p, **kw: (
+                      steps.append("stud") or sentinel.roof)),
+        ):
+            result = add_curve_connections(sentinel.base, fit, top_z=38.4)
+        self.assertIs(result, sentinel.roof)
+        self.assertEqual(steps, ["partial", "e31", "stud"])
 
 if __name__ == "__main__":
     unittest.main()
