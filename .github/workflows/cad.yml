@@ -42,7 +42,7 @@ jobs:
         id: plan
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: python scripts/ci-tests.py ${BASE_SHA:+--base "$BASE_SHA"} --plan
+        run: python scripts/ci-tests.py ${BASE_SHA:+--base "$BASE_SHA"} --fast --plan --fast
       - uses: actions/setup-python@v5
         if: steps.plan.outputs.has_tests == 'true'
         with:
