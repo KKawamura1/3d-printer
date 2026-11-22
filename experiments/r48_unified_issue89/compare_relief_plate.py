@@ -52,6 +52,29 @@ def _horizontal_slice_area_mm2(shape, z):
     return shape.intersect(slab).Volume() / thickness
 
 
+def _stud_insertion_clearance(shape):
+    """Exclude expected E31 tube clutch zones; reject other stud collisions.
+
+    This uses a synthetic 4x4 DUPLO stud envelope (16x, radius 4.7mm).
+    13 angular samples at multiple heights are a regression guard, not a
+    physical retention-force test.
+    """
+    tube_centres = ((-16., -16.), (0., 0.), (16., 16.))
+    for x in (-24., -8., 8., 24.):
+        for y in (-24., -8., 8., 24.):
+            for z in (.5, 1.5, 2.5, 3.5, 4.4):
+                for k in range(16):
+                    angle = math.tau * k / 16
+                    px = x + 4.70 * math.cos(angle)
+                    py = y + 4.70 * math.sin(angle)
+                    if any(math.hypot(px-tx, py-ty) < 6.86
+                           for tx, ty in tube_centres):
+                        continue  # E31-05's intentional interference
+                    if shape.isInside(cq.Vector(px, py, z), 1e-3):
+                        return False
+    return True
+
+
 def assemble_four(out):
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
@@ -80,12 +103,13 @@ def assemble_four(out):
             "complete_studs": len(details["top_studs"]) == 7,
             "complete_receiver_tubes":
                 len(details["complete_e31_tubes"]) == 3,
-            "receiver_bed_support_ribs":
-                details["receiver_print_support_rib_volume_mm3"] > 1000.,
-            # Original four STLs were ~409/462 mm2 respectively and failed
-            # physically despite all CAD/mesh checks passing.
-            "bed_contact_cross_section_mm2": bed_contact_area > 570.,
-            "ceiling_support_cross_section_mm2": ceiling_support_area > 650.,
+            "historical_sc02_underside_reused":
+                details["underbody_source"] ==
+                "course_r48_sloped_tunnel.open_curve",
+            "historical_sc02_partial_receivers":
+                details["partial_e31_tubes"] == 4,
+            "full_4x4_stud_insertion_clearance":
+                _stud_insertion_clearance(shape),
             "five_windows": len(details["window_cut_volumes_mm3"]) == 5
                             and min(details["window_cut_volumes_mm3"]) > 50,
             "mouth_contract":
@@ -109,13 +133,15 @@ def assemble_four(out):
                 round(BALL_TRACK.opening + 2 * relief_mm * .995, 3),
             "not_a_constant_diameter_circular_tube": True,
             "windows": 5,
-            "receiver_print_support_rib_volume_mm3":
-                round(details["receiver_print_support_rib_volume_mm3"], 2),
+            "underbody_source": details["underbody_source"],
+            "receiver_method": details["receiver_method"],
+            "roof_stud_method": details["roof_stud_method"],
+            "partial_e31_tubes": details["partial_e31_tubes"],
             "bed_contact_area_z0p1_mm2": round(bed_contact_area, 2),
             "receiver_ceiling_support_area_z4p65_mm2":
                 round(ceiling_support_area, 2),
             "receiver_print_support_note":
-                "Built-in inter-stud underside webs; actual Bambu Studio slicing still unverified",
+                "Directly reused proven SC02 curved base, clipped supports and E31; Bambu slicing remains unverified",
             "engraved_label": model_id,
             "mesh_triangles": count,
             "mesh_sha256": src_hash,
@@ -175,8 +201,9 @@ def assemble_four(out):
         "only_controlled_variable": "interior radial relief mm (0.4/1.0)",
         "physical_rolling_verified": False,
         "printer_slicing_verified": False,
-        "underside_fdm_ribs_added": True,
-        "cross_section_support_gate": "z0.10 > 570mm2; z4.65 > 650mm2",
+        "underside_source": "course_r48_sloped_tunnel.open_curve",
+        "underside_fdm_ribs_added": False,
+        "cross_section_support_gate": "geometry/proven construction inherited; actual slicer preview required",
         "underside_slice_bridge_review_required": True,
         "stl_sha256": hashlib.sha256(plate_stl.read_bytes()).hexdigest()
     }
