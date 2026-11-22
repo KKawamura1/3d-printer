@@ -146,7 +146,18 @@ def build(source_id, root):
         old_bounds = exact_bounds(original)
         compact = original.intersect(compact_footprint(left)).clean()
         if not compact.isValid() or len(compact.Solids()) != 1:
-            raise ValueError("SC02 arc footprint breaks source into pieces")
+            pieces=sorted(compact.Solids(),key=lambda part:part.Volume(),reverse=True)
+            for i,piece in enumerate(pieces):
+                box=piece.BoundingBox()
+                print("COMPACT COMPONENT",new_id,i,
+                      "mm3",round(piece.Volume(),3),
+                      "xyz",tuple(round(v,2) for v in
+                                  (box.xmin,box.xmax,box.ymin,box.ymax,
+                                   box.zmin,box.zmax)),flush=True)
+            raise ValueError(
+                f"SC02 arc footprint divides {new_id} into "
+                f"{len(pieces)} pieces, volume fractions: "+
+                repr([round(p.Volume()/compact.Volume(),5) for p in pieces]))
         source_volume, compact_volume = original.Volume(), compact.Volume()
         if compact_volume >= source_volume * .95:
             raise ValueError("Unproductive compact trim (less than 5% volume reduction)")
