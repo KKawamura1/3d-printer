@@ -49,16 +49,13 @@ jobs:
       - name: Assemble legacy 2-part A1 mini print STL (no gauges)
         if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-plate]')
         run: python -m experiments.r48_unified_issue89.plate_export --source-root build/issue89-shared-r48 --out build/issue89-shared-r48/plate
-      - name: Build 4 complete E01/SC02 R04/R10 variants on one A1 mini plate
-        if: contains(github.event.head_commit.message, '[issue89-compare]')
-        run: python -m experiments.r48_unified_issue89.compare_relief_plate --out build/issue89-shared-r48/comparison-4variants
       - name: Optional four-view mesh snapshots
         if: github.event_name == 'workflow_dispatch' && inputs.render
         run: |
           python scripts/stl_snapshot.py --stl build/issue89-shared-r48/X89-E01-U1/brick.stl --out build/issue89-shared-r48/X89-E01-U1/preview.png
           python scripts/stl_snapshot.py --stl build/issue89-shared-r48/X89-SC02-U1/brick.stl --out build/issue89-shared-r48/X89-SC02-U1/preview.png
-      - name: Upload requested R48 CAD/STL reports and optional 4-part comparison
-        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]') || contains(github.event.head_commit.message, '[issue89-plate]') || contains(github.event.head_commit.message, '[issue89-compare]')
+      - name: Upload requested R48 CAD/STL reports
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]') || contains(github.event.head_commit.message, '[issue89-plate]')
         uses: actions/upload-artifact@v4
         with:
           name: issue89-unified-R48-flat-sloped
@@ -77,3 +74,67 @@ jobs:
               print('WARNING: +0.03mm tangent-plane-height diagnostic still collides; this is not a physical rolling or slicer pass.')
           print('CAD candidate corridor PASS. Print_ready remains FALSE until Bambu slicer and physical rolling are checked.')
           PY
+
+  # Four expensive CadQuery BReps are independent. A single sequential
+  # runner previously hit its 15-minute timeout after only the first part.
+  # Each matrix job validates and uploads one specimen with a stable ID.
+  compare_specimens:
+    if: contains(github.event.head_commit.message, '[issue89-compare]')
+    needs: focused
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        model_id: [X89-E01-R04, X89-E01-R10, X89-SC02-R04, X89-SC02-R10]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install pinned CAD environment
+        run: python -m pip install -r requirements.txt
+      - name: Generate and validate exactly one R48 relief specimen
+        run: |
+          python -m experiments.r48_unified_issue89.compare_relief_plate \
+            --out build/issue89-shared-r48/comparison-4variants \
+            --specimen "${{ matrix.model_id }}"
+      - name: Upload one validated specimen
+        uses: actions/upload-artifact@v4
+        with:
+          name: r48-specimen-${{ matrix.model_id }}
+          path: build/issue89-shared-r48/comparison-4variants/
+          if-no-files-found: error
+          compression-level: 1
+
+  compare_plate:
+    needs: compare_specimens
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install pinned CAD environment
+        run: python -m pip install -r requirements.txt
+      - name: Download all four validated specimens
+        uses: actions/download-artifact@v4
+        with:
+          pattern: r48-specimen-*
+          path: build/issue89-shared-r48/comparison-4variants/
+          merge-multiple: true
+      - name: Validate hashes, fit, placement and assemble one A1 mini plate
+        run: |
+          python -m experiments.r48_unified_issue89.compare_relief_plate \
+            --out build/issue89-shared-r48/comparison-4variants \
+            --assemble-only
+      - name: Upload one 4-part comparison STL and all component STEP/STL
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue89-unified-R48-four-comparison
+          path: build/issue89-shared-r48/comparison-4variants/
+          if-no-files-found: error
+          compression-level: 1
