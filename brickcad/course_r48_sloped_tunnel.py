@@ -6,7 +6,6 @@ from brickcad.course_contract import engrave_course_west as engrave_west
 This reconstructs the native SC02/SC02L geometry from common primitives
 rather than importing parts.sloped_curve.design or any old exporter.
 """
-from dataclasses import replace
 from pathlib import Path
 import hashlib
 import json
@@ -16,7 +15,7 @@ from brickcad.course_artifacts import export_geometry
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
 from brickcad.course_section_profiles import passage_section_wire
 from brickcad.course_r48_building_blocks import (
-    outer_section_wire, loft_sections, receiver_underbody,
+    outer_section_wire, loft_sections, receiver_underbody, sweep_enclosure,
 )
 
 from brickcad.standards import BALL_TRACK,DUPLO
@@ -154,8 +153,8 @@ def stations():
 
 def make_cover(p):
     ts=stations()
-    outer=loft_sections([_outer_wire(t) for t in ts],ruled=True)
-    passage=loft_sections([_passage_wire(t,p) for t in ts],ruled=True)
+    outer,passage=sweep_enclosure(_outer_wire,
+                                 lambda t: _passage_wire(t,p),ts,ruled=True)
     clip=cq.Workplane("XY").box(63.8,63.8,90,centered=(True,True,False)).val()
     return outer.intersect(clip).intersect(curved_footprint()).clean(),passage
 
@@ -187,15 +186,24 @@ def roof_studs(shape,p,*,top_z=TOP_Z):
     return shape.fuse(clipped).clean()
 
 
+def add_curve_connections(shape,p,*,top_z=TOP_Z):
+    """SC02's proven partial E31 receivers, bead/slit and clipped roof studs.
+
+    Reused by the preexisting SC02 and PR91 E01/SC02 in exactly this order.
+    Call only after the track passage is cut from the lower curved foundation.
+    """
+    shape=clipped_receivers(shape,p)
+    shape=add_e31_05_receiver_features(shape,FULL_TUBES,p.tube_radius,
+                                        receiver_depth=CAVITY_DEPTH)
+    return roof_studs(shape,p,top_z=top_z)
+
+
 def build_course(model_id,recipe,*,marked=True):
     pset=spec(recipe)
     base,p=open_curve()
     cover,passage=make_cover(pset)
     shape=base.fuse(cover).cut(passage).clean()
-    shape=clipped_receivers(shape,p)
-    shape=add_e31_05_receiver_features(shape,FULL_TUBES,p.tube_radius,
-                                        receiver_depth=CAVITY_DEPTH)
-    shape=roof_studs(shape,p)
+    shape=add_curve_connections(shape,p)
     if pset["direction"]=="left":
         shape=shape.mirror("XZ")
     if marked:
