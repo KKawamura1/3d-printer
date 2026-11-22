@@ -14,6 +14,7 @@ import math
 import cadquery as cq
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
+from brickcad.course_section_profiles import passage_section_wire
 
 from brickcad.standards import BALL_TRACK,DUPLO
 from brickcad.connections import make_receiver,make_studs
@@ -133,24 +134,11 @@ def _outer_wire(t):
 def _passage_wire(t,p):
     floor=FLOOR+_zshift(t)
     radius=CHANNEL_RADIUS
-    cy=floor+radius
-    a=radius/math.sqrt(2)
     roof=floor+30.30
-    b=cy+math.sqrt(2)*radius-roof
     progress=_blend(t,p)
-    def mix(circle,pointed):
-        return circle*(1-progress)+pointed*progress
-    end=(mix(radius*math.cos(math.radians(75)),b),
-         mix(cy+radius*math.sin(math.radians(75)),roof))
-    mid=(mix(.5*radius,(a+b)/2),
-         mix(cy+radius*math.sqrt(3)/2,(cy+a+roof)/2))
-    apex=(0,mix(cy+radius,roof))
-    wire=(cq.Workplane("XZ").moveTo(RADIUS-a,cy+a)
-          .threePointArc((RADIUS,floor),(RADIUS+a,cy+a))
-          .threePointArc((RADIUS+mid[0],mid[1]),(RADIUS+end[0],end[1]))
-          .threePointArc((RADIUS+apex[0],apex[1]),(RADIUS-end[0],end[1]))
-          .threePointArc((RADIUS-mid[0],mid[1]),(RADIUS-a,cy+a))
-          .close().val())
+    wire=passage_section_wire(
+        cq.Workplane("XZ"), floor=floor, radius=radius,
+        center_x=RADIUS, roof=roof, blend=progress)
     return _position(wire,t)
 
 
