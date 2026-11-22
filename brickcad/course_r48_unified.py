@@ -11,19 +11,17 @@ import math
 
 import cadquery as cq
 
-from brickcad.connections import make_studs
 from brickcad.course_contract import (
-    RECEIVER_DEPTH_MM, add_course_receiver_features, course_fit,
+    course_fit,
 )
-from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
+from brickcad.course_geometry import smoothstep_rise_factored
 from brickcad.course_section_profiles import passage_section_wire
-from brickcad.course_r48_building_blocks import outer_section_wire, loft_sections
+from brickcad.course_r48_building_blocks import outer_section_wire, sweep_enclosure
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.course_r48_sloped_tunnel import (
     FULL_TUBES as PROVEN_FULL_TUBES,
     open_curve as build_proven_sc02_open_curve,
-    clipped_receivers as add_proven_sc02_partial_receivers,
-    roof_studs as add_proven_sc02_roof_studs,
+    add_curve_connections as add_proven_sc02_connections,
 )
 from brickcad.r48_path import (
     RADIUS_MM as SHARED_R48_RADIUS, TURN_CENTRE_XY as SHARED_R48_CENTRE,
@@ -314,9 +312,9 @@ def build_r48(config, *, marked=True):
         raise ValueError("The production SC02 foundation no longer matches E31-05")
 
     ts = [-.02] + [i / SAMPLE_STATIONS for i in range(SAMPLE_STATIONS + 1)] + [1.02]
-    cover = loft_sections([_outer_wire(t, config) for t in ts], ruled=True)
-    passage = loft_sections(
-        [_passage_wire(t, config) for t in ts], ruled=True)
+    cover, passage = sweep_enclosure(
+        lambda t: _outer_wire(t, config),
+        lambda t: _passage_wire(t, config), ts, ruled=True)
     bed_envelope = cq.Workplane("XY").box(
         fit.width, fit.depth, 100,
         centered=(True, True, False)).val()
@@ -330,11 +328,7 @@ def build_r48(config, *, marked=True):
 
     # Keep SC02's clipped partial tube supports, its 3 complete E31-05
     # tubes, bead and slit geometry, and its actual clipped roof studs.
-    shape = add_proven_sc02_partial_receivers(shape, proven_fit)
-    shape = add_course_receiver_features(
-        shape, PROVEN_FULL_TUBES, proven_fit.tube_radius,
-        receiver_depth=RECEIVER_DEPTH_MM)
-    shape = add_proven_sc02_roof_studs(
+    shape = add_proven_sc02_connections(
         shape, proven_fit, top_z=config.roof_z)
 
     window_volumes = []
