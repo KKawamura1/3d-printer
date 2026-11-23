@@ -35,9 +35,42 @@ SPECIMENS = tuple(
 )
 
 
+# Window centres are specified along the ACTUAL OUTER WALL, not the R16
+# track centreline. This prevents the bend from looking like a huge gap.
+# Two straight + two curved openings; 12mm windows leave >=3mm webs.
+OUTER_WALL_WINDOW_CENTRES_MM = (9., 25., 43., 61.)
+WINDOW_EDGE_MARGIN_MM = 3.
+WINDOW_MIN_WEB_MM = 3.
+
+
 def window_stations(settings):
-    # Two straight windows with 3 mm between them, then one at the arc apex.
-    return (9., 24., 32. + settings.radius * math.pi / 4)
+    """Centreline stations of equally distributed OUTER-wall windows.
+
+    Arc distance scales by R/(R + channel half-width); that same factor
+    converts each curved-window cutter width to true outside-wall width.
+    Keep a gap at the straight-to-arc junction, so a planar cutter cannot
+    accidentally shear both wall types.
+    """
+    if settings.route != "sharp":
+        raise ValueError("The 4x2 external-wall window plan requires R16")
+    outer_radius = settings.radius + CHANNEL_HALF_WIDTH
+    total_outer_length = 32. + math.pi * outer_radius / 2.
+    half_width = 6.  # rounded_side_window / WINDOW_WIDTH_MM
+    centres = OUTER_WALL_WINDOW_CENTRES_MM
+    if (centres[0] - half_width < WINDOW_EDGE_MARGIN_MM or
+            total_outer_length - centres[-1] - half_width <
+            WINDOW_EDGE_MARGIN_MM):
+        raise ValueError("Window plan interferes with an entrance/exit port")
+    if any(b - a - 2*half_width < WINDOW_MIN_WEB_MM
+           for a, b in zip(centres, centres[1:])):
+        raise ValueError("Window plan has insufficient intervening wall")
+    if any(abs(c - 32.) - half_width < 1. for c in centres):
+        raise ValueError("Window cutter must not straddle the turn junction")
+    return tuple(
+        outer if outer <= 32.
+        else 32. + (outer - 32.) * settings.radius / outer_radius
+        for outer in centres
+    )
 
 
 def cut_windows(body, settings):
