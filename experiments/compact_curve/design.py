@@ -24,12 +24,13 @@ class Specimen:
         return LoftSettings("sharp", self.drop_mm, self.tunnel, False, "south", 12.)
 
 
-# Rows: horizontal open, horizontal tunnel, sloped open, sloped tunnel.
-# Each row is right and left. Both sides start at the west mouth.
+# Only one-DUPLO-height downhill variants are needed. Retain the
+# historical X4A-05..08 IDs; X4A-01..04 (level 4×2) are retired.
+# Both directions enter from the west.
 SPECIMENS = tuple(
-    Specimen(f"X4A-{index:02}", drop_mm, tunnel, left)
-    for index, (drop_mm, tunnel, left) in enumerate(
-        product((0., DUPLO.height), (False, True), (False, True)), 1
+    Specimen(f"X4A-{index:02}", DUPLO.height, tunnel, left)
+    for index, (tunnel, left) in enumerate(
+        product((False, True), (False, True)), 5
     )
 )
 
