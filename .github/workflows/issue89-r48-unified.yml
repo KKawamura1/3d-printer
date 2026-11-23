@@ -1,0 +1,213 @@
+name: Issue89 R48 common E01 SC02 GC01 SC03 SC05
+
+on:
+  push:
+    branches: [experiment/issue89-r48-shared-engine]
+    paths:
+      - "brickcad/course_section_profiles.py"
+      - "brickcad/course_r48_building_blocks.py"
+      - "brickcad/course_r48_sloped_tunnel.py"
+      - "brickcad/course_r48_unified.py"
+      - "brickcad/r48_path.py"
+      - "brickcad/course_loft_family.py"
+      - "experiments/r48_unified_issue89/**"
+      - ".github/workflows/issue89-r48-unified.yml"
+  # Make explicitly requested full parity observable on the PR check page.
+  # All expensive matrices remain opt-in via RUN_R48_EXACT_PARITY_20261122.
+  pull_request:
+    paths:
+      - "brickcad/course_section_profiles.py"
+      - "brickcad/course_r48_building_blocks.py"
+      - "brickcad/course_r48_sloped_tunnel.py"
+      - "brickcad/course_r48_unified.py"
+      - "brickcad/r48_path.py"
+      - "brickcad/course_loft_family.py"
+      - "experiments/r48_unified_issue89/**"
+      - ".github/workflows/issue89-r48-unified.yml"
+  workflow_dispatch:
+    inputs:
+      render:
+        description: "Render optional four-view PNG for each part"
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: issue89-r48-shared-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install pinned CAD environment
+        run: python -m pip install -r requirements.txt
+      - name: Fast open and roofed R48 shared path contract checks
+        run: |
+          python -m unittest experiments.r48_unified_issue89.test_contract -v
+          python -m unittest experiments.r48_unified_issue89.test_open_roofed_path -v
+          python -m unittest experiments.r48_unified_issue89.test_profile_shared -v
+          python -m unittest experiments.r48_unified_issue89.test_shared_building_blocks -v
+      - name: Build exactly two specimens and check 21 sphere stations each
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]') || contains(github.event.head_commit.message, '[issue89-plate]')
+        run: python -m experiments.r48_unified_issue89.export --out build/issue89-shared-r48
+      - name: Extra-diameter sphere audit on both actual STEP models
+        if: contains(github.event.head_commit.message, '[issue89-oversize]') || github.event_name == 'workflow_dispatch'
+        run: python -m experiments.r48_unified_issue89.ball_size_audit --step-root build/issue89-shared-r48 --out build/issue89-shared-r48/oversize-audit.json
+      - name: Assemble legacy 2-part A1 mini print STL (no gauges)
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-plate]')
+        run: python -m experiments.r48_unified_issue89.plate_export --source-root build/issue89-shared-r48 --out build/issue89-shared-r48/plate
+      - name: Optional four-view mesh snapshots
+        if: github.event_name == 'workflow_dispatch' && inputs.render
+        run: |
+          python scripts/stl_snapshot.py --stl build/issue89-shared-r48/X89-E01-U1/brick.stl --out build/issue89-shared-r48/X89-E01-U1/preview.png
+          python scripts/stl_snapshot.py --stl build/issue89-shared-r48/X89-SC02-U1/brick.stl --out build/issue89-shared-r48/X89-SC02-U1/preview.png
+      - name: Upload requested R48 CAD/STL reports
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[issue89-cad]') || contains(github.event.head_commit.message, '[issue89-oversize]') || contains(github.event.head_commit.message, '[issue89-plate]')
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue89-unified-R48-flat-sloped
+          path: build/issue89-shared-r48/
+          if-no-files-found: error
+      - name: CAD candidate corridor gate (NOT print-ready approval)
+        if: contains(github.event.head_commit.message, '[issue89-oversize]') || github.event_name == 'workflow_dispatch'
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path('build/issue89-shared-r48/oversize-audit.json').read_text())
+          if not r['candidate_rolling_corridor_passed']:
+              raise SystemExit('FAIL: no monotone descent collision-free candidate for 24.26/25.0mm, even with <=0.08mm local contact correction.')
+          if not r['strict_nominal_slope_clearance_passed']:
+              print('WARNING: +0.03mm tangent-plane-height diagnostic still collides; this is not a physical rolling or slicer pass.')
+          print('CAD candidate corridor PASS. Print_ready remains FALSE until Bambu slicer and physical rolling are checked.')
+          PY
+
+  # Four expensive CadQuery BReps are independent. A single sequential
+  # runner previously hit its 15-minute timeout after only the first part.
+  # Each matrix job validates and uploads one specimen with a stable ID.
+  compare_specimens:
+    if: contains(github.event.head_commit.message, '[issue89-compare]')
+    needs: focused
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        model_id: [X89-E01-R04, X89-E01-R10, X89-SC02-R04, X89-SC02-R10]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install pinned CAD environment
+        run: python -m pip install -r requirements.txt
+      - name: Generate and validate exactly one R48 relief specimen
+        run: |
+          python -m experiments.r48_unified_issue89.compare_relief_plate \
+            --out build/issue89-shared-r48/comparison-4variants \
+            --specimen "${{ matrix.model_id }}"
+      - name: Upload one validated specimen
+        uses: actions/upload-artifact@v4
+        with:
+          name: r48-specimen-${{ matrix.model_id }}
+          path: build/issue89-shared-r48/comparison-4variants/
+          if-no-files-found: error
+          compression-level: 1
+
+  compare_plate:
+    needs: compare_specimens
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install pinned CAD environment
+        run: python -m pip install -r requirements.txt
+      - name: Download all four validated specimens
+        uses: actions/download-artifact@v4
+        with:
+          pattern: r48-specimen-*
+          path: build/issue89-shared-r48/comparison-4variants/
+          merge-multiple: true
+      - name: Validate hashes, fit, placement and assemble one A1 mini plate
+        run: |
+          python -m experiments.r48_unified_issue89.compare_relief_plate \
+            --out build/issue89-shared-r48/comparison-4variants \
+            --assemble-only
+      - name: Upload one 4-part comparison STL and all component STEP/STL
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue89-unified-R48-four-comparison
+          path: build/issue89-shared-r48/comparison-4variants/
+          if-no-files-found: error
+          compression-level: 1
+
+  # Run only for an explicitly marked code-refactor commit. Expensive BRep
+  # construction is parallel per physical specimen, not repeated on every push.
+  compare_complete_refactor_brep:
+    if: (github.event_name == 'push' && contains(github.event.head_commit.message, '[issue89-brep-parity]')) || (github.event_name == 'pull_request' && contains(github.event.pull_request.body, 'RUN_R48_EXACT_PARITY_20261122'))
+    needs: focused
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        model_id: [X89-E01-R04, X89-E01-R10, X89-SC02-R04, X89-SC02-R10]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compare full unmarked PR91 BRep with pinned pre-refactor PR91
+        run: |
+          python -m experiments.r48_unified_issue89.test_full_refactor_parity \
+            --model-id "${{ matrix.model_id }}" \
+            --out build/issue89-refactor-brep-parity
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r48-refactor-brep-${{ matrix.model_id }}
+          path: build/issue89-refactor-brep-parity/
+          if-no-files-found: error
+
+  # Import the true independent historical reference model, not a copy of
+  # our current building-block code. Check both engraved and bare BReps.
+  compare_proven_r48_brep:
+    if: (github.event_name == 'push' && contains(github.event.head_commit.message, '[issue89-brep-parity]')) || (github.event_name == 'pull_request' && contains(github.event.pull_request.body, 'RUN_R48_EXACT_PARITY_20261122'))
+    needs: focused
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        model_id: [GC01-V5, SC03-V5, SC05-V1, E01-V3, E01L-V1, SC02-V12, SC02L-V6]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compare original production BRep in both directions
+        env:
+          COURSE_PARITY_MODELS: ${{ matrix.model_id }}
+        run: python -m unittest tests.test_course_catalog_parity -v

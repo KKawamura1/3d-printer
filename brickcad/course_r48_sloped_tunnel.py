@@ -6,7 +6,6 @@ from brickcad.course_contract import engrave_course_west as engrave_west
 This reconstructs the native SC02/SC02L geometry from common primitives
 rather than importing parts.sloped_curve.design or any old exporter.
 """
-from dataclasses import replace
 from pathlib import Path
 import hashlib
 import json
@@ -14,9 +13,14 @@ import math
 import cadquery as cq
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_factored
+from brickcad.course_section_profiles import passage_section_wire
+from brickcad.course_r48_building_blocks import (
+    outer_section_wire, loft_sections, receiver_underbody, sweep_enclosure,
+    place_r48_wire,
+)
 
 from brickcad.standards import BALL_TRACK,DUPLO
-from brickcad.connections import make_receiver,make_studs
+from brickcad.connections import make_studs
 from brickcad.verify import exact_bounds
 
 RADIUS=48.
@@ -47,10 +51,6 @@ def height(t):
     return DROP*(smoothstep_fall(t))
 
 
-def _position(w,t):
-    return (w.rotate((0,0,0),(0,0,1),-90+90*t).translate((-32,32,0)))
-
-
 def section(t):
     floor=FLOOR+height(t)
     top=HEIGHT+height(t)
@@ -63,7 +63,7 @@ def section(t):
        .lineTo(RADIUS-half,top).close().val())
     corners=[v for v in w.Vertices() if v.Center().z>top-.01]
     w=w.fillet2D(.5,corners)
-    return _position(w,t)
+    return place_r48_wire(w,t)
 
 
 def curved_footprint():
@@ -92,9 +92,9 @@ def open_curve():
     p=course_fit(nx=4,ny=4,height=HEIGHT+DROP)
     base=cq.Workplane("XY").box(p.width,p.depth,FLOOR,centered=(True,True,False))
     base=base.edges("|Z").fillet(.8).edges(">Z").fillet(.5)
-    base=make_receiver(base,FULL_TUBES,p.cavity_xy,CAVITY_DEPTH,
-                       p.tube_radius,p.tube_inner_radius,0)
-    swept=cq.Solid.makeLoft([section(i/24) for i in range(25)],ruled=False)
+    base=receiver_underbody(base,p,CAVITY_DEPTH,
+                            tubes=FULL_TUBES,tube_radius=p.tube_radius,entry=0)
+    swept=loft_sections([section(i/24) for i in range(25)],ruled=False)
     footprint=cq.Workplane("XY").box(
         p.width,p.depth,60,centered=(True,True,False)).val()
     shape=base.union(swept.intersect(footprint)).val().intersect(curved_footprint()).clean()
@@ -123,35 +123,21 @@ def _blend(t,p):
 
 def _outer_wire(t):
     base=FLOOR-.75
-    wire=cq.Workplane("XZ").polyline([
-        (RADIUS-WIDTH/2,base),(RADIUS+WIDTH/2,base),
-        (RADIUS+WIDTH/2,TOP_Z),(RADIUS-WIDTH/2,TOP_Z)
-    ]).close().val()
-    return _position(wire,t)
+    wire=outer_section_wire(cq.Workplane("XZ"),
+                            inner=RADIUS-WIDTH/2,outer=RADIUS+WIDTH/2,
+                            bottom=base,top=TOP_Z)
+    return place_r48_wire(wire,t)
 
 
 def _passage_wire(t,p):
     floor=FLOOR+_zshift(t)
     radius=CHANNEL_RADIUS
-    cy=floor+radius
-    a=radius/math.sqrt(2)
     roof=floor+30.30
-    b=cy+math.sqrt(2)*radius-roof
     progress=_blend(t,p)
-    def mix(circle,pointed):
-        return circle*(1-progress)+pointed*progress
-    end=(mix(radius*math.cos(math.radians(75)),b),
-         mix(cy+radius*math.sin(math.radians(75)),roof))
-    mid=(mix(.5*radius,(a+b)/2),
-         mix(cy+radius*math.sqrt(3)/2,(cy+a+roof)/2))
-    apex=(0,mix(cy+radius,roof))
-    wire=(cq.Workplane("XZ").moveTo(RADIUS-a,cy+a)
-          .threePointArc((RADIUS,floor),(RADIUS+a,cy+a))
-          .threePointArc((RADIUS+mid[0],mid[1]),(RADIUS+end[0],end[1]))
-          .threePointArc((RADIUS+apex[0],apex[1]),(RADIUS-end[0],end[1]))
-          .threePointArc((RADIUS-mid[0],mid[1]),(RADIUS-a,cy+a))
-          .close().val())
-    return _position(wire,t)
+    wire=passage_section_wire(
+        cq.Workplane("XZ"), floor=floor, radius=radius,
+        center_x=RADIUS, roof=roof, blend=progress)
+    return place_r48_wire(wire,t)
 
 
 def stations():
@@ -164,8 +150,8 @@ def stations():
 
 def make_cover(p):
     ts=stations()
-    outer=cq.Solid.makeLoft([_outer_wire(t) for t in ts],ruled=True)
-    passage=cq.Solid.makeLoft([_passage_wire(t,p) for t in ts],ruled=True)
+    outer,passage=sweep_enclosure(_outer_wire,
+                                 lambda t: _passage_wire(t,p),ts,ruled=True)
     clip=cq.Workplane("XY").box(63.8,63.8,90,centered=(True,True,False)).val()
     return outer.intersect(clip).intersect(curved_footprint()).clean(),passage
 
@@ -183,8 +169,12 @@ def clipped_receivers(shape,p):
     return shape
 
 
-def roof_studs(shape,p):
-    studs=make_studs(p.studs(),TOP_Z-STUD_OVERLAP,
+def roof_studs(shape,p,*,top_z=TOP_Z):
+    """The existing clipped-stud construction; optional roof height for flat R48.
+
+    Default TOP_Z keeps the proven SC02 geometry unchanged.
+    """
+    studs=make_studs(p.studs(),top_z-STUD_OVERLAP,
                      p.stud_radius-p.clearance,p.stud_inner_radius,
                      p.stud_height+STUD_OVERLAP,lip_radius=.5).val()
     clipped=studs.intersect(curved_footprint().translate((0,0,p.stud_height+1.)))
@@ -193,15 +183,24 @@ def roof_studs(shape,p):
     return shape.fuse(clipped).clean()
 
 
+def add_curve_connections(shape,p,*,top_z=TOP_Z):
+    """SC02's proven partial E31 receivers, bead/slit and clipped roof studs.
+
+    Reused by the preexisting SC02 and PR91 E01/SC02 in exactly this order.
+    Call only after the track passage is cut from the lower curved foundation.
+    """
+    shape=clipped_receivers(shape,p)
+    shape=add_e31_05_receiver_features(shape,FULL_TUBES,p.tube_radius,
+                                        receiver_depth=CAVITY_DEPTH)
+    return roof_studs(shape,p,top_z=top_z)
+
+
 def build_course(model_id,recipe,*,marked=True):
     pset=spec(recipe)
     base,p=open_curve()
     cover,passage=make_cover(pset)
     shape=base.fuse(cover).cut(passage).clean()
-    shape=clipped_receivers(shape,p)
-    shape=add_e31_05_receiver_features(shape,FULL_TUBES,p.tube_radius,
-                                        receiver_depth=CAVITY_DEPTH)
-    shape=roof_studs(shape,p)
+    shape=add_curve_connections(shape,p)
     if pset["direction"]=="left":
         shape=shape.mirror("XZ")
     if marked:

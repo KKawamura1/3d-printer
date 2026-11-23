@@ -37,6 +37,35 @@ class SelectionTests(unittest.TestCase):
     def test_config_selects_owner_and_dependents(self):
         self.assertEqual(ci.select({'experiments/xy_fit/profile.json'}), ['experiments/xy_fit/test.py'])
 
+    def test_new_experiment_print_plate_uses_adjacent_tests_not_all(self):
+        selected = ci.select({
+            'experiments/r48_unified_issue89/compare_relief_plate.py',
+            'experiments/r48_unified_issue89/ball_size_audit.py',
+            'experiments/r48_unified_issue89/plate_export.py',
+        }, fast=True)
+        self.assertIn('experiments/r48_unified_issue89/test_contract.py',
+                      selected)
+        self.assertIn('experiments/r48_unified_issue89/test_open_roofed_path.py',
+                      selected)
+        self.assertNotIn('tests/test_course_loft_family_parity.py', selected)
+        self.assertNotIn('parts/tunnel/test.py', selected)
+
+    def test_fast_mode_defers_only_dedicated_heavy_parity(self):
+        changed = {'brickcad/course_loft_family.py'}
+        ordinary = ci.select(changed)
+        fast = ci.select(changed, fast=True)
+        self.assertIn('tests/test_course_loft_family_parity.py', ordinary)
+        self.assertNotIn('tests/test_course_loft_family_parity.py', fast)
+        self.assertIn('experiments/r48_unified_issue89/test_open_roofed_path.py',
+                      fast)
+        self.assertTrue(fast)
+
+    def test_unknown_shared_primitive_still_fails_open(self):
+        ordinary = ci.select({'brickcad/new_uncovered_geometry.py'}, fast=True)
+        self.assertIn('tests/test_ci_selection.py', ordinary)
+        self.assertIn('parts/tunnel/test.py', ordinary)
+        self.assertNotIn('tests/test_course_loft_family_parity.py', ordinary)
+
     def test_parts_never_import_experiments(self):
         for p in (ci.ROOT/'parts').rglob('design.py'):
             self.assertFalse(any(x.startswith('experiments/') for x in ci.dependencies(p.relative_to(ci.ROOT).as_posix())))

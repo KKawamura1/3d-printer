@@ -16,8 +16,12 @@ import math
 import cadquery as cq
 from brickcad.course_artifacts import export_geometry
 from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_expanded
+from brickcad.r48_path import xy_at_s as r48_xy_at_s, floor_at_s as r48_floor_at_s
+from brickcad.course_section_profiles import passage_section_wire
+from brickcad.course_r48_building_blocks import (
+    outer_section_wire, loft_sections, receiver_underbody,
+)
 from brickcad.connections import make_studs
-from brickcad.model import receiver
 from brickcad.standards import BALL_TRACK
 from brickcad.verify import exact_bounds
 
@@ -84,11 +88,12 @@ def xy(s, config):
             return (-32+s, 0., 1., 0.)
         a = math.pi/2-(s-32)/16
         return (16*math.cos(a), -16+16*math.sin(a), math.sin(a), -math.cos(a))
-    a = -math.pi/2+s/48
-    return (-32+48*math.cos(a), 32+48*math.sin(a), -math.sin(a), math.cos(a))
+    return r48_xy_at_s(s)
 
 
 def height(s, config):
+    if config.route == "gentle":
+        return r48_floor_at_s(s, config.drop_mm)
     t = max(0., min(1., s/config.length))
     return BALL_TRACK.floor+config.drop_mm*(smoothstep_fall(t))
 
@@ -103,7 +108,8 @@ def wire(s, role, config):
     w = cq.Workplane(section_plane(s, config))
     if role in ("outer", "mask"):
         top = 90 if role == "mask" else (57.6 if config.tunnel else floor+12.85)
-        return w.polyline([(-15.9,0),(15.9,0),(15.9,top),(-15.9,top)]).close().val()
+        return outer_section_wire(w, inner=-15.9, outer=15.9,
+                                  bottom=0, top=top)
 
     distance = min(max(0,s),max(0,config.length-s))
     # 1mm circular entry/exit lip for slope+sharp tunnel; old open rails
@@ -114,25 +120,12 @@ def wire(s, role, config):
     else:
         blend = min(1.,distance/5.)
     radius = BALL_TRACK.radius+(14.-BALL_TRACK.radius)*blend
-    centre = floor+radius
-    a = radius/math.sqrt(2)
     if not config.tunnel:
-        return (w.moveTo(-radius,centre).threePointArc((0,floor),(radius,centre))
-                .lineTo(radius,95).lineTo(-radius,95).close().val())
-
+        return passage_section_wire(w, floor=floor, radius=radius,
+                                    open_top=95.)
     roof = floor+2*BALL_TRACK.radius+(30.3-2*BALL_TRACK.radius)*blend
-    bridge = centre+math.sqrt(2)*radius-roof
-    def mixed(circle,teardrop):
-        return circle*(1-blend)+teardrop*blend
-    end = (mixed(radius*math.cos(math.radians(75)),bridge),
-           mixed(centre+radius*math.sin(math.radians(75)),roof))
-    mid = (mixed(radius*.5,(a+bridge)/2),
-           mixed(centre+radius*math.sqrt(3)/2,(centre+a+roof)/2))
-    apex = (0,mixed(centre+radius,roof))
-    return (w.moveTo(-a,centre+a).threePointArc((0,floor),(a,centre+a))
-            .threePointArc(mid,end)
-            .threePointArc(apex,(-end[0],end[1]))
-            .threePointArc((-mid[0],mid[1]),(-a,centre+a)).close().val())
+    return passage_section_wire(w, floor=floor, radius=radius,
+                                roof=roof, blend=blend)
 
 
 def stations(config, a=-.3, b=None):
@@ -146,8 +139,8 @@ def stations(config, a=-.3, b=None):
 
 
 def loft(config, role, a=-.3, b=None):
-    return cq.Solid.makeLoft([wire(s,role,config) for s in stations(config,a,b)],
-                             ruled=True)
+    return loft_sections([wire(s,role,config) for s in stations(config,a,b)],
+                         ruled=True)
 
 
 def build_course(config, *, label=None):
@@ -160,7 +153,8 @@ def build_course(config, *, label=None):
               centered=(True,True,False)).val()
     mask = loft(config,"mask").intersect(clip)
     outer = loft(config,"outer").intersect(clip)
-    body = receiver(p,cq.Workplane(obj=outer),RECEIVER_DEPTH,0).val().clean()
+    body = receiver_underbody(cq.Workplane(obj=outer), p,
+                              RECEIVER_DEPTH, entry=0).val().clean()
     body = body.intersect(mask).clean()
     body = body.cut(loft(config,"passage")).clean()
 
