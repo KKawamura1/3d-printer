@@ -1,10 +1,10 @@
 {
-  "version": "GW02-V13",
+  "version": "GW02-V14",
   "auto": true,
   "command": [
     "python",
     "-m",
-    "experiments.gravity_wheel_g02.open_cup_v13",
+    "experiments.gravity_wheel_g02.open_cup_v14",
     "--out",
     "{out}"
   ],
@@ -12,5 +12,5 @@
     "print_plate.stl"
   ],
   "timeout": 1200,
-  "description": "V13 two DUPLO stands with 4 curved roof windows each, V12 support-free rotor unchanged, one 10-part A1 mini plate; actual G-code validation pending"
+  "description": "V14 targets auto-tree supports on rotor lips, receiver tube roofs and stop fan with permanent buildable geometry; slicer ON/OFF G-code verification required"
 }
