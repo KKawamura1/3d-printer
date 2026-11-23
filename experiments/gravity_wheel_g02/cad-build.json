@@ -1,10 +1,10 @@
 {
-  "version": "GW02-V9",
+  "version": "GW02-V10",
   "auto": true,
   "command": [
     "python",
     "-m",
-    "experiments.gravity_wheel_g02.open_cup_v9",
+    "experiments.gravity_wheel_g02.open_cup_v10",
     "--out",
     "{out}"
   ],
@@ -12,5 +12,5 @@
     "print_plate.stl"
   ],
   "timeout": 1200,
-  "description": "One print_plate.stl for all 10 parts, separated and bed-aligned, with print-only breakaway stop-lug support; V9 regression release"
+  "description": "V10: rib-to-spoke continuity and eight removable roof supports plus one stop support; one print_plate.stl with 10 separate parts on the A1 mini bed."
 }
