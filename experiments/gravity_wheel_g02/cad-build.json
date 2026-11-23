@@ -1,0 +1,20 @@
+{
+  "version": "GW02-V1",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "experiments.gravity_wheel_g02.design",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "rotor.stl",
+    "shroud.stl",
+    "stand_front.stl",
+    "stand_back.stl",
+    "axle.stl"
+  ],
+  "timeout": 1200,
+  "description": "Two opposed slanted cups flip 180 degrees from upper-right inlet to lower-left exit; E31 bases, stationary keeper ring, static-only mechanical PoC"
+}
