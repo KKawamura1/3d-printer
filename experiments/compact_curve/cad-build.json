@@ -1,0 +1,19 @@
+{
+  "version": "X4A-V6",
+  "command": [
+    "python",
+    "-m",
+    "experiments.compact_curve.export",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "X4A_4x2_downhill_sharp_curves_4parts_A1mini.stl",
+    "X4A-05/brick.stl",
+    "X4A-06/brick.stl",
+    "X4A-07/brick.stl",
+    "X4A-08/brick.stl"
+  ],
+  "timeout": 1200,
+  "description": "Four downhill 4x2 sharp curves with 5 equal-pitch observation windows (2 straight + 3 curved), balanced 3mm end margins, PR91-common bore"
+}

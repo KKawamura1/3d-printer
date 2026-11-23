@@ -14,6 +14,7 @@ import cadquery as cq
 from brickcad.course_contract import (
     course_fit,
 )
+from brickcad.course_finish import WINDOW_WIDTH_MM, rounded_side_window
 from brickcad.course_section_profiles import (
     end_relief_blend, interior_radius_mm, passage_section_wire,
     validate_interior_relief,
@@ -41,9 +42,6 @@ HALF = WIDTH / 2
 INNER = RADIUS - HALF
 OUTER = RADIUS + HALF
 WINDOW_COUNT = 5
-WINDOW_WIDTH = 12.0
-WINDOW_CUT_DEPTH = 7.0
-WINDOW_CORNER_RADIUS = 0.8
 WINDOW_MIN_WEB = 2.5
 INTERIOR_RADIAL_RELIEF = 1.0  # issue89 tolerance trial; preserve 25.74mm mouth
 SAMPLE_STATIONS = 48
@@ -210,12 +208,12 @@ def _entire_disk_inside_outline(x, y, radius, margin=0.):
 def _window_cutters(config):
     """Rounded pentagonal windows on the outside only; no concave apertures."""
     arc = OUTER * math.pi / 2
-    gap = (arc - WINDOW_COUNT * WINDOW_WIDTH) / (WINDOW_COUNT + 1)
+    gap = (arc - WINDOW_COUNT * WINDOW_WIDTH_MM) / (WINDOW_COUNT + 1)
     if gap < WINDOW_MIN_WEB:
         raise ValueError("Insufficient facade posts")
 
     for i in range(WINDOW_COUNT):
-        s = gap + WINDOW_WIDTH / 2 + i * (WINDOW_WIDTH + gap)
+        s = gap + WINDOW_WIDTH_MM / 2 + i * (WINDOW_WIDTH_MM + gap)
         t = s / arc
         angle = -math.pi / 2 + t * math.pi / 2
         rx, ry = math.cos(angle), math.sin(angle)
@@ -225,25 +223,9 @@ def _window_cutters(config):
                     CENTRE_XY[1] + (OUTER + 1.1) * ry, 0),
             xDir=tangent, normal=(rx, ry, 0),
         )
-        # Each opening follows the local sloping floor, not a fixed world Z.
-        z = lambda u: floor_z(t + u / arc, config.drop_mm)
-        half = WINDOW_WIDTH / 2
-        points = (
-            (-half, z(-half) + 7),
-            (half, z(half) + 7),
-            (half, z(half) + 17),
-            (half - 1.5, z(half - 1.5) + 20),
-            (0, z(0) + 22),
-            (-half + 1.5, z(-half + 1.5) + 20),
-            (-half, z(-half) + 17),
-        )
-        wire = cq.Workplane(plane).polyline(points).close().val()
-        wire = wire.fillet2D(
-            WINDOW_CORNER_RADIUS, list(wire.Vertices())
-        )
-        yield cq.Solid.extrudeLinear(
-            wire, [], cq.Vector(-rx * WINDOW_CUT_DEPTH,
-                                -ry * WINDOW_CUT_DEPTH, 0)
+        yield rounded_side_window(
+            plane, lambda u: floor_z(t + u / arc, config.drop_mm),
+            cq.Vector(-rx, -ry, 0),
         )
 
 
