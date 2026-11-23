@@ -22,6 +22,7 @@ from brickcad.course_r48_building_blocks import (
 from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.course_r48_sloped_tunnel import (
     FULL_TUBES as PROVEN_FULL_TUBES,
+    CAVITY_DEPTH as PROVEN_RECEIVER_DEPTH,
     open_curve as build_proven_sc02_open_curve,
     add_curve_connections as add_proven_sc02_connections,
 )
@@ -274,23 +275,44 @@ def _proven_foundation():
     return build_proven_sc02_open_curve()
 
 
-def _west_skirt_mark(shape, fit, model_id):
-    # At Z=3.5 the west entrance has a continuous 4.75mm receiver sidewall.
-    # Size 5.0mm is deliberately larger than the historical 3mm. Only the
-    # ID on a new experiment is touched, never the locked production contract.
+def _west_skirt_label_tool(fit, model_id):
+    """Keep every 5mm glyph inside the *actual* short west receiver skirt.
+
+    The experimental prefix is preserved in files and reports, but is
+    redundant on the physical part: X89-SC02-R10 is nearly 40mm wide,
+    whereas this front face is only ~32mm wide. Cutting any part of a glyph
+    used to pass the old nonzero-volume test despite visible clipping.
+    """
+    engraved_id = model_id.removeprefix("X89-")
     plane = cq.Plane(
-        origin=(-fit.width / 2 + .4, -16., 3.5),
+        origin=(-fit.width / 2 + .4, -16., 2.35),
         xDir=(0, -1, 0), normal=(-1, 0, 0),
     )
     tool = (cq.Workplane(plane)
-            .text(model_id, 5., .45, font="DejaVu Sans",
+            .text(engraved_id, 5., .45, font="DejaVu Sans",
                   kind="bold", combine=False).val())
+    bounds = tool.BoundingBox()
+    # The west end has a 31.9mm-wide low receiver skirt (Y -31.9..0).
+    # Keep a margin at both ends, above the bottom edge fillet, and below
+    # the original SC02 receiver ceiling at Z=CAVITY_DEPTH (4.75mm).
+    if not (-fit.depth / 2 + 1. <= bounds.ymin
+            and bounds.ymax <= -1.
+            and .4 <= bounds.zmin
+            and bounds.zmax <= PROVEN_RECEIVER_DEPTH - .4):
+        raise ValueError(
+            f"Engraving {engraved_id!r} exceeds the west receiver skirt: "
+            f"Y=[{bounds.ymin:.2f},{bounds.ymax:.2f}], "
+            f"Z=[{bounds.zmin:.2f},{bounds.zmax:.2f}]")
+    return tool
+
+
+def _west_skirt_mark(shape, fit, model_id):
+    tool = _west_skirt_label_tool(fit, model_id)
     marked = shape.cut(tool).clean()
     if (not marked.isValid() or len(marked.Solids()) != 1 or
             shape.Volume() - marked.Volume() < 2):
-        raise ValueError("The entire experimental mark must cut the west skirt")
+        raise ValueError("The experimental mark must cut the west skirt")
     return marked
-
 
 def build_r48(config, *, marked=True):
     """Re-use SC02's curved, printable foundation for both roofed R48 tracks.
