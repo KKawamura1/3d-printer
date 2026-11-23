@@ -1,20 +1,20 @@
 {
-  "version": "GW02-V1",
+  "version": "GW02-V2",
   "auto": true,
   "command": [
     "python",
     "-m",
-    "experiments.gravity_wheel_g02.design",
+    "experiments.gravity_wheel_g02.open_cup_v2",
     "--out",
     "{out}"
   ],
   "stl": [
     "rotor.stl",
-    "shroud.stl",
     "stand_front.stl",
-    "stand_back.stl",
-    "axle.stl"
+    "stand_back_stop.stl",
+    "axle.stl",
+    "stop_pin.stl"
   ],
   "timeout": 1200,
-  "description": "Two opposed slanted cups flip 180 degrees from upper-right inlet to lower-left exit; E31 bases, stationary keeper ring, static-only mechanical PoC"
+  "description": "Cover-free two-cup gravity flip wheel, 160/170/180-degree selectable mechanical impact stop, E31 receiver bases; static-only PoC"
 }
