@@ -62,7 +62,7 @@ def build_specimen(root, model_id):
     physical_label = model_id.removeprefix("X89-")
     shape = engrave_trial_west_skirt(
         unmarked, physical_label, x=-fit.width / 2,
-        y=16., face_width_mm=31.8)
+        y=16., face_width_mm=31.9)
     output = root / model_id
     stl, mesh = export_geometry(shape, output, tolerance=.02,
                                 angular_tolerance=.15)
