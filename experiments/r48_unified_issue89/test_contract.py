@@ -5,9 +5,13 @@ import cadquery as cq
 import unittest
 
 from brickcad.course_contract import course_fit
+from brickcad.course_geometry import smoothstep_rise_factored
+from brickcad.course_section_profiles import (
+    end_relief_blend, interior_radius_mm, validate_interior_relief,
+)
 from brickcad.course_r48_unified import (
     INTERIOR_RADIAL_RELIEF, HALF, MIN_RADIAL_SIDEWALL_MM, R48PairConfig, _progress,
-    _proven_foundation,
+    _proven_foundation, _west_skirt_label_tool,
     _window_cutters, centreline, complete_studs, complete_tubes,
     floor_z, grade, port_contract,
 )
@@ -88,6 +92,59 @@ class SharedR48ContractTests(unittest.TestCase):
         for invalid in (-.1, float("nan"), float("inf"), 2.0):
             with self.assertRaises(ValueError):
                 R48PairConfig("bad-relief", 0., relief_mm=invalid)
+
+    def test_pr91_engraving_fits_the_entire_short_west_skirt(self):
+        """Physical print exposed clipped X89- prefixes on the 32mm face."""
+        from brickcad.course_r48_sloped_tunnel import CAVITY_DEPTH
+
+        for part in ("E01-R04", "E01-R10", "SC02-R04", "SC02-R10"):
+            with self.subTest(part=part):
+                fit = course_fit(
+                    nx=4, ny=4,
+                    height_units=2 if part.startswith("E01") else 3)
+                engraving = _west_skirt_label_tool(fit, "X89-" + part)
+                bounds = engraving.BoundingBox()
+                self.assertLess(bounds.ylen, fit.depth / 2 - 2.)
+                self.assertGreaterEqual(bounds.ymin, -fit.depth / 2 + 1.)
+                self.assertLessEqual(bounds.ymax, -1.)
+                self.assertGreaterEqual(bounds.zmin, .4)
+                self.assertLessEqual(bounds.zmax, CAVITY_DEPTH - .4)
+
+        # The old code accepted a partially clipped label if any 2mm3 of
+        # lettering happened to cut the solid. Reject that at tool creation.
+        with self.assertRaisesRegex(ValueError, "exceeds the west receiver skirt"):
+            _west_skirt_label_tool(fit, "X89-MUCH-TOO-LONG-ID")
+
+    def test_shared_relief_matches_historic_r48_arithmetic(self):
+        # A strict numerical regression guard: preserve exact evaluation
+        # order of PR91's original R48 R04/R10 passage profiles.
+        from brickcad.course_r48_unified import RADIUS
+        for t in (-.02, 0., .001, .02, .05, .1, .25, .5, .75, .95, 1., 1.02):
+            distance = min(max(0., t), max(0., 1 - t)) * (RADIUS * math.pi / 2)
+            u = max(0., min(1., (distance - 1.) / 4.))
+            legacy = min(.995, smoothstep_rise_factored(u))
+            self.assertEqual(_progress(t), legacy)
+            self.assertEqual(end_relief_blend(distance, mode="smoothstep-factored"),
+                             legacy)
+            for relief in (.4, 1.):
+                self.assertEqual(
+                    interior_radius_mm(_progress(t), extra_radius_mm=relief),
+                    BALL_TRACK.radius + relief * legacy)
+        self.assertEqual(_progress(0.), 0.)
+        self.assertEqual(_progress(1.), 0.)
+        self.assertEqual(interior_radius_mm(0., extra_radius_mm=1.),
+                         BALL_TRACK.radius)
+
+    def test_shared_sidewall_validation_preserves_r48_limit(self):
+        for relief in (0., .4, 1.):
+            self.assertEqual(validate_interior_relief(
+                HALF, extra_radius_mm=relief,
+                minimum_wall_mm=MIN_RADIAL_SIDEWALL_MM), relief)
+        for invalid in (-.1, float("nan"), float("inf"), 2.):
+            with self.assertRaises(ValueError):
+                validate_interior_relief(
+                    HALF, extra_radius_mm=invalid,
+                    minimum_wall_mm=MIN_RADIAL_SIDEWALL_MM)
 
     def test_roofs_allow_full_duplo_placement(self):
         self.assertAlmostEqual(R48PairConfig("X89-E01-U1", 0).roof_z, 38.4)
