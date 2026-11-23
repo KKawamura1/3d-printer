@@ -1,5 +1,5 @@
 {
-  "version": "X4A-V5",
+  "version": "X4A-V6",
   "command": [
     "python",
     "-m",
@@ -15,5 +15,5 @@
     "X4A-08/brick.stl"
   ],
   "timeout": 1200,
-  "description": "Four downhill 4x2 sharp curves, PR91-common bore, four outer-wall-spaced tunnel windows (2 straight + 2 curved), safe engraving"
+  "description": "Four downhill 4x2 sharp curves with 5 equal-pitch observation windows (2 straight + 3 curved), balanced 3mm end margins, PR91-common bore"
 }
