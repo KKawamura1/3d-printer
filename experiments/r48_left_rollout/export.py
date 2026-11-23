@@ -135,6 +135,36 @@ def build_specimen(root, model_id):
     return report
 
 
+def _remove_quantized_collapsed_facets(path):
+    """Discard facets collapsed by the mesh auditor's 1e-5 mm weld rule.
+
+    Source meshes are watertight. Translation into binary STL's float32 XY
+    can cause a triangle's two vertices to round to the same 5-decimal
+    coordinate, even if float32 values differ. The shared normalizer checks
+    exact float32 collisions; this extra pass uses precisely the 1e-5 mm
+    rounding in brickcad.verify.mesh_check. The translated coordinates of
+    every retained triangle are preserved byte-for-byte.
+    """
+    path = Path(path)
+    raw = path.read_bytes()
+    count = struct.unpack_from("<I", raw, 80)[0]
+    if len(raw) != 84 + 50 * count:
+        raise ValueError("Malformed assembled STL")
+    retained = []
+    for i in range(count):
+        facet = raw[84 + 50 * i:134 + 50 * i]
+        values = struct.unpack("<12fH", facet)[3:12]
+        keys = [tuple(round(values[j + k], 5) for k in range(3))
+                for j in (0, 3, 6)]
+        if len(set(keys)) == 3:
+            retained.append(facet)
+    removed = count - len(retained)
+    if removed:
+        path.write_bytes(raw[:80] + struct.pack("<I", len(retained))
+                         + b"".join(retained))
+    return removed
+
+
 def assemble_plate(root):
     """Verify individual files and only XY-translate their binary STL facets."""
     root = Path(root)
@@ -174,7 +204,9 @@ def assemble_plate(root):
     # quantize to identical coordinates after translation even when each
     # source STL is clean. Apply the same shared normalization used for
     # individual exports, then validate the translated assembly itself.
-    retained_faces = normalize_binary_stl(plate)
+    normalize_binary_stl(plate)
+    quantized_facets_dropped = _remove_quantized_collapsed_facets(plate)
+    retained_faces = struct.unpack_from("<I", plate.read_bytes(), 80)[0]
     if retained_faces > nfaces or retained_faces < nfaces - 32:
         raise ValueError("Unexpectedly many translated STL degeneracies")
     combined_mesh = mesh_check(plate)
@@ -192,6 +224,7 @@ def assemble_plate(root):
         "physical_rolling_checked": False,
         "combined_mesh": combined_mesh,
         "triangles_removed_after_float32_xy_translation": nfaces - retained_faces,
+        "triangles_collapsed_at_mesh_weld_precision": quantized_facets_dropped,
         "plate_sha256": hashlib.sha256(plate.read_bytes()).hexdigest(),
     }
     (root / "plate-manifest.json").write_text(
