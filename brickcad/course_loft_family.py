@@ -22,7 +22,7 @@ from brickcad.course_r48_building_blocks import (
     outer_section_wire, loft_sections, receiver_underbody, sweep_enclosure,
 )
 from brickcad.connections import make_studs
-from brickcad.standards import BALL_TRACK, DUPLO
+from brickcad.standards import BALL_TRACK
 from brickcad.verify import exact_bounds
 
 RECEIVER_DEPTH = 4.75
@@ -56,8 +56,8 @@ class LoftSettings:
             raise ValueError("Only level or one-course downhill is validated")
         if type(obj.tunnel) is not bool or type(obj.mirror) is not bool:
             raise ValueError("Tunnel and mirror must be boolean")
-        if obj.tunnel and obj.route != "sharp":
-            raise ValueError("The loft tunnel requires the 4×2 sharp path")
+        if obj.tunnel and (obj.route, obj.drop_mm) != ("sharp", 19.2):
+            raise ValueError("Only the downhill 4×2 sharp tunnel is supported")
         if obj.route == "straight" and obj.mirror:
             raise ValueError("Straight path does not have a left/right variant")
         if obj.mark_face not in ("south", "west"):
@@ -112,9 +112,7 @@ def wire(s, role, config):
     w = cq.Workplane(section_plane(s, config))
     if role in ("outer", "mask"):
         # Keep 57.6 exact for the historical one-course downhill tunnel.
-        top = 90 if role == "mask" else (
-            (57.6 if config.drop_mm else 2 * DUPLO.height)
-            if config.tunnel else floor+12.85)
+        top = 90 if role == "mask" else (57.6 if config.tunnel else floor+12.85)
         return outer_section_wire(w, inner=-CHANNEL_HALF_WIDTH, outer=CHANNEL_HALF_WIDTH,
                                   bottom=0, top=top)
 
@@ -178,8 +176,7 @@ def build_course(config, *, label=None):
             body,full,p.tube_radius,receiver_depth=RECEIVER_DEPTH)
 
     if config.tunnel:
-        roof_z = 57.6 if config.drop_mm else 2 * DUPLO.height
-        raw_studs = make_studs(p.studs(),roof_z - .15,p.stud_radius,
+        raw_studs = make_studs(p.studs(),57.45,p.stud_radius,
                                p.stud_inner_radius,4.65,.5).val().intersect(mask)
         attached = []
         for fragment in raw_studs.Solids():
