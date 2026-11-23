@@ -10,6 +10,7 @@
 元のIDを維持して旧STLとの取り違えを防ぐ。一括STLは `X4A_4x2_downhill_sharp_curves_4parts_A1mini.stl`、個別STLも4点だけを出す。
 
 - **既存形状を再利用**：X4A-05/06はSD01-V4/SD02-V4、X4A-07/08はSD03-V11/SD04-V10と、窓・実験刻印を除いた走路／下面／屋根の完成BRepを一致させる。
+- **PR91と拡径計算を共通化**：`brickcad/course_section_profiles.py` の `end_relief_blend()`、`interior_radius_mm()`、`validate_interior_relief()` をR16/R48が共用。R16は従来の最大半径14.00mm（開放=端部から5mmで線形、トンネル=1mm真円リップ後4mmでsmoothstep-expanded）、PR91のR48はR04/R10（最大半径約13.27/13.87mm、smoothstep-factored）を維持し、各旧CADと数値・BRep回帰で保護する。いずれも両端の公称径25.74mmは維持。
 - **嵌合・ポート**：従来のE31-05下面受け、入口・出口の公称径25.74mmを変えない。左側は右形状のXZ鏡映後に刻印する。
 - **窓**：トンネルのみ外側3か所（幅12mm、角R0.8mm）。直線部2個＋カーブ中央1個。
 - **刻印**：西側の短い受け壁に高さ5mmの `X4A-05` 等を刻む。PR91のはみ出し不具合を受け、全文字の工具BRep外接範囲が幅31.8mm・深さ4.75mmの実際の刻印面内に収まらなければ失敗させる。
