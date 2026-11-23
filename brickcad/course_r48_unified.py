@@ -14,9 +14,11 @@ import cadquery as cq
 from brickcad.course_contract import (
     course_fit,
 )
-from brickcad.course_geometry import smoothstep_rise_factored
 from brickcad.course_finish import WINDOW_WIDTH_MM, rounded_side_window
-from brickcad.course_section_profiles import passage_section_wire
+from brickcad.course_section_profiles import (
+    end_relief_blend, interior_radius_mm, passage_section_wire,
+    validate_interior_relief,
+)
 from brickcad.course_r48_building_blocks import (
     outer_section_wire, sweep_enclosure, place_r48_wire,
 )
@@ -63,12 +65,9 @@ class R48PairConfig:
             raise ValueError("Only the flat/one-DUPLO-height R48 comparison is defined")
         if self.direction not in ("right", "left"):
             raise ValueError("Unrecognized handedness")
-        if (not isinstance(self.relief_mm, (int, float))
-                or not math.isfinite(self.relief_mm)
-                or self.relief_mm < 0.
-                or HALF - BALL_TRACK.radius - self.relief_mm <
-                MIN_RADIAL_SIDEWALL_MM):
-            raise ValueError("Relief must be nonnegative and preserve 1.6mm side wall")
+        validate_interior_relief(
+            HALF, extra_radius_mm=self.relief_mm,
+            minimum_wall_mm=MIN_RADIAL_SIDEWALL_MM)
         if not self.model_id or len(self.model_id) > 32:
             raise ValueError("Explicit versioned experiment model ID required")
 
@@ -169,9 +168,7 @@ def port_contract(drop_mm):
 def _progress(t):
     length = RADIUS * math.pi / 2
     distance = min(max(0., t), max(0., 1 - t)) * length
-    return min(.995, smoothstep_rise_factored(
-        max(0., min(1., (distance - 1.) / 4.))
-    ))
+    return end_relief_blend(distance, mode="smoothstep-factored")
 
 
 def _outer_wire(t, config):
@@ -187,7 +184,7 @@ def _outer_wire(t, config):
 def _passage_wire(t, config):
     floor = floor_z(t, config.drop_mm)
     progress = _progress(t)
-    radius = BALL_TRACK.radius + config.relief_mm * progress
+    radius = interior_radius_mm(progress, extra_radius_mm=config.relief_mm)
     roof = floor + 30.3
     wire = passage_section_wire(
         cq.Workplane("XZ"), floor=floor, radius=radius,
