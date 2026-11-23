@@ -82,9 +82,13 @@ class CompactCurveTests(unittest.TestCase):
                             old_edge.Length(), new_edge.Length(), places=10)
 
     def test_pr91_pr94_shared_relief_guards_keep_fixed_port(self):
-        self.assertAlmostEqual(
+        self.assertEqual(
             interior_radius_mm(0., extra_radius_mm=SHARP_INTERIOR_RELIEF_MM),
-            BALL_TRACK.opening/2)
+            BALL_TRACK.radius)
+        # The drawing's 25.74mm nominal opening is rounded to 0.01mm;
+        # the CAD kernel uses its slightly more precise half-section radius.
+        self.assertAlmostEqual(2 * BALL_TRACK.radius,
+                               BALL_TRACK.opening, places=2)
         self.assertEqual(
             validate_interior_relief(
                 CHANNEL_HALF_WIDTH,
