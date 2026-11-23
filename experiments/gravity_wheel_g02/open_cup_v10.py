@@ -129,14 +129,15 @@ def orient_for_print(name, shape):
         deg = 90
     else:
         return v4.orient_for_print(name, shape)
-    # Removable posts below the side-relief roofs; the original V9 geometry
-    # left unsupported spans as large as 19.7 mm at print Z=11.2 mm.
-    side = -1 if name == "rotor_front" else 1
-    shape = shape.fuse(v4.world(sacrificial_roof_support_local(side)))
-    if name == "rotor_back":
-        # Separate print-only support for the stop lug.
-        shape = shape.fuse(v4.world(sacrificial_stop_support_local()))
-    shape = shape.clean()
+    # The joiner is a tiny pin and must NEVER acquire the rotor's supports.
+    # Only the two rotor halves require the sacrificial roof posts.
+    if name in ("rotor_front", "rotor_back"):
+        side = -1 if name == "rotor_front" else 1
+        shape = shape.fuse(v4.world(sacrificial_roof_support_local(side)))
+        if name == "rotor_back":
+            # Separate print-only support for the stop lug.
+            shape = shape.fuse(v4.world(sacrificial_stop_support_local()))
+        shape = shape.clean()
     rotated = shape.rotate((0, 0, 0), (1, 0, 0), deg)
     b = rotated.BoundingBox()
     return rotated.translate((-(b.xmin + b.xmax) / 2,
