@@ -3,8 +3,16 @@ import unittest
 
 import cadquery as cq
 
-from brickcad.course_loft_family import LoftSettings, height, xy
-from brickcad.standards import DUPLO
+from brickcad.course_geometry import smoothstep_rise_expanded
+from brickcad.course_loft_family import (
+    CHANNEL_HALF_WIDTH, SHARP_INTERIOR_RELIEF_MM,
+    LoftSettings, height, section_plane, wire, xy,
+)
+from brickcad.course_section_profiles import (
+    end_relief_blend, interior_radius_mm, passage_section_wire,
+    validate_interior_relief,
+)
+from brickcad.standards import BALL_TRACK, DUPLO
 from experiments.compact_curve.design import SPECIMENS
 from experiments.compact_curve.export import actual_mouths_match
 
@@ -23,6 +31,73 @@ class CompactCurveTests(unittest.TestCase):
                 self.assertAlmostEqual(actual, expected)
             self.assertAlmostEqual(height(0, config), 6.35 + specimen.drop_mm)
             self.assertAlmostEqual(height(config.length, config), 6.35)
+
+    def test_r16_relief_matches_independent_legacy_formulas_and_wires(self):
+        # PR91 and PR94 now share one kernel, but prior printed SD01-SD04
+        # passages MUST keep their exact pre-refactor radius/roof arithmetic.
+        for specimen in SPECIMENS[::2]:
+            settings = specimen.settings
+            samples = (-.3, 0., .5, 1., 3., 5., 12., 27., 32.,
+                       settings.length / 2, settings.length - 5.,
+                       settings.length - 1., settings.length,
+                       settings.length + .3)
+            for station in samples:
+                with self.subTest(id=specimen.id, station=station):
+                    distance = min(max(0, station),
+                                   max(0, settings.length-station))
+                    if settings.tunnel:
+                        u = max(0., min(1., (distance-1.)/4.))
+                        legacy_blend = min(.995, smoothstep_rise_expanded(u))
+                    else:
+                        legacy_blend = min(1., distance/5.)
+                    relief_mode = ("smoothstep-expanded" if settings.tunnel
+                                   else "linear")
+                    shared_blend = end_relief_blend(
+                        distance, mode=relief_mode)
+                    self.assertEqual(shared_blend, legacy_blend)
+                    radius = interior_radius_mm(
+                        shared_blend, extra_radius_mm=SHARP_INTERIOR_RELIEF_MM)
+                    legacy_radius = (
+                        BALL_TRACK.radius+(14.-BALL_TRACK.radius)*legacy_blend)
+                    self.assertEqual(radius, legacy_radius)
+
+                    # Compare the actual OCC passage wire (not only its
+                    # scalar radius) with the historical independently
+                    # constructed section of the same model.
+                    floor = height(station, settings)
+                    roof = (floor+2*BALL_TRACK.radius+
+                            (30.3-2*BALL_TRACK.radius)*legacy_blend
+                            if settings.tunnel else None)
+                    original = passage_section_wire(
+                        cq.Workplane(section_plane(station, settings)),
+                        floor=floor, radius=legacy_radius,
+                        roof=roof, blend=legacy_blend,
+                        open_top=95.)
+                    shared = wire(station, "passage", settings)
+                    self.assertEqual(len(original.Edges()),
+                                     len(shared.Edges()))
+                    for old_edge, new_edge in zip(original.Edges(),
+                                                  shared.Edges()):
+                        self.assertAlmostEqual(
+                            old_edge.Length(), new_edge.Length(), places=10)
+
+    def test_pr91_pr94_shared_relief_guards_keep_fixed_port(self):
+        self.assertAlmostEqual(
+            interior_radius_mm(0., extra_radius_mm=SHARP_INTERIOR_RELIEF_MM),
+            BALL_TRACK.opening/2)
+        self.assertEqual(
+            validate_interior_relief(
+                CHANNEL_HALF_WIDTH,
+                extra_radius_mm=SHARP_INTERIOR_RELIEF_MM),
+            SHARP_INTERIOR_RELIEF_MM)
+        self.assertAlmostEqual(
+            CHANNEL_HALF_WIDTH - 14., 1.9, places=7)
+        with self.assertRaises(ValueError):
+            validate_interior_relief(
+                CHANNEL_HALF_WIDTH, extra_radius_mm=2.0)
+        with self.assertRaisesRegex(ValueError,
+                                    "Unknown passage-relief transition"):
+            end_relief_blend(3., mode="unexpected")
 
     def test_trial_mark_is_fully_contained_on_the_short_west_skirt(self):
         from brickcad.course_finish import west_skirt_label_tool
