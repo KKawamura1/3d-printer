@@ -45,6 +45,16 @@ class GW02V9Tests(unittest.TestCase):
                             "The full rib must remain attached through the "
                             "spoke-to-rib transition")
 
+    def test_joiner_pin_cannot_inherit_rotor_scaffold(self):
+        """The 4 joiner copies must remain small, separate, bed-ready pins."""
+        original = self.parts["rotor_joiner"]
+        printable = gw.orient_for_print("rotor_joiner", original)
+        self.assertAlmostEqual(printable.Volume(), original.Volume(), delta=.01)
+        bounds = printable.BoundingBox()
+        self.assertLess(bounds.xlen, 4)
+        self.assertLess(bounds.ylen, 4)
+        self.assertEqual(len(printable.Solids()), 1)
+
     def test_removable_roof_posts_bond_to_both_halves(self):
         """Print-only supports run from the bed into the former 11-mm roofs."""
         import cadquery as cq
