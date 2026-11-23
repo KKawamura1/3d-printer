@@ -24,6 +24,30 @@ class CompactCurveTests(unittest.TestCase):
             self.assertAlmostEqual(height(0, config), 6.35 + specimen.drop_mm)
             self.assertAlmostEqual(height(config.length, config), 6.35)
 
+    def test_trial_mark_is_fully_contained_on_the_short_west_skirt(self):
+        from brickcad.course_finish import west_skirt_label_tool
+
+        for specimen in SPECIMENS:
+            with self.subTest(id=specimen.id):
+                cutter = west_skirt_label_tool(
+                    specimen.id, x=-31.9, y=0., face_width_mm=31.8)
+                bounds = cutter.BoundingBox()
+                self.assertGreaterEqual(bounds.ymin, -14.9)
+                self.assertLessEqual(bounds.ymax, 14.9)
+                self.assertGreaterEqual(bounds.zmin, .4)
+                self.assertLessEqual(bounds.zmax, 4.35)
+
+        with self.assertRaisesRegex(ValueError, "exceeds the west receiver skirt"):
+            west_skirt_label_tool(
+                "X4A-WAY-TOO-LONG-FOR-SKIRT", x=-31.9, y=0.)
+
+    def test_horizontal_sharp_tunnel_is_not_supported(self):
+        with self.assertRaises(ValueError):
+            LoftSettings.from_dict({
+                "route": "sharp", "drop_mm": 0., "tunnel": True,
+                "mirror": False, "mark_face": "south", "label_z_mm": 12.
+            })
+
     def test_port_probe_detects_wrong_diameter_and_wrong_handedness(self):
         stock = cq.Workplane("XY").box(63.8, 31.8, 57.6,
                                       centered=(True, True, False)).val()
