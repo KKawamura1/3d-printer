@@ -12,7 +12,7 @@ import json
 import struct
 from pathlib import Path
 
-from brickcad.course_artifacts import export_geometry
+from brickcad.course_artifacts import export_geometry, normalize_binary_stl
 from brickcad.course_contract import RECEIVER_DEPTH_MM, course_fit
 from brickcad.course_finish import engrave_trial_west_skirt
 from brickcad.course_r48_unified import R48FamilyConfig, build_r48_family
@@ -170,6 +170,13 @@ def assemble_plate(root):
         + b"".join(tris for _, tris in binary_parts))
     if plate.stat().st_size != 84 + 50 * nfaces:
         raise ValueError("Invalid assembled binary STL length")
+    # XY translation is encoded as float32. Near-coincident vertices can
+    # quantize to identical coordinates after translation even when each
+    # source STL is clean. Apply the same shared normalization used for
+    # individual exports, then validate the translated assembly itself.
+    retained_faces = normalize_binary_stl(plate)
+    if retained_faces > nfaces or retained_faces < nfaces - 32:
+        raise ValueError("Unexpectedly many translated STL degeneracies")
     combined_mesh = mesh_check(plate)
     if not combined_mesh["passed"]:
         raise ValueError(f"Combined plate mesh rejected: {combined_mesh}")
@@ -184,6 +191,7 @@ def assemble_plate(root):
         "slicer_checked": False,
         "physical_rolling_checked": False,
         "combined_mesh": combined_mesh,
+        "triangles_removed_after_float32_xy_translation": nfaces - retained_faces,
         "plate_sha256": hashlib.sha256(plate.read_bytes()).hexdigest(),
     }
     (root / "plate-manifest.json").write_text(
