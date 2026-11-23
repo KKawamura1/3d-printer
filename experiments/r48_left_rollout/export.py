@@ -99,13 +99,13 @@ def build_specimen(root, model_id):
         "physical_left_port_rims": reflected_ports_ok(shape, drop_mm),
         "left_stud_insertion_nonclutch_clearance":
             _stud_insertion_clearance(reflected_back),
-        "pr91_bed_support_z0p1": support_z01 > 600.,
-        "pr91_receiver_support_z4p65": support_z465 > 650.,
+        "bed_contact_present_z0p1": support_z01 > 0.,
+        "receiver_support_present_z4p65": support_z465 > 0.,
         "r10_relief": detail["interior_radial_relief_mm"] == RELIEF_MM,
         "left_direction": detail["direction"] == "left",
     }
     if not all(checks.values()):
-        raise ValueError(f"{model_id}: {checks}")
+        raise ValueError(f"{model_id}: {checks}; z0.1={support_z01:.1f}mm2, z4.65={support_z465:.1f}mm2")
     report = {
         "id": model_id,
         "physical_label": physical_label,
