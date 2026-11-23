@@ -30,7 +30,13 @@ class GW02V8Tests(unittest.TestCase):
     def test_assembled_rotor_does_not_gain_sacrificial_support(self):
         original = gw.reinforced_rotor_local()
         # The removable support is added ONLY in orient_for_print.
-        self.assertLess(original.intersect(gw.sacrificial_stop_support_local()).Volume(), .05)
+        # The slender neck deliberately penetrates the striker by ~1 mm^3
+        # so the temporary post is printable and can be snapped off.
+        # The assembled running geometry contains ONLY that tiny overlap,
+        # not the tall support column.
+        overlap = original.intersect(gw.sacrificial_stop_support_local()).Volume()
+        self.assertGreater(overlap, .25)
+        self.assertLess(overlap, 2.0)
         self.assertEqual(len(original.Solids()), 1)
 
 
