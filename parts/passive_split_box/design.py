@@ -1,4 +1,4 @@
-"""SB02-V2: no moving parts, 4x2x2 marble start box with a round top drop-hole.
+"""SB02-V3: no moving parts, 4x2x2 marble start box with a round top drop-hole.
 
 Use exact BALL_TRACK opening diameter for the vertical entry. A narrow central
 ridge forks the ball into continuous circular troughs at standard floor ports.
@@ -19,7 +19,7 @@ from brickcad.standards import BALL_TRACK, DUPLO, ROUNDED_EDGES
 from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
-PART_ID = 'SB02-V2'
+PART_ID = 'SB02-V3'
 MARK_SIZE_MM = 5.0
 MARK_FRONT_Z_MM = 10.0
 MARK_MIN_EDGE_MARGIN_MM = 1.0
@@ -199,7 +199,7 @@ def export(out=Path('build/passive-split-box')):
         'geometry_note':'Original 25.74mm opening and lower arc; flat 36.5mm crown over the centre blends to circular outlet sections.',
         'physical_rolling_validated':False,'physical_fit_validated':False,
         'support_free_slicing_validated':False,
-        'limitations':['SB02-V1 physical print: possible sag/burrs near inlet. V2 physical printing not yet tested.',
+        'limitations':['SB02-V1 print had inlet sag/burrs. V3 keeps the V2 channel geometry but has not been physically printed.',
                        '1.9mm top skin and roof arc require support-off slicing verification.',
                        'No moving parts; left/right is influenced by entry offset, not truly random.',
                        'Static sphere samples do not guarantee falling/rolling or exit speed.',

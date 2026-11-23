@@ -15,7 +15,7 @@ class PassiveSplitBoxTests(unittest.TestCase):
         cls.shape, cls.p = build_split_start(cls.config)
 
     def test_size_fit_and_single_print_part(self):
-        self.assertEqual(PART_ID,'SB02-V2')
+        self.assertEqual(PART_ID,'SB02-V3')
         self.assertEqual((self.p.nx,self.p.ny),(4,2))
         self.assertAlmostEqual(self.p.height,2*DUPLO.height)
         self.assertTrue(self.shape.isValid())
@@ -25,7 +25,7 @@ class PassiveSplitBoxTests(unittest.TestCase):
         self.assertAlmostEqual(self.config.exit_floor-self.config.receiver_depth,1.60)
 
     def test_5mm_front_mark_fits_completely_without_windows(self):
-        self.assertEqual(PART_ID, 'SB02-V2')  # cosmetic-only V2 revision
+        self.assertEqual(PART_ID, 'SB02-V3')  # V3 differs from V2 only in label size
         self.assertEqual(MARK_SIZE_MM, 5.0)
         self.assertEqual(MARK_FRONT_Z_MM, 10.0)
         bb = validate_front_mark_fits(self.p)
