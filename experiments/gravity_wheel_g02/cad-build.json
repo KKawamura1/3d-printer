@@ -1,10 +1,10 @@
 {
-  "version": "GW02-V8",
+  "version": "GW02-V9",
   "auto": true,
   "command": [
     "python",
     "-m",
-    "experiments.gravity_wheel_g02.open_cup_v8",
+    "experiments.gravity_wheel_g02.open_cup_v9",
     "--out",
     "{out}"
   ],
@@ -12,5 +12,5 @@
     "print_plate.stl"
   ],
   "timeout": 1200,
-  "description": "One 180x180 A1 mini print-plate STL containing both supported split rotor halves, 2 stands, axle, stop pin, and four connector pins"
+  "description": "One print_plate.stl for all 10 parts, separated and bed-aligned, with print-only breakaway stop-lug support; V9 regression release"
 }
