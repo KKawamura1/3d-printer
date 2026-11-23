@@ -92,6 +92,36 @@ def sacrificial_stop_support_local():
     return stem.fuse(weak_neck).clean()
 
 
+# The original V9 G-code develops 20 mm midair bridges at layer Z=11.2.
+# Each sacrificial post begins on the split face (bed-facing during printing)
+# and ends with a weak neck just inside the previously unsupported roof.
+# Their positions were chosen from the actual G-code unsupported footprints.
+ROOF_SUPPORT_POINTS = (
+    (26.5, 19.1),
+    (18.1, 20.5),
+    (-26.5, -19.1),
+    (-18.1, -20.5),
+)
+
+
+def sacrificial_roof_support_local(side):
+    """Four tiny REMOVE-BEFORE-ASSEMBLY posts below the long relief roofs.
+
+    These are print-only, not included in the actual moving assembly.
+    The posts are accessible from the rotor's split face after printing.
+    """
+    if side not in (-1, 1):
+        raise ValueError(f"side must be -1 or +1, got {side}")
+    posts = []
+    for x, z in ROOF_SUPPORT_POINTS:
+        foot = v4.cyl(2.35, .65, (x, 0, z), (0, side, 0))
+        stem = v4.cyl(1.5, 10.75, (x, 0, z), (0, side, 0))
+        neck = v4.cyl(.8, .65, (x, side * 10.7, z),
+                      (0, side, 0))
+        posts.append(foot.fuse(stem).fuse(neck))
+    return cq.Compound.makeCompound(posts)
+
+
 def orient_for_print(name, shape):
     if name == "rotor_front":
         deg = -90
@@ -99,9 +129,14 @@ def orient_for_print(name, shape):
         deg = 90
     else:
         return v4.orient_for_print(name, shape)
+    # Removable posts below the side-relief roofs; the original V9 geometry
+    # left unsupported spans as large as 19.7 mm at print Z=11.2 mm.
+    side = -1 if name == "rotor_front" else 1
+    shape = shape.fuse(v4.world(sacrificial_roof_support_local(side)))
     if name == "rotor_back":
-        # Print-only breakaway support; assembly.step remains unchanged.
-        shape = shape.fuse(v4.world(sacrificial_stop_support_local())).clean()
+        # Separate print-only support for the stop lug.
+        shape = shape.fuse(v4.world(sacrificial_stop_support_local()))
+    shape = shape.clean()
     rotated = shape.rotate((0, 0, 0), (1, 0, 0), deg)
     b = rotated.BoundingBox()
     return rotated.translate((-(b.xmin + b.xmax) / 2,
@@ -189,6 +224,10 @@ def static_checks(parts):
     printables = {name: orient_for_print(name, sh) for name, sh in parts.items()}
     checks["breakaway_stop_support_print_only"] = (
         printables["rotor_back"].Volume() > parts["rotor_back"].Volume() + 100)
+    checks["breakaway_roof_posts_print_only"] = all(
+        printables[name].Volume() > parts[name].Volume() + 300
+        and len(printables[name].Solids()) == 1
+        for name in ("rotor_front", "rotor_back"))
     checks.update(plate_checks(plate_parts(printables)))
     checks["plate_has_ten_independent_parts"] = len(plate_parts(printables)) == 10
     for name, shape in parts.items():
