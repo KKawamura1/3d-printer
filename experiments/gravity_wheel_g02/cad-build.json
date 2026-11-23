@@ -1,10 +1,10 @@
 {
-  "version": "GW02-V12",
+  "version": "GW02-V13",
   "auto": true,
   "command": [
     "python",
     "-m",
-    "experiments.gravity_wheel_g02.open_cup_v12",
+    "experiments.gravity_wheel_g02.open_cup_v13",
     "--out",
     "{out}"
   ],
@@ -12,5 +12,5 @@
     "print_plate.stl"
   ],
   "timeout": 1200,
-  "description": "V12 flat-backed rotor halves, 0 breakaway posts; 10 independent parts on one A1 mini plate; slicer verification pending"
+  "description": "V13 two DUPLO stands with 4 curved roof windows each, V12 support-free rotor unchanged, one 10-part A1 mini plate; actual G-code validation pending"
 }
