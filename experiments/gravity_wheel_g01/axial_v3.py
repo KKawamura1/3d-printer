@@ -85,11 +85,11 @@ def rotor_local():
     ).clean()
 
 
-def gate_local(outlet):
+def gate_local(outlet, release_angle=RELEASE_ANGLE):
     """Stationary blocking plate; exit has a 52-68 degree release sector."""
     y=GATE_Y if outlet else -GATE_Y-GATE_THICKNESS
     gate=cylinder(GATE_OUTER_R,GATE_THICKNESS,(0,y,0))
-    for a in (RELEASE_RANGE if outlet else (0,)):
+    for a in (tuple(release_angle+d for d in (-8,-5,-2,0,2,5,8)) if outlet else (0,)):
         x,z=pocket_center(a)
         gate=gate.cut(cylinder(GATE_PORT_R,GATE_THICKNESS+2,(x,y-1,z)))
     return gate.cut(
@@ -114,7 +114,7 @@ def underside_base(x, y):
 
 
 
-def frame(outlet):
+def frame(outlet, release_angle=RELEASE_ANGLE):
     side=1 if outlet else -1
     y=side*STAND_Y
     axis_z=AXIS_Z+AXIS_SLOPE*y
@@ -122,7 +122,7 @@ def frame(outlet):
     stem=box(10,12,axis_z+6-6.35,STAND_X,y,(axis_z+6+6.35)/2)
     bridge_y=side*52.7
     bridge=box(16,28,13,STAND_X,bridge_y,AXIS_Z+AXIS_SLOPE*bridge_y)
-    return base.fuse(stem).fuse(bridge).fuse(pose(gate_local(outlet))).clean()
+    return base.fuse(stem).fuse(bridge).fuse(pose(gate_local(outlet, release_angle))).clean()
 
 
 def axle():
@@ -138,10 +138,10 @@ def yz_prism(y0,y1,z0,z1,width,x0=0,height=0,offset=0):
             .close().extrude(width).translate((x0-width/2,0,0)).val())
 
 
-def guide_floor_profile(outlet):
+def guide_floor_profile(outlet, release_angle=RELEASE_ANGLE):
     if outlet:
         y0,y1=GUIDE_OUTLET_Y0,GUIDE_OUTLET_Y1
-        cx,pocketz=pocket_center(RELEASE_ANGLE)
+        cx,pocketz=pocket_center(release_angle)
         z0=AXIS_Z+AXIS_SLOPE*y0+pocketz-BALL_R-GUIDE_RIM_MARGIN
         z1=LOWER_RAIL_FLOOR
     else:
@@ -152,9 +152,9 @@ def guide_floor_profile(outlet):
     return (cx,y0,y1,z0,z1)
 
 
-def guide(outlet):
+def guide(outlet, release_angle=RELEASE_ANGLE):
     """Rigid cantilevered rail with a grid-aligned E31-05 base and gusset."""
-    x,y0,y1,z0,z1=guide_floor_profile(outlet)
+    x,y0,y1,z0,z1=guide_floor_profile(outlet, release_angle)
     floor=yz_prism(y0,y1,z0,z1,31.8,x,height=3,offset=-3)
     left=yz_prism(y0,y1,z0,z1,2.4,x-14.8,height=11,offset=-1)
     right=yz_prism(y0,y1,z0,z1,2.4,x+14.8,height=11,offset=-1)
@@ -174,14 +174,14 @@ def guide(outlet):
     return slide.fuse(pillar).fuse(brace).fuse(base).clean()
 
 
-def build_parts():
+def build_parts(release_angle=RELEASE_ANGLE):
     return {
         'rotor':pose(rotor_local()),
-        'frame_inlet':frame(False),
-        'frame_outlet':frame(True),
+        'frame_inlet':frame(False, release_angle),
+        'frame_outlet':frame(True, release_angle),
         'axle':axle(),
-        'guide_inlet':guide(False),
-        'guide_outlet':guide(True),
+        'guide_inlet':guide(False, release_angle),
+        'guide_outlet':guide(True, release_angle),
     }
 
 
@@ -190,22 +190,24 @@ def ball_local(angle=0,y=0):
     return cq.Solid.makeSphere(BALL_R,cq.Vector(x,y,z),angleDegrees1=-90)
 
 
-def validate(parts):
+def validate(parts, release_angle=RELEASE_ANGLE):
     checks={
         'six_single_valid_solids':len(parts)==6 and all(
             s.isValid() and len(s.Solids())==1 and s.Volume()>0 for s in parts.values()),
         'axis_tilts_downhill':AXIS_SLOPE<-0.08,
         'ports_fit_ball':2*GATE_PORT_R>=BALL_DIAMETER+3.0,
-        'guide_grid_alignment':guide_floor_profile(False)[0]==-32.0
-            and abs(guide_floor_profile(True)[0]+16.0)<1e-6,
+        'guide_grid_alignment':abs(guide_floor_profile(False)[0]+32.0)<1e-6
+            and abs(guide_floor_profile(True, release_angle)[0]/PITCH
+                    - round(guide_floor_profile(True, release_angle)[0]/PITCH))<1e-6,
         'upper_floor_matches_four_bricks':abs(guide_floor_profile(False)[3]-UPPER_RAIL_FLOOR)<1e-6,
-        'lower_floor_matches_one_brick':abs(guide_floor_profile(True)[4]-LOWER_RAIL_FLOOR)<1e-6,
+        'lower_floor_matches_one_brick':abs(guide_floor_profile(True, release_angle)[4]-LOWER_RAIL_FLOOR)<1e-6,
         'outlet_above_build_plate':parts['guide_outlet'].BoundingBox().zmin>=-0.01,
     }
     rotor=rotor_local()
     gate_in=gate_local(False)
-    gate_out=gate_local(True)
-    for angle in (0,10,20,30,40,50,52,55,58,60,62,65,68,70,80,90):
+    gate_out=gate_local(True, release_angle)
+    for angle in sorted(set(range(0,151,10)) | set(
+            release_angle + d for d in (-8,-5,-2,0,2,5,8))):
         rotated=rotor.rotate((0,0,0),(0,1,0),-angle)
         checks[f'rotor_gates_clear_{angle}']=all(
             rotated.intersect(g).Volume()<0.01 for g in (gate_in,gate_out))
@@ -217,7 +219,7 @@ def validate(parts):
     checks['ball_stopped_by_inlet_if_rotated']=gate_in.intersect(
         ball_local(45,-43.5)).Volume()>100
     checks['ball_passes_outlet_at_release']=gate_out.intersect(
-        ball_local(RELEASE_ANGLE,43.5)).Volume()<0.05
+        ball_local(release_angle,43.5)).Volume()<0.05
     checks['ball_blocked_outlet_at_rest']=gate_out.intersect(
         ball_local(0,43.5)).Volume()>100
     checks['shaft_clears_rotor_and_frames']=all(
@@ -233,10 +235,10 @@ def validate(parts):
     return checks
 
 
-def export(out):
+def export(out, release_angle=RELEASE_ANGLE, model_id=VERSION):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
-    parts=build_parts()
-    checks=validate(parts)
+    parts=build_parts(release_angle)
+    checks=validate(parts, release_angle)
     meshes={}
     for name,solid in parts.items():
         path=out/(name+'.stl')
@@ -246,12 +248,12 @@ def export(out):
     cq.exporters.export(
         cq.Compound.makeCompound(list(parts.values())),str(out/'assembly.step'))
     report={
-        'model_id':VERSION,'passed':all(checks.values()),'checks':checks,
+        'model_id':model_id,'passed':all(checks.values()),'checks':checks,
         'meshes':meshes,'ball_diameter_mm':BALL_DIAMETER,
         'axis_tilt_degrees':AXIS_TILT_DEG,
         'axis_center_height_at_y0_mm':AXIS_Z,
         'axis_aligned_flow':'+Y inlet -> +Y exit',
-        'lateral_shift_mm':POCKET_X-POCKET_X*math.cos(math.radians(RELEASE_ANGLE)),
+        'lateral_shift_mm':POCKET_X-POCKET_X*math.cos(math.radians(release_angle)),
         'inlet_rail_floor_mm':UPPER_RAIL_FLOOR,
         'outlet_rail_floor_mm':LOWER_RAIL_FLOOR,
         'physical_roll_tested':False,
@@ -267,10 +269,10 @@ def export(out):
     }
     (out/'report.json').write_text(
         json.dumps(report,indent=2,ensure_ascii=False)+'\n')
-    print(VERSION,'PASS' if report['passed'] else 'FAIL',
+    print(model_id,'PASS' if report['passed'] else 'FAIL',
           [x for x,ok in checks.items() if not ok],flush=True)
     if not report['passed']:
-        raise ValueError('GW01-V3 failed static validation')
+        raise ValueError(model_id+' failed static validation')
     return report
 
 
