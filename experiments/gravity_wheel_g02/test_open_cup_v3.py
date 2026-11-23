@@ -49,6 +49,30 @@ class GW02V3Test(unittest.TestCase):
                 self.assertGreater(
                     gw.world(gw.rotate(rotor, selected + 3)).intersect(pin).Volume(), .5)
 
+    def test_print_stls_are_individually_oriented_on_plate(self):
+        # Avoid the previous bug where assembly-space rotor/axle/pin
+        # exported dozens of millimetres above the build plate.
+        for name, assembly in self.parts.items():
+            with self.subTest(part=name):
+                printed = gw.orient_for_print(name, assembly)
+                report = gw.print_pose_report(printed)
+                self.assertAlmostEqual(report["min_z_mm"], 0, delta=.01)
+                self.assertGreater(report["bed_contact_faces_mm2"], 1)
+                self.assertLessEqual(report["x_span_mm"], 180)
+                self.assertLessEqual(report["y_span_mm"], 180)
+                self.assertAlmostEqual(assembly.Volume(), printed.Volume(),
+                                       delta=assembly.Volume() * .00001)
+
+    def test_print_pose_preserves_original_assembly(self):
+        originals = self.parts
+        oriented = {key: gw.orient_for_print(key, shape)
+                    for key, shape in originals.items()}
+        # The STEP assembly still has one shaft at the real Z=66mm axis.
+        self.assertAlmostEqual(originals["axle"].Center().z,
+                               gw.AXIS_Z, delta=5)
+        self.assertNotAlmostEqual(originals["rotor"].BoundingBox().zmin,
+                                  oriented["rotor"].BoundingBox().zmin, delta=5)
+
     def test_gravity_drop_and_supported_stop_window(self):
         self.assertAlmostEqual(2*gw.POCKET_Z, 70)
         lowest = 180 - math.degrees(math.atan2(gw.POCKET_X, gw.POCKET_Z))
