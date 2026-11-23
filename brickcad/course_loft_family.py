@@ -15,9 +15,12 @@ import math
 
 import cadquery as cq
 from brickcad.course_artifacts import export_geometry
-from brickcad.course_geometry import smoothstep_fall, smoothstep_rise_expanded
+from brickcad.course_geometry import smoothstep_fall
 from brickcad.r48_path import xy_at_s as r48_xy_at_s, floor_at_s as r48_floor_at_s
-from brickcad.course_section_profiles import passage_section_wire
+from brickcad.course_section_profiles import (
+    end_relief_blend, interior_radius_mm, passage_section_wire,
+    validate_interior_relief,
+)
 from brickcad.course_r48_building_blocks import (
     outer_section_wire, loft_sections, receiver_underbody, sweep_enclosure,
 )
@@ -28,6 +31,9 @@ from brickcad.verify import exact_bounds
 RECEIVER_DEPTH = 4.75
 CHANNEL_HALF_WIDTH = 15.9
 SLIT_RING_CLEARANCE = 6.85
+# Preserve the successful SD01-SD04 radius (~14mm) while sharing PR91's
+# exact numerical transition and clearance guard.
+SHARP_INTERIOR_RELIEF_MM = 14. - BALL_TRACK.radius
 
 
 @dataclass(frozen=True)
@@ -119,12 +125,10 @@ def wire(s, role, config):
     distance = min(max(0,s),max(0,config.length-s))
     # 1mm circular entry/exit lip for slope+sharp tunnel; old open rails
     # retain their original linear 5mm radius blend.
-    if config.tunnel:
-        u = max(0.,min(1.,(distance-1.)/4.))
-        blend = min(.995,smoothstep_rise_expanded(u))
-    else:
-        blend = min(1.,distance/5.)
-    radius = BALL_TRACK.radius+(14.-BALL_TRACK.radius)*blend
+    blend = end_relief_blend(
+        distance, mode="smoothstep-expanded" if config.tunnel else "linear")
+    radius = interior_radius_mm(
+        blend, extra_radius_mm=SHARP_INTERIOR_RELIEF_MM)
     if not config.tunnel:
         return passage_section_wire(w, floor=floor, radius=radius,
                                     open_top=95.)
@@ -146,6 +150,9 @@ def stations(config, a=-.3, b=None):
 def build_course(config, *, label=None):
     """Construct independent BRep. Engrave only after all unions/mirroring."""
     config = (LoftSettings.from_dict(config) if isinstance(config, dict) else config)
+    if config.route == "sharp":
+        validate_interior_relief(CHANNEL_HALF_WIDTH,
+                                 extra_radius_mm=SHARP_INTERIOR_RELIEF_MM)
     ny = 4 if config.route == "gentle" else 2
     p = course_fit(nx=4, ny=ny, height_units=config.height_units)
     clip = cq.Workplane("XY").box(p.width,p.depth,100,
