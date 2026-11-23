@@ -1,10 +1,10 @@
 {
-  "version": "GW02-V11",
+  "version": "GW02-V12",
   "auto": true,
   "command": [
     "python",
     "-m",
-    "experiments.gravity_wheel_g02.open_cup_v11",
+    "experiments.gravity_wheel_g02.open_cup_v12",
     "--out",
     "{out}"
   ],
@@ -12,5 +12,5 @@
     "print_plate.stl"
   ],
   "timeout": 1200,
-  "description": "V11: no unsupported rib jump, four removable posts per rotor half and one stop post; one plate STL with 10 correct parts; connector pins never inherit scaffold"
+  "description": "V12 flat-backed rotor halves, 0 breakaway posts; 10 independent parts on one A1 mini plate; slicer verification pending"
 }

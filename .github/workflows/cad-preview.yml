@@ -171,6 +171,8 @@ jobs:
       - name: Build and validate selected STL files
         if: steps.plan.outputs.has_models == 'true'
         env:
+          # scripts/cad_versions.py executes from scripts/, but cad_report imports brickcad.
+          PYTHONPATH: ${{ github.workspace }}
           SELECTED: ${{ steps.plan.outputs.targets }}
           PREVIEWS: ${{ inputs.previews }}
           SNAPSHOTS: ${{ inputs.snapshots }}
