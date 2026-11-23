@@ -8,13 +8,19 @@ on:
       - "brickcad/course_r48_unified.py"
       - "brickcad/course_finish.py"
       - ".github/workflows/r48-left-rollout.yml"
+  pull_request:
+    paths:
+      - "experiments/r48_left_rollout/**"
+      - "brickcad/course_r48_unified.py"
+      - "brickcad/course_finish.py"
+      - ".github/workflows/r48-left-rollout.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: r48-left-${{ github.ref }}
+  group: r48-left-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
