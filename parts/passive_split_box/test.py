@@ -4,7 +4,9 @@ import unittest
 import cadquery as cq
 from brickcad.standards import BALL_TRACK, DUPLO
 from brickcad.verify import VOLUME_TOL, intersection
-from parts.passive_split_box.design import PART_ID, SplitStart, build_split_start, center_samples, ball_clearance, ports
+from parts.passive_split_box.design import (PART_ID, MARK_SIZE_MM, MARK_FRONT_Z_MM, SplitStart,
+                                          build_split_start, center_samples, ball_clearance,
+                                          ports, validate_front_mark_fits)
 
 class PassiveSplitBoxTests(unittest.TestCase):
     @classmethod
@@ -21,6 +23,17 @@ class PassiveSplitBoxTests(unittest.TestCase):
         self.assertEqual((self.p.stud_radius,self.p.stud_inner_radius,self.p.tube_radius),(4.7,3.2,6.60))
         self.assertEqual(self.p.cavity_xy,(57.4,25.4))
         self.assertAlmostEqual(self.config.exit_floor-self.config.receiver_depth,1.60)
+
+    def test_5mm_front_mark_fits_completely_without_windows(self):
+        self.assertEqual(PART_ID, 'SB02-V2')  # cosmetic-only V2 revision
+        self.assertEqual(MARK_SIZE_MM, 5.0)
+        self.assertEqual(MARK_FRONT_Z_MM, 10.0)
+        bb = validate_front_mark_fits(self.p)
+        # Protect against partially clipped glyphs, not just a nonempty engraving.
+        self.assertGreaterEqual(bb.xmin, -self.p.width / 2 + 1.0)
+        self.assertLessEqual(bb.xmax, self.p.width / 2 - 1.0)
+        self.assertGreaterEqual(bb.zmin, self.config.receiver_depth + 1.0)
+        self.assertLessEqual(bb.zmax, self.p.height - 1.0)
 
     def test_top_hole_matches_exact_existing_standard(self):
         self.assertAlmostEqual(self.config.entry_diameter,BALL_TRACK.opening)
