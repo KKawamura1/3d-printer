@@ -39,8 +39,11 @@ SPECIMENS = tuple(
 
 # Window centres are specified along the ACTUAL OUTER WALL, not the R16
 # track centreline. This prevents the bend from looking like a huge gap.
-# Two straight + two curved openings; 12mm windows leave >=3mm webs.
-OUTER_WALL_WINDOW_CENTRES_MM = (9., 25., 43., 61.)
+# Five 12mm-wide openings, 16mm centre-to-centre, 4mm webs, ~3mm
+# margins at BOTH ends of the 82.1mm wall. Two straight + three curved.
+# In particular the last curved window must not leave an unobserved long
+# stretch before the downstream mouth (a regression missed in X4A-V5).
+OUTER_WALL_WINDOW_CENTRES_MM = (9., 25., 41., 57., 73.)
 WINDOW_EDGE_MARGIN_MM = 3.
 WINDOW_MIN_WEB_MM = 3.
 
@@ -66,6 +69,15 @@ def window_stations(settings):
     if any(b - a - 2*half_width < WINDOW_MIN_WEB_MM
            for a, b in zip(centres, centres[1:])):
         raise ValueError("Window plan has insufficient intervening wall")
+    # Enforce true equal pitch and nearly balanced endpoints as well as
+    # minimum webs. Previous tests only verified neighbouring gaps and
+    # accidentally allowed >20mm of empty wall at the exit.
+    pitch = centres[1] - centres[0]
+    if any(abs((b - a) - pitch) > 1e-9
+           for a, b in zip(centres, centres[1:])):
+        raise ValueError("Window centres must have one outer-wall pitch")
+    if abs(centres[0] - (total_outer_length - centres[-1])) > .5:
+        raise ValueError("Window end margins are unbalanced")
     if any(abs(c - 32.) - half_width < 1. for c in centres):
         raise ValueError("Window cutter must not straddle the turn junction")
     return tuple(
