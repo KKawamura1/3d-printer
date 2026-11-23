@@ -5,7 +5,9 @@ from itertools import product
 
 import cadquery as cq
 
-from brickcad.course_finish import engrave_trial_west_skirt, rounded_side_window
+from brickcad.course_finish import (
+    WINDOW_WIDTH_MM, engrave_trial_west_skirt, rounded_side_window,
+)
 from brickcad.course_loft_family import (
     CHANNEL_HALF_WIDTH, LoftSettings, build_course, height, xy,
 )
@@ -55,7 +57,7 @@ def window_stations(settings):
         raise ValueError("The 4x2 external-wall window plan requires R16")
     outer_radius = settings.radius + CHANNEL_HALF_WIDTH
     total_outer_length = 32. + math.pi * outer_radius / 2.
-    half_width = 6.  # rounded_side_window / WINDOW_WIDTH_MM
+    half_width = WINDOW_WIDTH_MM / 2.
     centres = OUTER_WALL_WINDOW_CENTRES_MM
     if (centres[0] - half_width < WINDOW_EDGE_MARGIN_MM or
             total_outer_length - centres[-1] - half_width <
