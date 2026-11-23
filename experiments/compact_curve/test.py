@@ -36,18 +36,19 @@ class CompactCurveTests(unittest.TestCase):
             self.assertAlmostEqual(height(0, config), 6.35 + specimen.drop_mm)
             self.assertAlmostEqual(height(config.length, config), 6.35)
 
-    def test_four_windows_are_spaced_along_true_outer_wall(self):
-        # Count physical openings on the tunnel (2 straight, 2 curved).
+    def test_five_windows_cover_the_full_outer_wall_at_equal_pitch(self):
+        # Count five physical openings: 2 straight and 3 curved.
         # Equal centreline spacing is NOT equal outer-wall spacing on R16.
+        # Crucially compare BOTH end margins, not only window-to-window gaps.
         for specimen in SPECIMENS[2:]:
             config = specimen.settings
             actual = window_stations(config)
             nominal = OUTER_WALL_WINDOW_CENTRES_MM
             outer_radius = config.radius + CHANNEL_HALF_WIDTH
             total_outer = 32. + math.pi * outer_radius / 2.
-            self.assertEqual(len(actual), 4)
+            self.assertEqual(len(actual), 5)
             self.assertEqual(sum(s < 32. for s in actual), 2)
-            self.assertEqual(sum(s > 32. for s in actual), 2)
+            self.assertEqual(sum(s > 32. for s in actual), 3)
             self.assertGreaterEqual(nominal[0] - WINDOW_WIDTH_MM/2, 3.)
             self.assertGreaterEqual(
                 total_outer-nominal[-1]-WINDOW_WIDTH_MM/2, 3.)
@@ -57,15 +58,25 @@ class CompactCurveTests(unittest.TestCase):
                              outer_radius/config.radius)
                 self.assertAlmostEqual(projected, distance, places=9)
             gaps = [b-a for a, b in zip(nominal, nominal[1:])]
-            self.assertLessEqual(max(gaps)-min(gaps), 2.)
+            self.assertEqual(gaps, [16., 16., 16., 16.])
             self.assertTrue(all(
                 gap-WINDOW_WIDTH_MM >= 3. for gap in gaps))
+            # A uniform centre pitch is not enough: X4A-V5 incorrectly
+            # left over 20mm of empty outer wall after the last window.
+            self.assertAlmostEqual(nominal[0],
+                                   total_outer - nominal[-1], delta=.5)
+            self.assertAlmostEqual(
+                nominal[0] - WINDOW_WIDTH_MM/2,
+                total_outer - nominal[-1] - WINDOW_WIDTH_MM/2, delta=.5)
             # Protect the join: a window must not straddle a straight wall
             # and a curved wall, otherwise the cutter might not open both.
             self.assertGreaterEqual(
                 32.-nominal[1]-WINDOW_WIDTH_MM/2, 1.)
             self.assertGreaterEqual(
                 nominal[2]-32.-WINDOW_WIDTH_MM/2, 1.)
+            # The final curved opening must remain off the exit port.
+            self.assertGreaterEqual(
+                total_outer - nominal[-1] - WINDOW_WIDTH_MM/2, 3.)
 
     def test_r16_relief_matches_independent_legacy_formulas_and_wires(self):
         # PR91 and PR94 now share one kernel, but prior printed SD01-SD04
