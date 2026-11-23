@@ -1,10 +1,10 @@
 {
-  "version": "GW01-V2",
+  "version": "GW01-V3",
   "auto": true,
   "command": [
     "python",
     "-m",
-    "experiments.gravity_wheel_g01.axial",
+    "experiments.gravity_wheel_g01.axial_v3",
     "--out",
     "{out}"
   ],
@@ -17,5 +17,5 @@
     "guide_outlet.stl"
   ],
   "timeout": 1200,
-  "description": "Tilted-axis gravity wheel, axial inlet and outlet, six separately printable proof-of-concept parts"
+  "description": "GW01-V3 axial-flow captive-ball rotor, supported DUPLO ramps, static-gated release (adult-only PoC)"
 }
