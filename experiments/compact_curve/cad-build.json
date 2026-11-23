@@ -1,5 +1,5 @@
 {
-  "version": "X4A-V4",
+  "version": "X4A-V5",
   "command": [
     "python",
     "-m",
@@ -15,5 +15,5 @@
     "X4A-08/brick.stl"
   ],
   "timeout": 1200,
-  "description": "Four downhill 4x2 sharp curves with shared PR91/R16 bore relief (unchanged 14mm interior) and safe 5mm marking"
+  "description": "Four downhill 4x2 sharp curves, PR91-common bore, four outer-wall-spaced tunnel windows (2 straight + 2 curved), safe engraving"
 }
