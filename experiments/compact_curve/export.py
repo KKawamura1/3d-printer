@@ -64,7 +64,7 @@ def export_specimen(root, specimen, unmarked, fit, windows, render_viewer):
         "mesh_volume_matches_brep": abs(mesh["signed_volume_mm3"] - body.Volume())
         < body.Volume() * .001,
         "watertight_mesh": mesh["passed"],
-        "openings": len(windows) == (3 if specimen.tunnel else 0),
+        "openings": len(windows) == (4 if specimen.tunnel else 0),
     }
     if not all(checks.values()):
         raise ValueError(f"{specimen.id}: {checks}")
