@@ -18,7 +18,7 @@ from experiments.compact_curve.design import (
 )
 from experiments.r48_unified_issue89.plate_export import placed_mesh
 
-PLATE = "X4A_4x2_sharp_curves_8parts_A1mini.stl"
+PLATE = "X4A_4x2_downhill_sharp_curves_4parts_A1mini.stl"
 VOLUME_TOLERANCE = .001  # mm³ for BRep differences
 
 
@@ -104,7 +104,7 @@ def export_plate(out):
     triangles = 0
     rows = []
     for index, specimen in enumerate(SPECIMENS):
-        y = 60. - 40. * (index // 2)
+        y = 24. - 48. * (index // 2)
         x = 36. if specimen.left else -36.
         stl = out / specimen.id / "brick.stl"
         count, data, bounds, digest = placed_mesh(stl, x, y)
@@ -124,7 +124,7 @@ def export_plate(out):
                        for i in (0, 1)):
                 raise ValueError(f"{row['id']} and {other['id']} are too close")
     plate = out / PLATE
-    plate.write_bytes(b"X4A 4x2 sharp curve trial".ljust(80, b" ") +
+    plate.write_bytes(b"X4A 4x2 downhill curve trial".ljust(80, b" ") +
                       struct.pack("<I", triangles) + b"".join(facets))
     mesh = mesh_check(plate)
     if not mesh["passed"]:
