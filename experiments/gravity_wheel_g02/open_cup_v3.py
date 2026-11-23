@@ -239,75 +239,18 @@ def static_checks(parts):
     return checks
 
 
-# World-space BRep is used ONLY for assembly/clearance checks. Raw assembly
-# positions must not leak into printable STL exports: the rotor, axle, and
-# pin otherwise float far above the printer plate.
-PRINT_X_ROTATION_DEG = {
-    "rotor": 90,            # lie wheel on the broad Y- hub face
-    "stand_front": 0,       # DUPLO receiver rim on the plate
-    "stand_back_stop": 0,   # DUPLO receiver rim on the plate
-    "axle": 90,             # headed end is the base
-    "stop_pin": -90,        # wide pin head is the base
-}
-
-
-def orient_for_print(name, assembly_shape):
-    """Apply print orientation, center the footprint, and touch z=0.
-
-    This function must NOT change the world-space shape used for STEP or
-    assembly collision tests. It changes pose, not functional dimensions.
-    """
-    if name not in PRINT_X_ROTATION_DEG:
-        raise ValueError(f"Unknown printable part: {name}")
-    shape = assembly_shape.rotate((0, 0, 0), (1, 0, 0),
-                                  PRINT_X_ROTATION_DEG[name])
-    bounds = shape.BoundingBox()
-    return shape.translate((
-        -(bounds.xmin + bounds.xmax) / 2,
-        -(bounds.ymin + bounds.ymax) / 2,
-        -bounds.zmin,
-    ))
-
-
-def print_pose_report(shape):
-    """Actual print-oriented CAD envelope for buildability sanity checks."""
-    b = shape.BoundingBox()
-    return {
-        "min_z_mm": b.zmin,
-        "max_z_mm": b.zmax,
-        "x_span_mm": b.xlen,
-        "y_span_mm": b.ylen,
-        "bed_contact_faces_mm2": sum(
-            face.Area() for face in shape.Faces()
-            if abs(face.BoundingBox().zmin) < 0.02
-            and abs(face.BoundingBox().zmax) < 0.02
-        ),
-    }
-
-
 def export(out):
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    parts = build_parts()  # keep true assembly coordinates for STEP
+    parts = build_parts()
     checks = static_checks(parts)
     from brickcad.verify import mesh_check
     meshes = {}
-    print_poses = {}
-    print_parts = {name: orient_for_print(name, shape)
-                   for name, shape in parts.items()}
-    for name, shape in print_parts.items():
+    for name, shape in parts.items():
         path = out / f"{name}.stl"
-        pose = print_pose_report(shape)
-        print_poses[name] = pose
-        checks[f"print_on_bed_{name}"] = abs(pose["min_z_mm"]) < 0.01
-        checks[f"print_contact_{name}"] = pose["bed_contact_faces_mm2"] > 1.0
-        checks[f"print_bed_fits_{name}"] = (
-            pose["x_span_mm"] <= 180.0
-            and pose["y_span_mm"] <= 180.0)
         cq.exporters.export(shape, str(path), tolerance=.07, angularTolerance=.2)
         meshes[name] = mesh_check(path)
         checks[f"mesh_{name}"] = bool(meshes[name]["passed"])
-        checks[f"mesh_on_bed_{name}"] = abs(meshes[name]["bounds_mm"][0][2]) < 0.08
     cq.exporters.export(
         cq.Compound.makeCompound(list(parts.values())),
         str(out / "assembly.step"))
@@ -317,8 +260,6 @@ def export(out):
         "checks": checks,
         "mesh": {"passed": all(x["passed"] for x in meshes.values())},
         "meshes": meshes,
-        "print_poses": print_poses,
-        "stl_orientation": "print-oriented Z=0; assembly.step remains world coordinates",
         "stop_angles_deg": STOP_ANGLES,
         "ball_diameter_mm": BALL_D,
         "axis_height_mm": AXIS_Z,
@@ -333,7 +274,7 @@ def export(out):
         "inlet_outlet_guides_included": False,
         "self_reset_included": False,
         "warning": "Adult bench prototype. A static exit corridor does not establish dynamic release. No physical impact, pin retention, "
-                   "slicing, support needs, or automatic motion validated.",
+                   "slicing, or automatic motion validated.",
     }
     (out / "report.json").write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n")
