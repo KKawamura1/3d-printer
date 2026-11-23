@@ -45,6 +45,25 @@ class GW02V9Tests(unittest.TestCase):
                             "The full rib must remain attached through the "
                             "spoke-to-rib transition")
 
+    def test_removable_roof_posts_bond_to_both_halves(self):
+        """Print-only supports run from the bed into the former 11-mm roofs."""
+        import cadquery as cq
+        raw = gw.reinforced_rotor_local()
+        self.assertEqual(len(gw.ROOF_SUPPORT_POINTS), 4)
+        for side in (-1, 1):
+            posts = gw.sacrificial_roof_support_local(side)
+            self.assertEqual(len(posts.Solids()), 4)
+            for x, z in gw.ROOF_SUPPORT_POINTS:
+                for layer in (0.2, 5.0, 10.5):
+                    with self.subTest(side=side, x=x, z=z, layer=layer):
+                        self.assertTrue(posts.isInside(
+                            cq.Vector(x, side * layer, z)))
+            self.assertGreater(raw.intersect(posts).Volume(), 1.0)
+            name = "rotor_front" if side < 0 else "rotor_back"
+            printable = gw.orient_for_print(name, self.parts[name])
+            self.assertEqual(len(printable.Solids()), 1)
+            self.assertGreater(printable.Volume() - self.parts[name].Volume(), 300)
+
     def test_assembled_rotor_does_not_gain_sacrificial_support(self):
         original = gw.reinforced_rotor_local()
         # The removable support is added ONLY in orient_for_print.
