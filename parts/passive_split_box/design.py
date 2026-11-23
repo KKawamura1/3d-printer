@@ -20,6 +20,28 @@ from brickcad.verify import exact_bounds, intersection, mesh_check, VOLUME_TOL
 from parts.tunnel.e31_fit import add_e31_05_receiver_features
 
 PART_ID = 'SB02-V2'
+MARK_SIZE_MM = 5.0
+MARK_FRONT_Z_MM = 10.0
+MARK_MIN_EDGE_MARGIN_MM = 1.0
+
+
+def validate_front_mark_fits(p):
+    """Reject a clipped 5mm label before cutting the front wall.
+
+    The full glyph cutter must fit the real 4x2x2 front face. A successful
+    Boolean cut alone is insufficient: it can silently clip lettering.
+    """
+    depth = 0.4  # brickcad.marking.engrave default
+    cutter = (cq.Workplane('XZ', origin=(0, -p.depth / 2 + depth, MARK_FRONT_Z_MM))
+              .text(PART_ID, MARK_SIZE_MM, depth + 0.05,
+                    font='DejaVu Sans', kind='bold', combine=False).val())
+    bb = cutter.BoundingBox()
+    if not (-p.width / 2 + MARK_MIN_EDGE_MARGIN_MM <= bb.xmin
+            and bb.xmax <= p.width / 2 - MARK_MIN_EDGE_MARGIN_MM
+            and 4.75 + MARK_MIN_EDGE_MARGIN_MM <= bb.zmin
+            and bb.zmax <= p.height - MARK_MIN_EDGE_MARGIN_MM):
+        raise ValueError(f'Full engraving {PART_ID} does not fit front wall')
+    return bb
 
 @dataclass(frozen=True)
 class SplitStart:
@@ -115,7 +137,9 @@ def build_split_start(config=SplitStart()):
                                         receiver_depth=config.receiver_depth)
     if not shape.isValid() or len(shape.Solids()) != 1:
         raise ValueError('SB02 must be one valid connected BRep')
-    shape=engrave(shape,PART_ID,x=0,y=-p.depth/2,z=10.)
+    validate_front_mark_fits(p)
+    shape=engrave(shape,PART_ID,x=0,y=-p.depth/2,z=MARK_FRONT_Z_MM,
+                  size=MARK_SIZE_MM)
     return shape,p
 
 
