@@ -10,8 +10,12 @@ class GW02V5Tests(unittest.TestCase):
         cls.parts = gw.build_parts()
         cls.checks = gw.static_checks(cls.parts)
 
-    def test_all_static_and_printability_checks(self):
-        self.assertTrue(all(self.checks.values()),
+    def test_v5_is_rejected_for_disconnected_half_cups(self):
+        # Preserve V5 as a negative regression fixture. It was not printable:
+        # the front half consists of three disconnected solids.
+        self.assertFalse(self.checks["rotor_halves_single_valid_solids"])
+        self.assertTrue(all(ok for name, ok in self.checks.items()
+                            if name != "rotor_halves_single_valid_solids"),
                         [k for k, passed in self.checks.items() if not passed])
         self.assertEqual(set(self.parts), {
             "rotor_front", "rotor_back", "rotor_joiner",
