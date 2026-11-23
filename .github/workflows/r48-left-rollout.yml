@@ -1,0 +1,88 @@
+name: R48 left big-window print trial (PR91 and PR94)
+
+on:
+  pull_request:
+    paths:
+      - "experiments/r48_left_rollout/**"
+      - "brickcad/course_r48_unified.py"
+      - "brickcad/course_finish.py"
+      - ".github/workflows/r48-left-rollout.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r48-left-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate_recipes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Contract and actual 5mm label extents
+        run: python -m unittest experiments.r48_left_rollout.test -v
+
+  generate_two_models:
+    needs: validate_recipes
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        model_id: [X89-E01L-R10, X89-SC02L-R10]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Generate one reflected PR91 R10 part and audit mesh, ports, supports
+        run: |
+          python -m experiments.r48_left_rollout.export \
+            --out build/r48-left --specimen "${{ matrix.model_id }}"
+      - name: Upload validated individual STEP STL and report
+        uses: actions/upload-artifact@v4
+        with:
+          name: r48-left-${{ matrix.model_id }}
+          path: build/r48-left/
+          if-no-files-found: error
+          compression-level: 1
+          retention-days: 14
+
+  assemble_print_plate:
+    needs: generate_two_models
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: r48-left-X89-*
+          path: build/r48-left/
+          merge-multiple: true
+      - name: Verify original STL hashes and 5mm spacing, assemble A1 mini plate
+        run: |
+          python -m experiments.r48_left_rollout.export \
+            --out build/r48-left --assemble-only
+      - name: Upload one 2-part A1 mini STL with individual STEP STL and reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: r48-left-pr91-2parts-a1mini
+          path: build/r48-left/
+          if-no-files-found: error
+          compression-level: 1
+          retention-days: 14
