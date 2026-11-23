@@ -24,13 +24,33 @@ def rounded_side_window(plane, floor_at_offset, inward):
     return cq.Solid.extrudeLinear(wire, [], inward.multiply(WINDOW_CUT_DEPTH_MM))
 
 
-def engrave_trial_west_skirt(shape, label, *, x, y):
-    """Engrave an upright 5 mm trial ID on the west face after any mirror."""
-    plane = cq.Plane(origin=(x + .4, y, 3.5),
+def west_skirt_label_tool(label, *, x, y, face_width_mm=31.8):
+    """Return the full 5mm cutter only if every glyph fits the receiver skirt.
+
+    Replacing the earlier 'any material removed' check prevents clipped
+    lettering, as seen on the PR91 physical print. Coordinates are in mm.
+    """
+    plane = cq.Plane(origin=(x + .4, y, 2.35),
                      xDir=(0, -1, 0), normal=(-1, 0, 0))
     tool = (cq.Workplane(plane)
             .text(label, 5., .45, font="DejaVu Sans",
                   kind="bold", combine=False).val())
+    bounds = tool.BoundingBox()
+    margin = 1.
+    if not (y - face_width_mm / 2 + margin <= bounds.ymin
+            and bounds.ymax <= y + face_width_mm / 2 - margin
+            and .4 <= bounds.zmin and bounds.zmax <= 4.75 - .4):
+        raise ValueError(
+            f"Engraving {label!r} exceeds the west receiver skirt: "
+            f"Y=[{bounds.ymin:.2f},{bounds.ymax:.2f}], "
+            f"Z=[{bounds.zmin:.2f},{bounds.zmax:.2f}]")
+    return tool
+
+
+def engrave_trial_west_skirt(shape, label, *, x, y, face_width_mm=31.8):
+    """Cut an upright, fully contained trial ID after mirroring."""
+    tool = west_skirt_label_tool(label, x=x, y=y,
+                                 face_width_mm=face_width_mm)
     marked = shape.cut(tool).clean()
     if (not marked.isValid() or len(marked.Solids()) != 1
             or shape.Volume() - marked.Volume() < 2):
