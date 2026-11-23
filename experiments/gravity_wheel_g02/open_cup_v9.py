@@ -30,12 +30,16 @@ def reinforced_rotor_local():
     would extend into the running volume and jam the ball.
     """
     original = v4.rotor_local()
-    front_rib = (cq.Workplane("XZ")
-                 .polyline([(-4, -2), (4, -2), (15, 35), (4, 35)])
-                 .close().extrude(7).val().translate((0, -11, 0)))
+    # Previously, the ribs first appeared at |Y|=11 mm, leaving a ~3 mm
+    # gap above the Y=+/-8 mm spokes. The V9 slicer traced ~20 mm of
+    # unsupported extrusion at print Z=11.2 mm. Connect the whole rib
+    # cross-section from the split face to |Y|=18 mm instead.
+    rib = (cq.Workplane("XZ")
+           .polyline([(-4, -2), (4, -2), (15, 35), (4, 35)])
+           .close().extrude(18, both=True).val())
     bore = v4.cup_bore_local()
-    front_rib = front_rib.cut(bore).cut(v4.rotate(bore, 180))
-    reinforced = original.fuse(front_rib).fuse(v4.rotate(front_rib, 180))
+    rib = rib.cut(bore).cut(v4.rotate(bore, 180))
+    reinforced = original.fuse(rib).fuse(v4.rotate(rib, 180))
     # V6's ribs started ~11 mm above the print plane, forming long unsupported
     # bridges. This narrow web connects the hub to each cup at *every* layer
     # from the split plane through 12 mm, before the existing side ribs start.
