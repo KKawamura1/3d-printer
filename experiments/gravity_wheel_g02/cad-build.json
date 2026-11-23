@@ -1,22 +1,16 @@
 {
-  "version": "GW02-V7",
+  "version": "GW02-V8",
   "auto": true,
   "command": [
     "python",
     "-m",
-    "experiments.gravity_wheel_g02.open_cup_v7",
+    "experiments.gravity_wheel_g02.open_cup_v8",
     "--out",
     "{out}"
   ],
   "stl": [
-    "rotor_front.stl",
-    "rotor_back.stl",
-    "rotor_joiner.stl",
-    "stand_front.stl",
-    "stand_back_stop.stl",
-    "axle.stl",
-    "stop_pin.stl"
+    "print_plate.stl"
   ],
   "timeout": 1200,
-  "description": "Split flat-bed rotors with continuous webs connecting cup and hub from bed layers to side braces, four alignment pins; physical print test outstanding"
+  "description": "One 180x180 A1 mini print-plate STL containing both supported split rotor halves, 2 stands, axle, stop pin, and four connector pins"
 }
