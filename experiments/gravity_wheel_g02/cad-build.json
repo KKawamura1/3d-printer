@@ -1,20 +1,22 @@
 {
-  "version": "GW02-V4",
+  "version": "GW02-V5",
   "auto": true,
   "command": [
     "python",
     "-m",
-    "experiments.gravity_wheel_g02.open_cup_v4",
+    "experiments.gravity_wheel_g02.open_cup_v5",
     "--out",
     "{out}"
   ],
   "stl": [
-    "rotor.stl",
+    "rotor_front.stl",
+    "rotor_back.stl",
+    "rotor_joiner.stl",
     "stand_front.stl",
     "stand_back_stop.stl",
     "axle.stl",
     "stop_pin.stl"
   ],
   "timeout": 1200,
-  "description": "V3 geometry with bed-aligned print STLs and separate world-coordinate assembly STEP; print support inspection still required"
+  "description": "V4 rotor divided into two flat-bed printable half-cups, four dowel connectors; physical assembly and support needs unverified"
 }
