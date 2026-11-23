@@ -1,4 +1,4 @@
-"""V8: printable single-plate mesh and removable stop-lug support."""
+"""GW02-V9: one print plate and slice-aware rib continuity regression."""
 import unittest
 from experiments.gravity_wheel_g02 import open_cup_v9 as gw
 
@@ -26,6 +26,24 @@ class GW02V9Tests(unittest.TestCase):
         self.assertGreater(printable.Volume() - raw.Volume(), 100)
         self.assertAlmostEqual(printable.BoundingBox().zmin, 0, delta=.01)
         self.assertEqual(len(printable.Solids()), 1)
+
+    def test_ribs_exist_across_all_print_layers(self):
+        """Both opposed ribs must grow FROM the spokes, not start midair.
+
+        V9's Bambu Studio G-code had a ~19.7 mm unsupported jump at
+        print Z=11.2 mm because full ribs started at Y=+/-11 mm,
+        whereas their supporting spokes ended at Y=+/-8 mm.
+        """
+        import cadquery as cq
+        shape = gw.reinforced_rotor_local()
+        for x, z in ((6, 20), (-6, -20)):
+            for side in (-1, 1):
+                for height in (8.1, 9, 10, 10.8, 11, 11.2, 12, 14, 17):
+                    with self.subTest(x=x, z=z, side=side, height=height):
+                        self.assertTrue(
+                            shape.isInside(cq.Vector(x, side * height, z)),
+                            "The full rib must remain attached through the "
+                            "spoke-to-rib transition")
 
     def test_assembled_rotor_does_not_gain_sacrificial_support(self):
         original = gw.reinforced_rotor_local()
