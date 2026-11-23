@@ -1,10 +1,10 @@
 {
-  "version": "GW02-V2",
+  "version": "GW02-V3",
   "auto": true,
   "command": [
     "python",
     "-m",
-    "experiments.gravity_wheel_g02.open_cup_v2",
+    "experiments.gravity_wheel_g02.open_cup_v3",
     "--out",
     "{out}"
   ],
@@ -16,5 +16,5 @@
     "stop_pin.stl"
   ],
   "timeout": 1200,
-  "description": "Cover-free two-cup gravity flip wheel, 160/170/180-degree selectable mechanical impact stop, E31 receiver bases; static-only PoC"
+  "description": "Open 180° flip-cup wheel, inward-tilted pockets with retaining lips, selectable 160/170/180° mechanical stop; static-only PoC"
 }
