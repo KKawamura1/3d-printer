@@ -1,0 +1,21 @@
+{
+  "version": "GW01-V4",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "experiments.gravity_wheel_g01.axial_v4",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "rotor.stl",
+    "frame_inlet.stl",
+    "frame_outlet.stl",
+    "axle.stl",
+    "guide_inlet.stl",
+    "guide_outlet.stl"
+  ],
+  "timeout": 1200,
+  "description": "120-degree axial gravity wheel with 48mm lateral rail shift, shared V3 rotor and E31 supports (static CAD PoC)"
+}
