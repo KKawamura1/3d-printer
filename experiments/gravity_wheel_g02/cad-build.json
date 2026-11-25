@@ -1,0 +1,16 @@
+{
+  "version": "GW02-V11",
+  "auto": true,
+  "command": [
+    "python",
+    "-m",
+    "experiments.gravity_wheel_g02.open_cup_v11",
+    "--out",
+    "{out}"
+  ],
+  "stl": [
+    "print_plate.stl"
+  ],
+  "timeout": 1200,
+  "description": "V11: no unsupported rib jump, four removable posts per rotor half and one stop post; one plate STL with 10 correct parts; connector pins never inherit scaffold"
+}
